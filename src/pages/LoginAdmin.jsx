@@ -26,9 +26,11 @@ function LoginAdmin() {
   return (
     <main className="container login-container">
       <h1>Acceso administrativo</h1>
-      <p>Panel privado para consultar las citas agendadas.</p>
+      <p className="subtitle">
+        Panel privado para consultar, confirmar y administrar citas.
+      </p>
 
-      <form className="form" onSubmit={login}>
+      <form className="form login-form" onSubmit={login}>
         <input
           type="email"
           placeholder="Correo del administrador"

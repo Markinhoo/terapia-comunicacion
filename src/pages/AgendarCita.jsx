@@ -16,6 +16,7 @@ function AgendarCita() {
   });
 
   const [mensaje, setMensaje] = useState('');
+  const [tipoMensaje, setTipoMensaje] = useState('');
 
   const handleChange = (e) => {
     setForm({
@@ -24,34 +25,58 @@ function AgendarCita() {
     });
   };
 
-  const guardarCita = async (e) => {
-    e.preventDefault();
+const guardarCita = async (e) => {
+  e.preventDefault();
 
-    const { error } = await supabase.from('citas').insert([form]);
+  const { data: existe, error: errorConsulta } = await supabase
+    .from('citas')
+    .select('id')
+    .eq('fecha', form.fecha)
+    .eq('hora', form.hora)
+    .neq('estatus', 'Cancelada');
 
-    if (error) {
-      setMensaje('Ocurrió un error al registrar la cita.');
-      console.error(error);
-    } else {
-      setMensaje('La cita fue registrada correctamente.');
-      setForm({
-        nombre_paciente: '',
-        edad: '',
-        nombre_responsable: '',
-        telefono: '',
-        correo: '',
-        servicio: '',
-        modalidad: 'Presencial',
-        fecha: '',
-        hora: '',
-        motivo_consulta: ''
-      });
-    }
-  };
+  if (errorConsulta) {
+    setMensaje('No se pudo verificar la disponibilidad.');
+    setTipoMensaje('error');
+    return;
+  }
 
+  if (existe.length > 0) {
+    setMensaje('Ya existe una cita registrada en ese horario.');
+    setTipoMensaje('error');
+    return;
+  }
+
+  const { error } = await supabase.from('citas').insert([form]);
+
+  if (error) {
+    setMensaje('Ocurrió un error al registrar la cita.');
+    setTipoMensaje('error');
+    console.error(error);
+  } else {
+    setMensaje('La cita fue registrada correctamente. Nos comunicaremos para confirmar.');
+    setTipoMensaje('exito');
+
+    setForm({
+      nombre_paciente: '',
+      edad: '',
+      nombre_responsable: '',
+      telefono: '',
+      correo: '',
+      servicio: '',
+      modalidad: 'Presencial',
+      fecha: '',
+      hora: '',
+      motivo_consulta: ''
+    });
+  }
+};
   return (
     <main className="container">
       <h1>Agendar valoración o cita</h1>
+      <p className="subtitle">
+        Completa la información para solicitar una valoración inicial o una cita de seguimiento.
+      </p>
 
       <form className="form" onSubmit={guardarCita}>
         <input
@@ -144,7 +169,11 @@ function AgendarCita() {
         <button type="submit">Registrar cita</button>
       </form>
 
-      {mensaje && <p className="mensaje">{mensaje}</p>}
+      {mensaje && (
+        <p className={tipoMensaje === 'exito' ? 'mensaje' : 'error'}>
+          {mensaje}
+        </p>
+      )}
     </main>
   );
 }

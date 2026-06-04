@@ -3,6 +3,8 @@ import Inicio from './pages/Inicio';
 import AgendarCita from './pages/AgendarCita';
 import LoginAdmin from './pages/LoginAdmin';
 import PanelAdmin from './pages/PanelAdmin';
+import CalendarioCitas from './pages/CalendarioCitas';
+import Pacientes from './pages/Pacientes';
 
 function App() {
   return (
@@ -11,7 +13,7 @@ function App() {
         <h2>ComunicaTerapia</h2>
         <div>
           <Link to="/">Inicio</Link>
-          <Link to="/agendar">Agendar valoración</Link>
+          <Link to="/agendar">Agendar cita</Link>
           <Link to="/login">Admin</Link>
         </div>
       </nav>
@@ -21,6 +23,8 @@ function App() {
         <Route path="/agendar" element={<AgendarCita />} />
         <Route path="/login" element={<LoginAdmin />} />
         <Route path="/admin" element={<PanelAdmin />} />
+        <Route path="/calendario" element={<CalendarioCitas />} />
+        <Route path="/pacientes" element={<Pacientes />} />
       </Routes>
     </>
   );
