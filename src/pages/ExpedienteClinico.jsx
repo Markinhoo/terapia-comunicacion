@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 
 function ExpedienteClinico() {
-  const { citaId } = useParams();
+ const { pacienteId } = useParams();
   const navigate = useNavigate();
 
   const [cita, setCita] = useState(null);
@@ -15,34 +15,33 @@ function ExpedienteClinico() {
     tareas_casa: ''
   });
 
-  useEffect(() => {
-    obtenerCita();
-    obtenerExpedientes();
-  }, []);
+useEffect(() => {
+  obtenerPaciente();
+  obtenerExpedientes();
+}, []);
 
-  const obtenerCita = async () => {
-    const { data, error } = await supabase
-      .from('citas')
-      .select('*')
-      .eq('id', citaId)
-      .single();
+  const obtenerPaciente = async () => {
+  const { data, error } = await supabase
+    .from('pacientes')
+    .select('*')
+    .eq('id', pacienteId)
+    .single();
 
-    if (!error) {
-      setCita(data);
-    }
-  };
-
+  if (!error) {
+    setCita(data);
+  }
+};
   const obtenerExpedientes = async () => {
-    const { data, error } = await supabase
-      .from('expedientes')
-      .select('*')
-      .eq('cita_id', citaId)
-      .order('fecha', { ascending: false });
+  const { data, error } = await supabase
+    .from('expedientes')
+    .select('*')
+    .eq('paciente_id', pacienteId)
+    .order('fecha', { ascending: false });
 
-    if (!error) {
-      setExpedientes(data);
-    }
-  };
+  if (!error) {
+    setExpedientes(data);
+  }
+};
 
   const handleChange = (e) => {
     setForm({
@@ -55,13 +54,13 @@ function ExpedienteClinico() {
     e.preventDefault();
 
     const nuevoExpediente = {
-      cita_id: Number(citaId),
-      fecha: new Date().toISOString().split('T')[0],
-      diagnostico: form.diagnostico,
-      evolucion: form.evolucion,
-      recomendaciones: form.recomendaciones,
-      tareas_casa: form.tareas_casa
-    };
+  paciente_id: Number(pacienteId),
+  fecha: new Date().toISOString().split('T')[0],
+  diagnostico: form.diagnostico,
+  evolucion: form.evolucion,
+  recomendaciones: form.recomendaciones,
+  tareas_casa: form.tareas_casa
+};
 
     const { error } = await supabase
       .from('expedientes')

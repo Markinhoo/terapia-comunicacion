@@ -239,7 +239,7 @@ const servicios = Object.values(
                   <button className="btn-secondary" onClick={() => marcarAsistio(cita.id)}>
                     Asistió
                   </button>
-                  <button className="btn-secondary" onClick={() => navigate(`/expediente/${cita.id}`)}>
+                  <button className="btn-secondary" onClick={() => navigate(`/expediente/${cita.paciente_id}`)}>
                     Expediente
                   </button>
 

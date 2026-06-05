@@ -28,26 +28,45 @@ function AgendarCita() {
 const guardarCita = async (e) => {
   e.preventDefault();
 
-  const { data: existe, error: errorConsulta } = await supabase
+  let pacienteId = null;
+
+  const { data: pacienteExistente } = await supabase
+    .from('pacientes')
+    .select('*')
+    .eq('telefono', form.telefono)
+    .maybeSingle();
+
+  if (pacienteExistente) {
+    pacienteId = pacienteExistente.id;
+  } else {
+    const { data: nuevoPaciente, error: errorPaciente } = await supabase
+      .from('pacientes')
+      .insert([{
+        nombre_paciente: form.nombre_paciente,
+        edad: form.edad,
+        nombre_responsable: form.nombre_responsable,
+        telefono: form.telefono,
+        correo: form.correo
+      }])
+      .select()
+      .single();
+
+    if (errorPaciente) {
+      setMensaje('No se pudo registrar el paciente.');
+      setTipoMensaje('error');
+      console.error(errorPaciente);
+      return;
+    }
+
+    pacienteId = nuevoPaciente.id;
+  }
+
+  const { error } = await supabase
     .from('citas')
-    .select('id')
-    .eq('fecha', form.fecha)
-    .eq('hora', form.hora)
-    .neq('estatus', 'Cancelada');
-
-  if (errorConsulta) {
-    setMensaje('No se pudo verificar la disponibilidad.');
-    setTipoMensaje('error');
-    return;
-  }
-
-  if (existe.length > 0) {
-    setMensaje('Ya existe una cita registrada en ese horario.');
-    setTipoMensaje('error');
-    return;
-  }
-
-  const { error } = await supabase.from('citas').insert([form]);
+    .insert([{
+      ...form,
+      paciente_id: pacienteId
+    }]);
 
   if (error) {
     setMensaje('Ocurrió un error al registrar la cita.');

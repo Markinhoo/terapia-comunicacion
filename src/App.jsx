@@ -27,7 +27,7 @@ function App() {
         <Route path="/admin" element={<PanelAdmin />} />
         <Route path="/calendario" element={<CalendarioCitas />} />
         <Route path="/pacientes" element={<Pacientes />} />
-        <Route path="/expediente/:citaId" element={<ExpedienteClinico />} />
+        <Route path="/expediente/:pacienteId" element={<ExpedienteClinico />} />
       </Routes>
 
       <WhatsAppFloat />
