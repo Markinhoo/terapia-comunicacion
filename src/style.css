@@ -350,3 +350,19 @@ td textarea {
 .whatsapp-float:hover {
   background: #1ebe5d;
 }
+
+.form-section {
+  margin: 25px 0;
+}
+
+.expediente-card {
+  background: white;
+  padding: 22px;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  margin-bottom: 18px;
+}
+
+.expediente-card h3 {
+  color: #6b4f9b;
+}
