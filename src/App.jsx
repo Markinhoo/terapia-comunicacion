@@ -5,6 +5,8 @@ import LoginAdmin from './pages/LoginAdmin';
 import PanelAdmin from './pages/PanelAdmin';
 import CalendarioCitas from './pages/CalendarioCitas';
 import Pacientes from './pages/Pacientes';
+import ExpedienteClinico from './pages/ExpedienteClinico';
+import WhatsAppFloat from './components/WhatsAppFloat';
 
 function App() {
   return (
@@ -25,7 +27,10 @@ function App() {
         <Route path="/admin" element={<PanelAdmin />} />
         <Route path="/calendario" element={<CalendarioCitas />} />
         <Route path="/pacientes" element={<Pacientes />} />
+        <Route path="/expediente/:citaId" element={<ExpedienteClinico />} />
       </Routes>
+
+      <WhatsAppFloat />
     </>
   );
 }
