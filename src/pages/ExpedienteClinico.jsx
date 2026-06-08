@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
+import { generarPDF } from '../utils/generarPDF';
 
 function ExpedienteClinico() {
   const { pacienteId } = useParams();
@@ -8,6 +9,8 @@ function ExpedienteClinico() {
 
   const [paciente, setPaciente] = useState(null);
   const [expedientes, setExpedientes] = useState([]);
+  const [objetivos, setObjetivos] = useState([]);
+  const [objetivosPaciente, setObjetivosPaciente] = useState([]);
 
   const [detalle, setDetalle] = useState({
     fecha_nacimiento: '',
@@ -23,6 +26,8 @@ function ExpedienteClinico() {
 
   const [form, setForm] = useState({
     diagnostico: '',
+    objetivo_trabajado: '',
+    porcentaje_avance: 0,
     evolucion: '',
     recomendaciones: '',
     tareas_casa: ''
@@ -32,6 +37,8 @@ function ExpedienteClinico() {
     obtenerPaciente();
     obtenerDetallePaciente();
     obtenerExpedientes();
+    obtenerObjetivos();
+    obtenerObjetivosPaciente();
   }, []);
 
   const obtenerPaciente = async () => {
@@ -79,6 +86,40 @@ function ExpedienteClinico() {
 
     if (!error) {
       setExpedientes(data);
+    } else {
+      console.error(error);
+    }
+  };
+
+  const obtenerObjetivos = async () => {
+    const { data, error } = await supabase
+      .from('objetivos_terapeuticos')
+      .select('*')
+      .eq('activo', true)
+      .order('nombre', { ascending: true });
+
+    if (!error) {
+      setObjetivos(data);
+    } else {
+      console.error(error);
+    }
+  };
+
+  const obtenerObjetivosPaciente = async () => {
+    const { data, error } = await supabase
+      .from('paciente_objetivos')
+      .select(`
+        *,
+        objetivos_terapeuticos (
+          id,
+          nombre,
+          descripcion
+        )
+      `)
+      .eq('paciente_id', pacienteId);
+
+    if (!error) {
+      setObjetivosPaciente(data);
     } else {
       console.error(error);
     }
@@ -142,6 +183,53 @@ function ExpedienteClinico() {
     alert('Ficha clínica guardada correctamente.');
   };
 
+  const agregarObjetivoPaciente = async (objetivoId) => {
+    if (!objetivoId) return;
+
+    const yaExiste = objetivosPaciente.some(
+      (obj) => String(obj.objetivo_id) === String(objetivoId)
+    );
+
+    if (yaExiste) {
+      alert('Este objetivo ya está asignado al paciente.');
+      return;
+    }
+
+    const { error } = await supabase
+      .from('paciente_objetivos')
+      .insert([
+        {
+          paciente_id: Number(pacienteId),
+          objetivo_id: Number(objetivoId),
+          porcentaje_avance: 0
+        }
+      ]);
+
+    if (!error) {
+      obtenerObjetivosPaciente();
+    } else {
+      alert('No se pudo asignar el objetivo.');
+      console.error(error);
+    }
+  };
+
+  const actualizarAvanceObjetivo = async (objetivoNombre, porcentaje) => {
+    const objetivoPaciente = objetivosPaciente.find(
+      (obj) => obj.objetivos_terapeuticos?.nombre === objetivoNombre
+    );
+
+    if (!objetivoPaciente) return;
+
+    await supabase
+      .from('paciente_objetivos')
+      .update({
+        porcentaje_avance: Number(porcentaje)
+      })
+      .eq('id', objetivoPaciente.id);
+
+    obtenerObjetivosPaciente();
+  };
+
   const guardarExpediente = async (e) => {
     e.preventDefault();
 
@@ -149,6 +237,8 @@ function ExpedienteClinico() {
       paciente_id: Number(pacienteId),
       fecha: new Date().toISOString().split('T')[0],
       diagnostico: form.diagnostico,
+      objetivo_trabajado: form.objetivo_trabajado,
+      porcentaje_avance: Number(form.porcentaje_avance),
       evolucion: form.evolucion,
       recomendaciones: form.recomendaciones,
       tareas_casa: form.tareas_casa
@@ -164,8 +254,17 @@ function ExpedienteClinico() {
       return;
     }
 
+    if (form.objetivo_trabajado) {
+      await actualizarAvanceObjetivo(
+        form.objetivo_trabajado,
+        form.porcentaje_avance
+      );
+    }
+
     setForm({
       diagnostico: '',
+      objetivo_trabajado: '',
+      porcentaje_avance: 0,
       evolucion: '',
       recomendaciones: '',
       tareas_casa: ''
@@ -181,6 +280,15 @@ function ExpedienteClinico() {
       </button>
 
       <h1>Expediente clínico</h1>
+
+      {paciente && (
+        <button
+          type="button"
+          onClick={() => generarPDF(paciente, detalle, expedientes)}
+        >
+          Generar PDF
+        </button>
+      )}
 
       {paciente && (
         <section className="info-section">
@@ -266,6 +374,40 @@ function ExpedienteClinico() {
         </button>
       </section>
 
+      <section className="expediente-card">
+        <h2>Plan terapéutico</h2>
+
+        <select
+          onChange={(e) => agregarObjetivoPaciente(e.target.value)}
+          defaultValue=""
+        >
+          <option value="">Seleccionar objetivo terapéutico</option>
+
+          {objetivos.map((obj) => (
+            <option key={obj.id} value={obj.id}>
+              {obj.nombre}
+            </option>
+          ))}
+        </select>
+
+        <div className="objetivos-grid">
+          {objetivosPaciente.map((obj) => (
+            <div key={obj.id} className="objetivo-card">
+              <h4>{obj.objetivos_terapeuticos?.nombre}</h4>
+
+              <p>
+                Avance: <strong>{obj.porcentaje_avance}%</strong>
+              </p>
+
+              <progress
+                value={obj.porcentaje_avance}
+                max="100"
+              />
+            </div>
+          ))}
+        </div>
+      </section>
+
       <section className="form-section">
         <h2>Nueva nota clínica</h2>
 
@@ -276,6 +418,33 @@ function ExpedienteClinico() {
             value={form.diagnostico}
             onChange={handleFormChange}
             required
+          />
+
+          <select
+            name="objetivo_trabajado"
+            value={form.objetivo_trabajado}
+            onChange={handleFormChange}
+          >
+            <option value="">Objetivo trabajado</option>
+
+            {objetivosPaciente.map((obj) => (
+              <option
+                key={obj.id}
+                value={obj.objetivos_terapeuticos?.nombre}
+              >
+                {obj.objetivos_terapeuticos?.nombre}
+              </option>
+            ))}
+          </select>
+
+          <input
+            type="number"
+            min="0"
+            max="100"
+            name="porcentaje_avance"
+            placeholder="Porcentaje de avance"
+            value={form.porcentaje_avance}
+            onChange={handleFormChange}
           />
 
           <textarea
@@ -316,9 +485,21 @@ function ExpedienteClinico() {
         {expedientes.map((exp) => (
           <div className="expediente-card" key={exp.id}>
             <h3>Fecha: {exp.fecha}</h3>
+
             <p><strong>Diagnóstico:</strong> {exp.diagnostico}</p>
+
+            <p>
+              <strong>Objetivo:</strong> {exp.objetivo_trabajado || 'Sin objetivo'}
+            </p>
+
+            <p>
+              <strong>Avance:</strong> {exp.porcentaje_avance || 0}%
+            </p>
+
             <p><strong>Evolución:</strong> {exp.evolucion}</p>
+
             <p><strong>Recomendaciones:</strong> {exp.recomendaciones}</p>
+
             <p><strong>Tareas en casa:</strong> {exp.tareas_casa}</p>
           </div>
         ))}
