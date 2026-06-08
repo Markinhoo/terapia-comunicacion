@@ -393,3 +393,77 @@ td textarea {
   border-radius:12px;
   padding:15px;
 }
+.archivos-lista {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.archivo-card {
+  background: #f7f7f7;
+  border-radius: 12px;
+  padding: 15px;
+}
+
+.dashboard-layout{
+  display:flex;
+  min-height:100vh;
+}
+
+.sidebar{
+  width:280px;
+  background:#6B4F9B;
+  color:white;
+  padding:20px;
+  transition:.3s;
+}
+
+.sidebar.collapsed{
+  width:80px;
+}
+
+.sidebar nav{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  margin-top:30px;
+}
+
+.sidebar nav a{
+  color:white;
+  text-decoration:none;
+  padding:12px;
+  border-radius:10px;
+}
+
+.sidebar nav a.active{
+  background:white;
+  color:#6B4F9B;
+}
+
+.dashboard-content{
+  flex:1;
+  padding:30px;
+  background:#F5F6FA;
+}
+
+.cards-grid{
+  display:grid;
+  grid-template-columns:
+  repeat(auto-fit,minmax(220px,1fr));
+  gap:20px;
+}
+
+.card-kpi{
+  background:white;
+  padding:20px;
+  border-radius:15px;
+  box-shadow:0 3px 10px rgba(0,0,0,.08);
+}
+
+.card-kpi span{
+  font-size:36px;
+  font-weight:bold;
+  color:#6B4F9B;
+}

@@ -7,12 +7,16 @@ import CalendarioCitas from './pages/CalendarioCitas';
 import Pacientes from './pages/Pacientes';
 import ExpedienteClinico from './pages/ExpedienteClinico';
 import WhatsAppFloat from './components/WhatsAppFloat';
+import { useLocation } from 'react-router-dom';
+
 
 function App() {
+
+  const location = useLocation();
   return (
     <>
       <nav className="navbar">
-        <h2>ComunicaTerapia</h2>
+        <h2>Clínica Casas</h2>
         <div>
           <Link to="/">Inicio</Link>
           <Link to="/agendar">Agendar cita</Link>
@@ -24,13 +28,15 @@ function App() {
         <Route path="/" element={<Inicio />} />
         <Route path="/agendar" element={<AgendarCita />} />
         <Route path="/login" element={<LoginAdmin />} />
-        <Route path="/admin" element={<PanelAdmin />} />
+        <Route path="/admin/*" element={<PanelAdmin />} />
         <Route path="/calendario" element={<CalendarioCitas />} />
         <Route path="/pacientes" element={<Pacientes />} />
         <Route path="/expediente/:pacienteId" element={<ExpedienteClinico />} />
       </Routes>
 
-      <WhatsAppFloat />
+       {!location.pathname.startsWith('/admin') &&
+        <WhatsAppFloat />
+      }
     </>
   );
 }

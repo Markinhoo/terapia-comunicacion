@@ -11,6 +11,8 @@ function ExpedienteClinico() {
   const [expedientes, setExpedientes] = useState([]);
   const [objetivos, setObjetivos] = useState([]);
   const [objetivosPaciente, setObjetivosPaciente] = useState([]);
+  const [archivo, setArchivo] = useState(null);
+  const [archivosPaciente, setArchivosPaciente] = useState([]);
 
   const [detalle, setDetalle] = useState({
     fecha_nacimiento: '',
@@ -39,6 +41,7 @@ function ExpedienteClinico() {
     obtenerExpedientes();
     obtenerObjetivos();
     obtenerObjetivosPaciente();
+    obtenerArchivosPaciente();
   }, []);
 
   const obtenerPaciente = async () => {
@@ -48,11 +51,8 @@ function ExpedienteClinico() {
       .eq('id', pacienteId)
       .single();
 
-    if (!error) {
-      setPaciente(data);
-    } else {
-      console.error(error);
-    }
+    if (!error) setPaciente(data);
+    else console.error(error);
   };
 
   const obtenerDetallePaciente = async () => {
@@ -84,11 +84,8 @@ function ExpedienteClinico() {
       .eq('paciente_id', pacienteId)
       .order('fecha', { ascending: false });
 
-    if (!error) {
-      setExpedientes(data);
-    } else {
-      console.error(error);
-    }
+    if (!error) setExpedientes(data);
+    else console.error(error);
   };
 
   const obtenerObjetivos = async () => {
@@ -98,11 +95,8 @@ function ExpedienteClinico() {
       .eq('activo', true)
       .order('nombre', { ascending: true });
 
-    if (!error) {
-      setObjetivos(data);
-    } else {
-      console.error(error);
-    }
+    if (!error) setObjetivos(data);
+    else console.error(error);
   };
 
   const obtenerObjetivosPaciente = async () => {
@@ -118,11 +112,19 @@ function ExpedienteClinico() {
       `)
       .eq('paciente_id', pacienteId);
 
-    if (!error) {
-      setObjetivosPaciente(data);
-    } else {
-      console.error(error);
-    }
+    if (!error) setObjetivosPaciente(data);
+    else console.error(error);
+  };
+
+  const obtenerArchivosPaciente = async () => {
+    const { data, error } = await supabase
+      .from('archivos_paciente')
+      .select('*')
+      .eq('paciente_id', pacienteId)
+      .order('fecha_subida', { ascending: false });
+
+    if (!error) setArchivosPaciente(data);
+    else console.error(error);
   };
 
   const handleDetalleChange = (e) => {
@@ -205,9 +207,8 @@ function ExpedienteClinico() {
         }
       ]);
 
-    if (!error) {
-      obtenerObjetivosPaciente();
-    } else {
+    if (!error) obtenerObjetivosPaciente();
+    else {
       alert('No se pudo asignar el objetivo.');
       console.error(error);
     }
@@ -271,6 +272,89 @@ function ExpedienteClinico() {
     });
 
     obtenerExpedientes();
+  };
+
+  const subirArchivo = async () => {
+    if (!archivo) {
+      alert('Selecciona un archivo.');
+      return;
+    }
+
+    const ruta = `${pacienteId}/${Date.now()}_${archivo.name}`;
+
+    const { error: errorUpload } = await supabase.storage
+      .from('expedientes')
+      .upload(ruta, archivo);
+
+    if (errorUpload) {
+      alert('No se pudo subir el archivo.');
+      console.error(errorUpload);
+      return;
+    }
+
+    const { error: errorBD } = await supabase
+      .from('archivos_paciente')
+      .insert([
+        {
+          paciente_id: Number(pacienteId),
+          nombre_archivo: archivo.name,
+          ruta_archivo: ruta,
+          tipo_archivo: archivo.type
+        }
+      ]);
+
+    if (errorBD) {
+      alert('El archivo se subió, pero no se pudo guardar el registro.');
+      console.error(errorBD);
+      return;
+    }
+
+    setArchivo(null);
+    obtenerArchivosPaciente();
+    alert('Archivo subido correctamente.');
+  };
+
+  const abrirArchivo = async (ruta) => {
+    const { data, error } = await supabase.storage
+      .from('expedientes')
+      .createSignedUrl(ruta, 60);
+
+    if (error) {
+      alert('No se pudo abrir el archivo.');
+      console.error(error);
+      return;
+    }
+
+    window.open(data.signedUrl, '_blank');
+  };
+
+  const eliminarArchivo = async (archivoPaciente) => {
+    const confirmar = window.confirm('¿Deseas eliminar este archivo?');
+
+    if (!confirmar) return;
+
+    const { error: errorStorage } = await supabase.storage
+      .from('expedientes')
+      .remove([archivoPaciente.ruta_archivo]);
+
+    if (errorStorage) {
+      alert('No se pudo eliminar el archivo del almacenamiento.');
+      console.error(errorStorage);
+      return;
+    }
+
+    const { error: errorBD } = await supabase
+      .from('archivos_paciente')
+      .delete()
+      .eq('id', archivoPaciente.id);
+
+    if (errorBD) {
+      alert('No se pudo eliminar el registro.');
+      console.error(errorBD);
+      return;
+    }
+
+    obtenerArchivosPaciente();
   };
 
   return (
@@ -399,10 +483,7 @@ function ExpedienteClinico() {
                 Avance: <strong>{obj.porcentaje_avance}%</strong>
               </p>
 
-              <progress
-                value={obj.porcentaje_avance}
-                max="100"
-              />
+              <progress value={obj.porcentaje_avance} max="100" />
             </div>
           ))}
         </div>
@@ -473,6 +554,47 @@ function ExpedienteClinico() {
             Guardar nota clínica
           </button>
         </form>
+      </section>
+
+      <section className="expediente-card">
+        <h2>Archivos del paciente</h2>
+
+        <input
+          type="file"
+          onChange={(e) => setArchivo(e.target.files[0])}
+        />
+
+        <button type="button" onClick={subirArchivo}>
+          Subir archivo
+        </button>
+
+        {archivosPaciente.length === 0 && (
+          <p className="empty">No hay archivos registrados.</p>
+        )}
+
+        <div className="archivos-lista">
+          {archivosPaciente.map((item) => (
+            <div key={item.id} className="archivo-card">
+              <p><strong>{item.nombre_archivo}</strong></p>
+              <p>{item.tipo_archivo}</p>
+
+              <button
+                type="button"
+                onClick={() => abrirArchivo(item.ruta_archivo)}
+              >
+                Abrir
+              </button>
+
+              <button
+                type="button"
+                className="btn-danger"
+                onClick={() => eliminarArchivo(item)}
+              >
+                Eliminar
+              </button>
+            </div>
+          ))}
+        </div>
       </section>
 
       <section>
