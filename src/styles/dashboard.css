@@ -1,0 +1,51 @@
+.dashboard-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.dashboard-content {
+  flex: 1;
+  padding: 30px;
+  background: #f5f6fa;
+  min-width: 0;
+}
+
+.cards-grid,
+.dashboard {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.card-kpi,
+.dashboard-card,
+.chart-card,
+.dashboard-section {
+  background: white;
+  padding: 24px;
+  border-radius: 15px;
+  box-shadow: 0 3px 10px rgba(0,0,0,.08);
+}
+
+.card-kpi span,
+.dashboard-card h2 {
+  font-size: 36px;
+  font-weight: bold;
+  color: #6b4f9b;
+}
+
+.admin-header,
+.admin-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.calendar-container {
+  background: white;
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}

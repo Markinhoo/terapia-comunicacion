@@ -1,0 +1,64 @@
+.sidebar {
+  width: 280px;
+  background: #6b4f9b;
+  color: white;
+  padding: 20px;
+  transition: 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar.collapsed {
+  width: 80px;
+  padding: 20px 12px;
+}
+
+.sidebar-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.menu-toggle {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 8px;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  height: 100%;
+}
+
+.sidebar-nav a,
+.logout-link {
+  color: white;
+  text-decoration: none;
+  padding: 12px;
+  border-radius: 10px;
+  background: transparent;
+  border: none;
+  text-align: left;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.sidebar-nav a.active {
+  background: white;
+  color: #6b4f9b;
+}
+
+.logout-link {
+  margin-top: auto;
+}
+
+.logout-link:hover,
+.sidebar-nav a:hover {
+  background: rgba(255, 255, 255, 0.18);
+}

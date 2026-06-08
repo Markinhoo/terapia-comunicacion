@@ -1,0 +1,47 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f4f8fb;
+  color: #263238;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 40px auto;
+  padding: 20px;
+}
+
+.subtitle {
+  color: #607d8b;
+  margin-top: -5px;
+}
+
+.btn,
+button {
+  background: #6b4f9b;
+  color: white;
+  border: none;
+  padding: 12px 22px;
+  border-radius: 10px;
+  cursor: pointer;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.btn-danger {
+  background: #c0392b;
+}
+
+.btn-secondary {
+  background: #607d8b;
+}
+
+.btn-whatsapp {
+  background: #25d366;
+}
+
+.empty {
+  text-align: center;
+  color: #607d8b;
+  font-weight: bold;
+}

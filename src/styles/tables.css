@@ -1,0 +1,71 @@
+.toolbar {
+  margin: 20px 0;
+}
+
+.toolbar input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.table-container {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  background: white;
+  border-collapse: collapse;
+  margin-top: 20px;
+  font-size: 14px;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+th,
+td {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+  text-align: left;
+}
+
+th {
+  background: #6b4f9b;
+  color: white;
+}
+
+.badge {
+  padding: 6px 10px;
+  border-radius: 20px;
+  font-weight: bold;
+  font-size: 12px;
+}
+
+.badge.pendiente {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.badge.confirmada {
+  background: #d4edda;
+  color: #155724;
+}
+
+.badge.cancelada {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.acciones button,
+.acciones a {
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  text-decoration: none;
+  color: white;
+}

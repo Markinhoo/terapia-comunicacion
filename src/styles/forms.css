@@ -1,0 +1,43 @@
+.form {
+  background: white;
+  padding: 25px;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+input,
+select,
+textarea {
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+textarea {
+  min-height: 90px;
+}
+
+.mensaje {
+  color: green;
+  font-weight: bold;
+}
+
+.error {
+  color: red;
+  font-weight: bold;
+}
+
+.login-container {
+  max-width: 500px;
+}
+
+.login-form {
+  margin-top: 20px;
+}
+
+.form-section {
+  margin: 25px 0;
+}

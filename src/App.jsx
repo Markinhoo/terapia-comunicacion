@@ -16,7 +16,11 @@ function App() {
   return (
     <>
       <nav className="navbar">
-        <h2>Clínica Casas</h2>
+        <div className="brand">
+          <img src="/logo.png" alt="Clínica Casas" className="brand-logo" />
+          <h2>Clínica Casas</h2>
+        </div>
+        
         <div>
           <Link to="/">Inicio</Link>
           <Link to="/agendar">Agendar cita</Link>

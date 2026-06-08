@@ -1,0 +1,39 @@
+.expediente-card {
+  background: white;
+  padding: 25px;
+  border-radius: 16px;
+  margin: 20px 0;
+  box-shadow: 0 4px 12px rgba(0,0,0,.08);
+}
+
+.expediente-card h3,
+.objetivo-card h4 {
+  color: #6b4f9b;
+}
+
+.expediente-card input,
+.expediente-card select,
+.expediente-card textarea {
+  width: 100%;
+  margin: 10px 0;
+  box-sizing: border-box;
+}
+
+.objetivos-grid,
+.archivos-lista {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.objetivo-card,
+.archivo-card {
+  background: #f7f7f7;
+  border-radius: 12px;
+  padding: 15px;
+}
+
+.objetivo-card progress {
+  width: 100%;
+}

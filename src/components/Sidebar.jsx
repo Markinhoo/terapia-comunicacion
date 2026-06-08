@@ -1,33 +1,28 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
+import { supabase } from '../lib/supabaseClient';
 
 function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
+  const navigate = useNavigate();
+
+  const cerrarSesion = async () => {
+    await supabase.auth.signOut();
+    navigate('/login');
+  };
 
   return (
     <aside className={collapsed ? 'sidebar collapsed' : 'sidebar'}>
       <div className="sidebar-header">
-
         <button
           className="menu-toggle"
           onClick={() => setCollapsed(!collapsed)}
         >
           ☰
         </button>
-
-        {!collapsed && (
-          <>
-            <img
-              src="/logo.png"
-              alt="Clínica Casas"
-              className="logo-sidebar"
-            />
-          </>
-        )}
       </div>
 
-      <nav>
-
+      <nav className="sidebar-nav">
         <NavLink to="/admin">
           🏠 {!collapsed && 'Dashboard'}
         </NavLink>
@@ -44,10 +39,9 @@ function Sidebar() {
           📈 {!collapsed && 'Servicios'}
         </NavLink>
 
-        <NavLink to="/login">
+        <button className="logout-link" onClick={cerrarSesion}>
           🚪 {!collapsed && 'Cerrar sesión'}
-        </NavLink>
-
+        </button>
       </nav>
     </aside>
   );
