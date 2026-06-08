@@ -366,3 +366,18 @@ td textarea {
 .expediente-card h3 {
   color: #6b4f9b;
 }
+
+.expediente-card {
+  background: white;
+  padding: 25px;
+  border-radius: 16px;
+  margin: 20px 0;
+  box-shadow: 0 4px 12px rgba(0,0,0,.08);
+}
+
+.expediente-card input,
+.expediente-card select,
+.expediente-card textarea {
+  width: 100%;
+  margin: 10px 0;
+}
