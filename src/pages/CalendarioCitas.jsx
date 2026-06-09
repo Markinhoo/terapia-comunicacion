@@ -17,30 +17,66 @@ function CalendarioCitas() {
     const { data, error } = await supabase
       .from('citas')
       .select('*')
-      .neq('estatus', 'Cancelada');
+      .order('fecha', { ascending: true })
+      .order('hora', { ascending: true });
 
-    if (!error) {
-      const eventosCalendario = data.map((cita) => {
-        const inicio = new Date(`${cita.fecha}T${cita.hora}`);
-        const fin = new Date(inicio);
-        fin.setMinutes(fin.getMinutes() + 60);
-
-        return {
-          title: `${cita.nombre_paciente} - ${cita.servicio}`,
-          start: inicio,
-          end: fin,
-          cita
-        };
-      });
-
-      setEventos(eventosCalendario);
+    if (error) {
+      console.error(error);
+      return;
     }
+
+    const eventosCalendario = data.map((cita) => {
+      const inicio = new Date(`${cita.fecha}T${cita.hora}`);
+      const fin = new Date(inicio);
+      fin.setMinutes(fin.getMinutes() + 60);
+
+      return {
+        title: `${cita.nombre_paciente} - ${cita.servicio}`,
+        start: inicio,
+        end: fin,
+        estatus: cita.estatus,
+        cita
+      };
+    });
+
+    setEventos(eventosCalendario);
+  };
+
+  const estiloEvento = (event) => {
+    let backgroundColor = '#f1c40f';
+
+    if (event.estatus === 'Confirmada') {
+      backgroundColor = '#27ae60';
+    }
+
+    if (event.estatus === 'Pendiente') {
+      backgroundColor = '#f1c40f';
+    }
+
+    if (event.estatus === 'Cancelada') {
+      backgroundColor = '#c0392b';
+    }
+
+    return {
+      style: {
+        backgroundColor,
+        color: 'white',
+        borderRadius: '8px',
+        border: 'none',
+        padding: '2px 6px'
+      }
+    };
   };
 
   return (
-    <main className="container">
-      <h1>Calendario de citas</h1>
-      <p className="subtitle">Vista general de citas confirmadas y pendientes.</p>
+    <main>
+      <div className="calendar-header">
+        <div className="calendar-legend">
+          <span className="legend-item confirmada">Confirmada</span>
+          <span className="legend-item pendiente">Pendiente</span>
+          <span className="legend-item cancelada">Cancelada</span>
+        </div>
+      </div>
 
       <div className="calendar-container">
         <Calendar
@@ -48,7 +84,8 @@ function CalendarioCitas() {
           events={eventos}
           startAccessor="start"
           endAccessor="end"
-          style={{ height: 600 }}
+          eventPropGetter={estiloEvento}
+          style={{ height: 'calc(100vh - 150px)' }}
           messages={{
             next: 'Siguiente',
             previous: 'Anterior',

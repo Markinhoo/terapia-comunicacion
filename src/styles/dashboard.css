@@ -50,3 +50,54 @@
   border-radius: 16px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.08);
 }
+
+.dashboard-home {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.citas-hoy-lista {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.cita-hoy-card {
+  background: #f7f7f7;
+  padding: 14px;
+  border-radius: 12px;
+  border-left: 6px solid #f1c40f;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.cita-hoy-card.confirmada {
+  border-left-color: #27ae60;
+}
+
+.cita-hoy-card.pendiente {
+  border-left-color: #f1c40f;
+}
+
+.cita-hoy-card.cancelada {
+  border-left-color: #c0392b;
+}
+
+.cita-hoy-card p {
+  margin: 5px 0 0;
+  font-weight: bold;
+}
+
+.cita-hoy-card span {
+  display: block;
+  font-size: 13px;
+  color: #607d8b;
+}
+
+.cita-hoy-card small {
+  color: #6b4f9b;
+  font-weight: bold;
+}

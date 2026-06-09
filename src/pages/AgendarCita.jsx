@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 
 function AgendarCita() {
@@ -15,64 +15,139 @@ function AgendarCita() {
     motivo_consulta: ''
   });
 
+  const [horarios, setHorarios] = useState([]);
   const [mensaje, setMensaje] = useState('');
   const [tipoMensaje, setTipoMensaje] = useState('');
 
-  const handleChange = (e) => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value
-    });
+  useEffect(() => {
+    if (form.fecha) {
+      obtenerHorariosDisponibles(form.fecha);
+    } else {
+      setHorarios([]);
+    }
+  }, [form.fecha]);
+
+  const limpiarNombre = (valor) => {
+    return valor.replace(/[^a-zA-ZÁÉÍÓÚáéíóúÑñ\s]/g, '');
   };
 
-const guardarCita = async (e) => {
-  e.preventDefault();
+  const limpiarTelefono = (valor) => {
+    return valor.replace(/\D/g, '').slice(0, 10);
+  };
 
-  let pacienteId = null;
+  const handleChange = (e) => {
+    const { name, value } = e.target;
 
-  const { data: pacienteExistente } = await supabase
-    .from('pacientes')
-    .select('*')
-    .eq('telefono', form.telefono)
-    .maybeSingle();
-
-  if (pacienteExistente) {
-    pacienteId = pacienteExistente.id;
-  } else {
-    const { data: nuevoPaciente, error: errorPaciente } = await supabase
-      .from('pacientes')
-      .insert([{
-        nombre_paciente: form.nombre_paciente,
-        edad: form.edad,
-        nombre_responsable: form.nombre_responsable,
-        telefono: form.telefono,
-        correo: form.correo
-      }])
-      .select()
-      .single();
-
-    if (errorPaciente) {
-      setMensaje('No se pudo registrar el paciente.');
-      setTipoMensaje('error');
-      console.error(errorPaciente);
+    if (name === 'nombre_paciente' || name === 'nombre_responsable') {
+      setForm({ ...form, [name]: limpiarNombre(value) });
       return;
     }
 
-    pacienteId = nuevoPaciente.id;
-  }
+    if (name === 'telefono') {
+      setForm({ ...form, telefono: limpiarTelefono(value) });
+      return;
+    }
 
-  const { error } = await supabase
-    .from('citas')
-    .insert([{
+    setForm({ ...form, [name]: value });
+  };
+
+  const obtenerHorariosDisponibles = async (fecha) => {
+    const { data, error } = await supabase.rpc(
+      'obtener_horarios_disponibles',
+      { fecha_consulta: fecha }
+    );
+
+    if (error) {
+      console.error(error);
+      setHorarios([]);
+      return;
+    }
+
+    setHorarios(data || []);
+  };
+
+  const validarFormulario = () => {
+    const soloLetras = /^[a-zA-ZÁÉÍÓÚáéíóúÑñ\s]+$/;
+
+    if (!soloLetras.test(form.nombre_paciente.trim())) {
+      setMensaje('El nombre del paciente solo debe contener letras.');
+      setTipoMensaje('error');
+      return false;
+    }
+
+    if (form.nombre_responsable && !soloLetras.test(form.nombre_responsable.trim())) {
+      setMensaje('El nombre del responsable solo debe contener letras.');
+      setTipoMensaje('error');
+      return false;
+    }
+
+    if (form.telefono.length !== 10) {
+      setMensaje('El teléfono debe contener exactamente 10 dígitos.');
+      setTipoMensaje('error');
+      return false;
+    }
+
+    if (!form.hora) {
+      setMensaje('Selecciona un horario disponible.');
+      setTipoMensaje('error');
+      return false;
+    }
+
+    return true;
+  };
+
+  const guardarCita = async (e) => {
+    e.preventDefault();
+
+    if (!validarFormulario()) return;
+
+    let pacienteId = null;
+
+    const { data: pacienteExistente } = await supabase
+      .from('pacientes')
+      .select('*')
+      .eq('telefono', form.telefono)
+      .maybeSingle();
+
+    if (pacienteExistente) {
+      pacienteId = pacienteExistente.id;
+    } else {
+      const { data: nuevoPaciente, error: errorPaciente } = await supabase
+        .from('pacientes')
+        .insert([{
+          nombre_paciente: form.nombre_paciente.trim(),
+          edad: form.edad || null,
+          nombre_responsable: form.nombre_responsable.trim(),
+          telefono: form.telefono,
+          correo: form.correo
+        }])
+        .select()
+        .single();
+
+      if (errorPaciente) {
+        setMensaje('No se pudo registrar el paciente.');
+        setTipoMensaje('error');
+        console.error(errorPaciente);
+        return;
+      }
+
+      pacienteId = nuevoPaciente.id;
+    }
+
+    const { error } = await supabase.from('citas').insert([{
       ...form,
+      nombre_paciente: form.nombre_paciente.trim(),
+      nombre_responsable: form.nombre_responsable.trim(),
       paciente_id: pacienteId
     }]);
 
-  if (error) {
-    setMensaje('Ocurrió un error al registrar la cita.');
-    setTipoMensaje('error');
-    console.error(error);
-  } else {
+    if (error) {
+      setMensaje(error.message || 'Ocurrió un error al registrar la cita.');
+      setTipoMensaje('error');
+      console.error(error);
+      return;
+    }
+
     setMensaje('La cita fue registrada correctamente. Nos comunicaremos para confirmar.');
     setTipoMensaje('exito');
 
@@ -88,14 +163,13 @@ const guardarCita = async (e) => {
       hora: '',
       motivo_consulta: ''
     });
-  }
-};
+
+    setHorarios([]);
+  };
+
   return (
     <main className="container">
       <h1>Agendar valoración o cita</h1>
-      <p className="subtitle">
-        Completa la información para solicitar una valoración inicial o una cita de seguimiento.
-      </p>
 
       <form className="form" onSubmit={guardarCita}>
         <input
@@ -109,6 +183,8 @@ const guardarCita = async (e) => {
         <input
           name="edad"
           type="number"
+          min="0"
+          max="120"
           placeholder="Edad"
           value={form.edad}
           onChange={handleChange}
@@ -123,7 +199,7 @@ const guardarCita = async (e) => {
 
         <input
           name="telefono"
-          placeholder="Teléfono de contacto"
+          placeholder="Teléfono a 10 dígitos"
           value={form.telefono}
           onChange={handleChange}
           required
@@ -170,13 +246,26 @@ const guardarCita = async (e) => {
           required
         />
 
-        <input
+        <select
           name="hora"
-          type="time"
           value={form.hora}
           onChange={handleChange}
           required
-        />
+          disabled={!form.fecha}
+        >
+          <option value="">
+            {form.fecha ? 'Selecciona un horario' : 'Primero selecciona una fecha'}
+          </option>
+
+          {horarios.map((item) => (
+            <option
+              key={item.hora_disponible}
+              value={item.hora_disponible}
+            >
+              {item.hora_disponible.slice(0, 5)}
+            </option>
+          ))}
+        </select>
 
         <textarea
           name="motivo_consulta"
