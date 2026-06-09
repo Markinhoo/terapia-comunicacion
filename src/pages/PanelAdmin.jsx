@@ -2,7 +2,6 @@ import { Routes, Route } from 'react-router-dom';
 
 import Sidebar from '../components/Sidebar';
 import DashboardHome from '../components/DashboardHome';
-
 import CalendarioCitas from './CalendarioCitas';
 import Pacientes from './Pacientes';
 import Servicios from './Servicios';

@@ -13,6 +13,7 @@ import './styles/sidebar.css';
 import './styles/expediente.css';
 import './styles/whatsapp.css';
 import './styles/responsive.css';
+import './styles/servicios.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <BrowserRouter>

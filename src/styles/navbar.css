@@ -1,32 +1,102 @@
+/* ======================================
+   NAVBAR PRINCIPAL
+====================================== */
+
 .navbar {
+  height: 72px;
+
   background: #6b4f9b;
+
   color: white;
-  padding: 15px 40px;
+
+  padding: 0 40px;
+
   display: flex;
+
   justify-content: space-between;
+
   align-items: center;
+
+  box-sizing: border-box;
+
+  box-shadow: 0 2px 8px rgba(0,0,0,.1);
 }
 
-.navbar h2 {
-  margin: 0;
-}
-
-.navbar a {
-  color: white;
-  margin-left: 20px;
-  text-decoration: none;
-  font-weight: bold;
-}
+/* ======================================
+   LOGO + NOMBRE
+====================================== */
 
 .brand {
   display: flex;
+
   align-items: center;
+
   gap: 12px;
 }
 
 .brand-logo {
   width: 42px;
+
   height: 42px;
+
   object-fit: contain;
+
   border-radius: 8px;
+}
+
+.brand h2 {
+  margin: 0;
+
+  font-size: 1.4rem;
+
+  font-weight: 700;
+
+  color: white;
+}
+
+/* ======================================
+   MENÚ
+====================================== */
+
+.navbar-links {
+  display: flex;
+
+  align-items: center;
+
+  gap: 20px;
+}
+
+.navbar a {
+  color: white;
+
+  text-decoration: none;
+
+  font-weight: 600;
+
+  transition: .2s;
+}
+
+.navbar a:hover {
+  opacity: .8;
+}
+
+/* ======================================
+   RESPONSIVE
+====================================== */
+
+@media (max-width: 768px) {
+
+  .navbar {
+    padding: 0 20px;
+  }
+
+  .brand h2 {
+    font-size: 1.1rem;
+  }
+
+  .brand-logo {
+    width: 36px;
+    height: 36px;
+  }
+
 }
