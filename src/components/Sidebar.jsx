@@ -4,6 +4,8 @@ import { supabase } from '../lib/supabaseClient';
 
 function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+
   const navigate = useNavigate();
 
   const cerrarSesion = async () => {
@@ -11,39 +13,120 @@ function Sidebar() {
     navigate('/login');
   };
 
+  const cerrarMenuMovil = () => {
+    setMobileOpen(false);
+  };
+
   return (
-    <aside className={collapsed ? 'sidebar collapsed' : 'sidebar'}>
-      <div className="sidebar-header">
-        <button
-          className="menu-toggle"
-          onClick={() => setCollapsed(!collapsed)}
-        >
-          ☰
-        </button>
-      </div>
+    <>
+      {/* BOTÓN HAMBURGUESA MÓVIL */}
 
-      <nav className="sidebar-nav">
-        <NavLink to="/admin">
-          🏠 {!collapsed && 'Dashboard'}
-        </NavLink>
+      <button
+        className="mobile-menu-button"
+        onClick={() => setMobileOpen(!mobileOpen)}
+      >
+        {mobileOpen ? '✕' : '☰'}
+      </button>
 
-        <NavLink to="/admin/calendario">
-          📅 {!collapsed && 'Calendario'}
-        </NavLink>
+      {/* OVERLAY */}
 
-        <NavLink to="/admin/pacientes">
-          👨‍👩‍👧 {!collapsed && 'Pacientes'}
-        </NavLink>
+      {mobileOpen && (
+        <div
+          className="mobile-sidebar-overlay"
+          onClick={cerrarMenuMovil}
+        />
+      )}
 
-        <NavLink to="/admin/servicios">
-          📈 {!collapsed && 'Servicios'}
-        </NavLink>
+      {/* SIDEBAR */}
 
-        <button className="logout-link" onClick={cerrarSesion}>
-          🚪 {!collapsed && 'Cerrar sesión'}
-        </button>
-      </nav>
-    </aside>
+      <aside
+        className={`
+          sidebar
+          ${collapsed ? 'collapsed' : ''}
+          ${mobileOpen ? 'mobile-open' : ''}
+        `}
+      >
+        <div className="sidebar-header">
+
+          <button
+            className="menu-toggle desktop-toggle"
+            onClick={() => setCollapsed(!collapsed)}
+          >
+            ☰
+          </button>
+
+        </div>
+
+        <nav className="sidebar-nav">
+
+          <NavLink
+            to="/admin"
+            onClick={cerrarMenuMovil}
+          >
+            <span className="sidebar-icon">🏠</span>
+
+            {(!collapsed || mobileOpen) && (
+              <span className="sidebar-text">
+                Dashboard
+              </span>
+            )}
+          </NavLink>
+
+          <NavLink
+            to="/admin/calendario"
+            onClick={cerrarMenuMovil}
+          >
+            <span className="sidebar-icon">📅</span>
+
+            {(!collapsed || mobileOpen) && (
+              <span className="sidebar-text">
+                Calendario
+              </span>
+            )}
+          </NavLink>
+
+          <NavLink
+            to="/admin/pacientes"
+            onClick={cerrarMenuMovil}
+          >
+            <span className="sidebar-icon">👨‍👩‍👧</span>
+
+            {(!collapsed || mobileOpen) && (
+              <span className="sidebar-text">
+                Pacientes
+              </span>
+            )}
+          </NavLink>
+
+          <NavLink
+            to="/admin/servicios"
+            onClick={cerrarMenuMovil}
+          >
+            <span className="sidebar-icon">📈</span>
+
+            {(!collapsed || mobileOpen) && (
+              <span className="sidebar-text">
+                Servicios
+              </span>
+            )}
+          </NavLink>
+
+          <button
+            className="logout-link"
+            onClick={cerrarSesion}
+          >
+            <span className="sidebar-icon">🚪</span>
+
+            {(!collapsed || mobileOpen) && (
+              <span className="sidebar-text">
+                Cerrar sesión
+              </span>
+            )}
+          </button>
+
+        </nav>
+      </aside>
+    </>
   );
 }
 

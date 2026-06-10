@@ -1,263 +1,270 @@
+/* ======================================
+   LAYOUT
+====================================== */
 
 .dashboard-layout {
   display: flex;
-
   height: calc(100vh - 72px);
-
   overflow: hidden;
 }
 
+.dashboard-content {
+  flex: 1;
+  height: calc(100vh - 72px);
+  overflow-y: auto;
+  padding: 24px;
+  background: #f5f6fa;
+  box-sizing: border-box;
+}
 
-/* =========================================================
-   SIDEBAR PRINCIPAL
-   ---------------------------------------------------------
-   Menú lateral izquierdo.
-   Ocupa el alto restante de la pantalla debajo de la navbar.
-========================================================= */
+/* ======================================
+   SIDEBAR DESKTOP
+====================================== */
 
 .sidebar {
   width: 280px;
-
   height: calc(100vh - 72px);
-
   background: #6b4f9b;
-
   color: white;
-
   padding: 20px;
-
   display: flex;
-
   flex-direction: column;
-
   box-sizing: border-box;
-
-  transition: 0.3s ease;
-
-  overflow: hidden;
+  transition: all .3s ease;
 }
-
-
-/* =========================================================
-   SIDEBAR COLAPSADO
-   ---------------------------------------------------------
-   Cuando se minimiza, reduce el ancho para mostrar solo íconos.
-========================================================= */
 
 .sidebar.collapsed {
   width: 80px;
-
   padding: 20px 12px;
 }
 
-
-/* =========================================================
-   ENCABEZADO DEL SIDEBAR
-   ---------------------------------------------------------
-   Aquí se encuentra el botón hamburguesa.
-========================================================= */
+/* ======================================
+   HEADER
+====================================== */
 
 .sidebar-header {
   display: flex;
-
-  justify-content: center;
-
   align-items: center;
-
-  margin-bottom: 25px;
+  margin-bottom: 30px;
 }
 
+/* SIDEBAR EXPANDIDO */
 
-/* =========================================================
-   BOTÓN HAMBURGUESA
-========================================================= */
+.sidebar:not(.collapsed) .sidebar-header {
+  justify-content: flex-start;
+}
 
+.sidebar:not(.collapsed) .desktop-toggle {
+  margin-left: 8px;
+}
+
+/* SIDEBAR COLAPSADO */
+
+.sidebar.collapsed .sidebar-header {
+  justify-content: center;
+}
+
+.sidebar.collapsed .desktop-toggle {
+  margin-left: 0;
+}
+
+.desktop-toggle {
+  margin-left: 12px;
+}
 .menu-toggle {
   background: transparent;
-
   border: none;
-
   color: white;
-
   font-size: 24px;
-
   cursor: pointer;
-
-  padding: 8px;
+  transition: all .3s ease;
 }
 
-.menu-toggle:hover {
-  opacity: 0.85;
-}
-
-
-/* =========================================================
-   NAVEGACIÓN DEL SIDEBAR
-   ---------------------------------------------------------
-   flex: 1 permite que el botón de cerrar sesión pueda irse
-   hasta la parte inferior usando margin-top: auto.
-========================================================= */
+/* ======================================
+   MENÚ
+====================================== */
 
 .sidebar-nav {
   display: flex;
-
   flex-direction: column;
-
   gap: 10px;
-
   flex: 1;
-
-  overflow: hidden;
 }
-
-
-/* =========================================================
-   LINKS DEL MENÚ Y BOTÓN DE CERRAR SESIÓN
-========================================================= */
 
 .sidebar-nav a,
 .logout-link {
   color: white;
-
   text-decoration: none;
-
   padding: 12px;
-
   border-radius: 10px;
-
-  background: transparent;
-
   border: none;
-
+  background: transparent;
   text-align: left;
-
   font-size: 16px;
-
   cursor: pointer;
+  transition: .2s;
 
-  transition: 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-
-/* =========================================================
-   LINK ACTIVO
-   ---------------------------------------------------------
-   React Router agrega la clase .active automáticamente
-   al NavLink correspondiente.
-========================================================= */
+.sidebar-icon {
+  font-size: 18px;
+  min-width: 24px;
+  text-align: center;
+}
 
 .sidebar-nav a.active {
   background: white;
-
   color: #6b4f9b;
-
   font-weight: bold;
 }
 
-
-/* =========================================================
-   EFECTO HOVER
-========================================================= */
-
 .sidebar-nav a:hover,
 .logout-link:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255,255,255,.15);
 }
 
 .sidebar-nav a.active:hover {
   background: white;
-
   color: #6b4f9b;
 }
-
-
-/* =========================================================
-   BOTÓN CERRAR SESIÓN
-   ---------------------------------------------------------
-   Se empuja hasta abajo del sidebar.
-========================================================= */
 
 .logout-link {
   margin-top: auto;
 }
 
-
-/* =========================================================
-   ESTILO CUANDO EL SIDEBAR ESTÁ COLAPSADO
-   ---------------------------------------------------------
-   Centra los íconos y reduce el espacio horizontal.
-========================================================= */
+/* ======================================
+   SIDEBAR COLAPSADO DESKTOP
+====================================== */
 
 .sidebar.collapsed .sidebar-nav a,
 .sidebar.collapsed .logout-link {
+  justify-content: center;
   text-align: center;
-
   padding: 14px 0;
 }
 
-
-/* =========================================================
-   CONTENIDO DEL DASHBOARD
-   ---------------------------------------------------------
-   Área derecha del panel administrativo.
-   No genera scroll general; cada módulo debe ajustarse dentro.
-========================================================= */
-
-.dashboard-content {
-  flex: 1;
-
-  height: calc(100vh - 72px);
-
-  overflow: hidden;
-
-  padding: 24px;
-
-  background: #f5f6fa;
-
-  box-sizing: border-box;
+.sidebar.collapsed .sidebar-text {
+  display: none;
 }
 
+/* ======================================
+   BOTÓN MÓVIL
+====================================== */
 
-/* =========================================================
+.mobile-menu-button {
+  display: none;
+}
+
+/* ======================================
    RESPONSIVE
-   ---------------------------------------------------------
-   En pantallas pequeñas el sidebar deja de ser lateral
-   y pasa arriba como menú horizontal flexible.
-========================================================= */
+====================================== */
 
 @media (max-width: 768px) {
 
   .dashboard-layout {
-    flex-direction: column;
-
-    height: auto;
-
-    overflow: visible;
-  }
-
-  .sidebar,
-  .sidebar.collapsed {
-    width: 100%;
-
-    height: auto;
-  }
-
-  .sidebar-nav {
-    flex-direction: row;
-
-    flex-wrap: wrap;
-
-    overflow: visible;
-  }
-
-  .logout-link {
-    margin-top: 0;
+    display: block;
+    height: calc(100vh - 72px);
+    overflow: hidden;
   }
 
   .dashboard-content {
-    height: auto;
-
+    width: 100%;
+    height: calc(100vh - 72px);
     overflow-y: auto;
+    padding: 70px 16px 16px;
+    box-sizing: border-box;
   }
 
+  /* BOTÓN HAMBURGUESA / CERRAR */
+
+  .mobile-menu-button {
+    display: flex;
+    position: fixed;
+    top: 10px;
+    left: 12px;
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    border: none;
+    background: #6b4f9b;
+    color: white;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    z-index: 3000;
+    box-shadow: 0 4px 12px rgba(0,0,0,.2);
+  }
+
+  /* FONDO OSCURO */
+
+  .mobile-sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.45);
+    z-index: 2500;
+  }
+
+  /* PANEL LATERAL */
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: -280px;
+    width: 260px;
+    height: 100vh;
+    z-index: 2600;
+    padding: 20px;
+    transition: left .3s ease;
+  }
+
+  .sidebar.mobile-open {
+    left: 0;
+  }
+
+  .sidebar.collapsed {
+    width: 260px;
+    padding: 20px;
+  }
+
+  .desktop-toggle {
+    display: none;
+  }
+
+  /* MENÚ MÓVIL SIEMPRE VERTICAL */
+
+  .sidebar-nav {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px;
+    flex: 1;
+    margin-top: 50px;
+  }
+
+  .sidebar-nav a,
+  .logout-link {
+    width: 100%;
+    justify-content: flex-start;
+    text-align: left;
+    padding: 14px 16px;
+    box-sizing: border-box;
+  }
+
+  .sidebar.collapsed .sidebar-nav a,
+  .sidebar.collapsed .logout-link {
+    justify-content: flex-start;
+    text-align: left;
+    padding: 14px 16px;
+  }
+
+  .sidebar.mobile-open .sidebar-text {
+    display: inline;
+  }
+
+  .logout-link {
+    margin-top: auto;
+  }
 }
