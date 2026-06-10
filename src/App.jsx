@@ -38,7 +38,7 @@ function App() {
         <Route path="/expediente/:pacienteId" element={<ExpedienteClinico />} />
       </Routes>
 
-       {!location.pathname.startsWith('/admin') &&
+       {!location.pathname.startsWith('/admin') &&  location.pathname !== '/login' &&
         <WhatsAppFloat />
       }
     </>

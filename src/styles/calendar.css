@@ -49,3 +49,63 @@
 .rbc-event {
   font-size: 12px;
 }
+
+/* MODAL CITA */
+
+.overlay-cita {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.modal-cita {
+  background: white;
+  width: 460px;
+  max-width: 92%;
+  border-radius: 18px;
+  padding: 24px;
+  outline: none;
+  box-shadow: 0 12px 30px rgba(0,0,0,.25);
+}
+
+.modal-cita-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.modal-cita-header h2 {
+  margin: 0;
+  color: #6b4f9b;
+}
+
+.modal-close {
+  background: transparent;
+  color: #6b4f9b;
+  border: none;
+  font-size: 28px;
+  padding: 0;
+  cursor: pointer;
+}
+
+.modal-cita-body p {
+  margin: 9px 0;
+}
+
+.modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.modal-actions button {
+  flex: 1;
+  min-width: 120px;
+}

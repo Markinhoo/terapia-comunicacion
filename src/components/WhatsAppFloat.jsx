@@ -1,5 +1,7 @@
+import { FaWhatsapp } from 'react-icons/fa';
+
 function WhatsAppFloat() {
-  const telefono = '526181246005';
+  const telefono = '526182363755';
 
   const mensaje = encodeURIComponent(
     'Hola, me gustaría solicitar información sobre terapia de comunicación humana.'
@@ -11,8 +13,10 @@ function WhatsAppFloat() {
       className="whatsapp-float"
       target="_blank"
       rel="noopener noreferrer"
+      aria-label="WhatsApp"
+      title="Enviar mensaje por WhatsApp"
     >
-      WhatsApp
+      <FaWhatsapp size={34} />
     </a>
   );
 }

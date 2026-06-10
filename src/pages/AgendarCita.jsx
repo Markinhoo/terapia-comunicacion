@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 
 function AgendarCita() {
+  const hoy = new Date().toISOString().split('T')[0];
+
   const [form, setForm] = useState({
     nombre_paciente: '',
     edad: '',
@@ -9,7 +11,6 @@ function AgendarCita() {
     telefono: '',
     correo: '',
     servicio: '',
-    modalidad: 'Presencial',
     fecha: '',
     hora: '',
     motivo_consulta: ''
@@ -35,6 +36,11 @@ function AgendarCita() {
     return valor.replace(/\D/g, '').slice(0, 10);
   };
 
+  const esDomingo = (fecha) => {
+    const dia = new Date(`${fecha}T00:00:00`).getDay();
+    return dia === 0;
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -45,6 +51,26 @@ function AgendarCita() {
 
     if (name === 'telefono') {
       setForm({ ...form, telefono: limpiarTelefono(value) });
+      return;
+    }
+
+    if (name === 'fecha') {
+      if (value < hoy) {
+        setMensaje('No se pueden seleccionar fechas anteriores al día actual.');
+        setTipoMensaje('error');
+        setForm({ ...form, fecha: '', hora: '' });
+        return;
+      }
+
+      if (esDomingo(value)) {
+        setMensaje('Solo se pueden agendar citas de lunes a sábado.');
+        setTipoMensaje('error');
+        setForm({ ...form, fecha: '', hora: '' });
+        return;
+      }
+
+      setMensaje('');
+      setForm({ ...form, fecha: value, hora: '' });
       return;
     }
 
@@ -93,6 +119,18 @@ function AgendarCita() {
       return false;
     }
 
+    if (form.fecha < hoy) {
+      setMensaje('No se pueden agendar fechas anteriores al día actual.');
+      setTipoMensaje('error');
+      return false;
+    }
+
+    if (esDomingo(form.fecha)) {
+      setMensaje('Solo se pueden agendar citas de lunes a sábado.');
+      setTipoMensaje('error');
+      return false;
+    }
+
     return true;
   };
 
@@ -136,6 +174,7 @@ function AgendarCita() {
 
     const { error } = await supabase.from('citas').insert([{
       ...form,
+      modalidad: 'Presencial',
       nombre_paciente: form.nombre_paciente.trim(),
       nombre_responsable: form.nombre_responsable.trim(),
       paciente_id: pacienteId
@@ -158,7 +197,6 @@ function AgendarCita() {
       telefono: '',
       correo: '',
       servicio: '',
-      modalidad: 'Presencial',
       fecha: '',
       hora: '',
       motivo_consulta: ''
@@ -229,18 +267,10 @@ function AgendarCita() {
           <option value="Orientación a padres">Orientación a padres</option>
         </select>
 
-        <select
-          name="modalidad"
-          value={form.modalidad}
-          onChange={handleChange}
-        >
-          <option value="Presencial">Presencial</option>
-          <option value="En línea">En línea</option>
-        </select>
-
         <input
           name="fecha"
           type="date"
+          min={hoy}
           value={form.fecha}
           onChange={handleChange}
           required
@@ -261,8 +291,10 @@ function AgendarCita() {
             <option
               key={item.hora_disponible}
               value={item.hora_disponible}
+              disabled={!item.disponible}
             >
               {item.hora_disponible.slice(0, 5)}
+              {item.disponible ? ' - Disponible' : ' - Ocupado'}
             </option>
           ))}
         </select>

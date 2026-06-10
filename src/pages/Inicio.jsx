@@ -15,14 +15,6 @@ function Inicio() {
             <Link to="/agendar" className="btn">
               Agendar valoración inicial
             </Link>
-
-            <a
-              href="https://wa.me/526182363755"
-              target="_blank"
-              className="btn-outline"
-            >
-              Contactar por WhatsApp
-            </a>
           </div>
         </div>
       </section>
