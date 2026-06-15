@@ -37,5 +37,12 @@ order by tablename, policyname;
 
 Solo deben aparecer las politicas administrativas para `authenticated`.
 
+## Error `relation "citas" does not exist`
+
+Si existen triggers antiguos que usan nombres de tabla sin esquema, aplica
+`migrations/20260615_fix_scheduling_search_path.sql`. La funcion mantiene
+`pg_catalog` como primer esquema y permite que esos triggers resuelvan las
+tablas de `public`.
+
 El bucket `expedientes` debe ser privado y sus politicas de objetos deben
 limitar lectura, escritura y borrado a usuarios autenticados.
