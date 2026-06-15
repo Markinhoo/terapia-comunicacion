@@ -479,6 +479,85 @@ textarea {
   }
 }
 
+/* Fluid motion: the bottom edge stays anchored while the upper body bends. */
+.login-character .character-body {
+  transition: none;
+  transform-origin: 50% 100%;
+  will-change: transform;
+}
+
+.character-arch .character-body {
+  transform: skewX(var(--lean-soft)) scaleY(var(--stretch-soft));
+}
+
+.character-tower .character-body {
+  transform: skewX(var(--lean-strong)) scaleY(var(--stretch-strong));
+}
+
+.character-slab .character-body {
+  transform: skewX(var(--lean-mid)) scaleY(var(--stretch-mid));
+}
+
+.character-bean .character-body {
+  transform: skewX(var(--lean-mid)) scaleY(var(--stretch-mid));
+}
+
+.login-character .character-face {
+  margin-top: var(--face-y);
+  margin-left: var(--face-x);
+  transition: margin 90ms linear, transform 220ms ease;
+}
+
+.login-character .character-pupil {
+  transform: translate(var(--eye-x), var(--eye-y));
+  transition: none;
+  will-change: transform;
+}
+
+.login-character.looking-away .character-body {
+  transform-origin: 50% 100%;
+}
+
+.character-arch.looking-away .character-body {
+  transform: skewX(calc(var(--lean-soft) - 4deg)) scaleY(var(--stretch-soft));
+}
+
+.character-tower.looking-away .character-body {
+  transform: skewX(calc(var(--lean-strong) - 6deg)) scaleY(var(--stretch-strong));
+}
+
+.character-slab.looking-away .character-body,
+.character-bean.looking-away .character-body {
+  transform: skewX(calc(var(--lean-mid) - 5deg)) scaleY(var(--stretch-mid));
+}
+
+.login-character.saying-no {
+  animation: none;
+}
+
+.login-character.saying-no .character-body {
+  animation: fluid-character-no 650ms ease-in-out;
+}
+
+@keyframes fluid-character-no {
+  0%,
+  100% {
+    transform: skewX(0deg) scaleY(1);
+  }
+  20% {
+    transform: skewX(-12deg) scaleY(1.02);
+  }
+  40% {
+    transform: skewX(11deg) scaleY(0.99);
+  }
+  60% {
+    transform: skewX(-9deg) scaleY(1.015);
+  }
+  80% {
+    transform: skewX(8deg) scaleY(1);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .login-character,
   .login-character .character-body,
@@ -488,4 +567,319 @@ textarea {
     animation: none !important;
     transition: none;
   }
+}
+
+/* Flat geometric characters inspired by the supplied reference. */
+.login-characters {
+  position: relative;
+  min-height: 430px;
+  isolation: isolate;
+}
+
+.login-character {
+  position: absolute;
+  bottom: 0;
+  width: auto;
+  min-width: 0;
+  max-width: none;
+  margin: 0;
+  transform: none;
+}
+
+.login-character:nth-child(1),
+.login-character:nth-child(2),
+.login-character:nth-child(3) {
+  margin: 0;
+  transform: none;
+}
+
+.login-character .character-shadow {
+  display: none;
+}
+
+.login-character .character-body {
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+  box-shadow: none;
+  transform:
+    translate(var(--body-x), var(--body-y))
+    rotate(var(--body-tilt))
+    scaleY(var(--body-stretch));
+  transform-origin: center bottom;
+  transition: transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.character-arch {
+  z-index: 5;
+  left: 3%;
+  width: 57%;
+  height: 168px;
+}
+
+.character-arch .character-body {
+  height: 100%;
+  border-radius: 52% 52% 4px 4px / 78% 78% 4px 4px;
+}
+
+.character-tower {
+  z-index: 2;
+  left: 27%;
+  width: 37%;
+  height: 350px;
+}
+
+.character-tower .character-body {
+  height: 100%;
+  clip-path: polygon(50% 0, 100% 24%, 78% 100%, 0 100%, 8% 47%);
+}
+
+.character-slab {
+  z-index: 4;
+  left: 58%;
+  width: 25%;
+  height: 244px;
+}
+
+.character-slab .character-body {
+  height: 100%;
+  clip-path: polygon(9% 10%, 92% 0, 100% 100%, 0 100%);
+}
+
+.character-bean {
+  z-index: 6;
+  right: 1%;
+  width: 34%;
+  height: 220px;
+}
+
+.character-bean .character-body {
+  height: 100%;
+  border-radius: 55% 48% 7% 7% / 30% 30% 5% 5%;
+  clip-path: polygon(20% 2%, 83% 0, 100% 34%, 81% 100%, 0 100%, 9% 35%);
+}
+
+.character-orange .character-body {
+  background: #ff7a1a;
+}
+
+.character-violet .character-body {
+  background: #6d21f5;
+}
+
+.character-ink .character-body {
+  background: #17171d;
+}
+
+.character-yellow .character-body {
+  background: #f7d500;
+}
+
+.character-arch .character-face {
+  top: 31%;
+  left: 68%;
+  width: 34%;
+}
+
+.character-tower .character-face {
+  top: 25%;
+  left: 58%;
+  width: 43%;
+  transform: translateX(-50%) rotate(18deg);
+}
+
+.character-slab .character-face {
+  top: 12%;
+  width: 62%;
+}
+
+.character-bean .character-face {
+  top: 16%;
+  left: 57%;
+  width: 54%;
+}
+
+.login-character .character-eye {
+  width: 17px;
+  height: 21px;
+  background: #fff;
+  box-shadow: none;
+}
+
+.character-arch .character-eye,
+.character-bean .character-eye {
+  width: 10px;
+  height: 10px;
+  background: #242127;
+}
+
+.character-arch .character-pupil,
+.character-bean .character-pupil {
+  width: 5px;
+  height: 5px;
+  background: #242127;
+}
+
+.character-arch .character-pupil::after,
+.character-bean .character-pupil::after {
+  display: none;
+}
+
+.login-character .character-pupil {
+  width: 7px;
+  height: 7px;
+  top: calc(50% - 3.5px);
+  left: calc(50% - 3.5px);
+}
+
+.login-character .character-mouth {
+  width: 19px;
+  height: 8px;
+  margin-top: 12px;
+  border-color: #242127;
+}
+
+.character-arch .character-mouth {
+  display: none;
+}
+
+.character-bean .character-mouth {
+  width: 30px;
+  margin-left: 16px;
+  border-radius: 0;
+  transform: rotate(-14deg);
+}
+
+.login-character.following .character-body {
+  animation: none !important;
+}
+
+.login-character.looking-away .character-body {
+  transform:
+    translate(calc(var(--body-x) - 8px), var(--body-y))
+    rotate(calc(var(--body-tilt) - 5deg))
+    scaleY(var(--body-stretch));
+}
+
+.login-character.eyes-closed .character-eye {
+  width: 18px;
+  height: 3px;
+  margin-top: 8px;
+  background: #242127;
+}
+
+.character-arch.eyes-closed .character-eye,
+.character-bean.eyes-closed .character-eye {
+  width: 12px;
+}
+
+.login-character.eyes-closed .character-mouth {
+  margin-top: 20px;
+}
+
+@media (max-width: 820px) {
+  .login-characters {
+    min-height: 250px;
+  }
+
+  .character-arch {
+    height: 105px;
+  }
+
+  .character-tower {
+    height: 220px;
+  }
+
+  .character-slab {
+    height: 158px;
+  }
+
+  .character-bean {
+    height: 145px;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-characters {
+    min-height: 205px;
+  }
+
+  .character-arch {
+    height: 84px;
+  }
+
+  .character-tower {
+    height: 178px;
+  }
+
+  .character-slab {
+    height: 128px;
+  }
+
+  .character-bean {
+    height: 116px;
+  }
+
+  .login-character .character-eye {
+    width: 13px;
+    height: 16px;
+  }
+
+  .character-arch .character-eye,
+  .character-bean .character-eye {
+    width: 8px;
+    height: 8px;
+  }
+}
+
+/* Keep these overrides last: fluid bodies with an anchored bottom edge. */
+.login-character .character-body {
+  transition: none;
+  transform-origin: 50% 100%;
+  will-change: transform;
+}
+
+.character-arch .character-body {
+  transform: skewX(var(--lean-soft)) scaleY(var(--stretch-soft));
+}
+
+.character-tower .character-body {
+  transform: skewX(var(--lean-strong)) scaleY(var(--stretch-strong));
+}
+
+.character-slab .character-body,
+.character-bean .character-body {
+  transform: skewX(var(--lean-mid)) scaleY(var(--stretch-mid));
+}
+
+.login-character .character-face {
+  margin-top: var(--face-y);
+  margin-left: var(--face-x);
+  transition: margin 90ms linear, transform 220ms ease;
+}
+
+.login-character .character-pupil {
+  transform: translate(var(--eye-x), var(--eye-y));
+  transition: none;
+}
+
+.character-arch.looking-away .character-body {
+  transform: skewX(calc(var(--lean-soft) - 4deg)) scaleY(var(--stretch-soft));
+}
+
+.character-tower.looking-away .character-body {
+  transform: skewX(calc(var(--lean-strong) - 6deg)) scaleY(var(--stretch-strong));
+}
+
+.character-slab.looking-away .character-body,
+.character-bean.looking-away .character-body {
+  transform: skewX(calc(var(--lean-mid) - 5deg)) scaleY(var(--stretch-mid));
+}
+
+.login-character.saying-no {
+  animation: none;
+}
+
+.login-character.saying-no .character-body {
+  animation: fluid-character-no 650ms ease-in-out;
 }

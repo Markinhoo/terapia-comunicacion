@@ -1,29 +1,26 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { FaEye, FaEyeSlash } from 'react-icons/fa6';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 
 const personajes = [
-  { forma: 'square', color: 'violet', nombre: 'Cuadrado' },
-  { forma: 'circle', color: 'coral', nombre: 'Circulo' },
-  { forma: 'oval', color: 'mint', nombre: 'Ovalo' }
+  { forma: 'arch', color: 'orange', nombre: 'Semicirculo', intensidad: 0.55 },
+  { forma: 'tower', color: 'violet', nombre: 'Figura morada', intensidad: 1 },
+  { forma: 'slab', color: 'ink', nombre: 'Figura negra', intensidad: 0.82 },
+  { forma: 'bean', color: 'yellow', nombre: 'Figura amarilla', intensidad: 0.68 }
 ];
 
-function Personaje({ forma, color, nombre, estado, mirada }) {
-  const estiloMirada = {
-    '--eye-x': `${mirada.x}px`,
-    '--eye-y': `${mirada.y}px`
-  };
-
+function Personaje({ forma, color, nombre, estado, intensidad }) {
   return (
     <div
       className={`login-character character-${forma} character-${color} ${estado}`}
+      style={{ '--intensity': intensidad }}
       aria-label={nombre}
       role="img"
     >
       <span className="character-shadow" />
       <span className="character-body">
-        <span className="character-face" style={estiloMirada}>
+        <span className="character-face">
           <span className="character-eye character-eye-left">
             <span className="character-pupil" />
           </span>
@@ -45,21 +42,55 @@ function LoginAdmin() {
   const [mostrarPassword, setMostrarPassword] = useState(false);
   const [passwordActivo, setPasswordActivo] = useState(false);
   const [negando, setNegando] = useState(false);
-  const [mirada, setMirada] = useState({ x: 0, y: 0 });
+  const loginPageRef = useRef(null);
+  const cursorObjetivo = useRef({ x: 0, y: 0 });
+  const cursorActual = useRef({ x: 0, y: 0 });
   const navigate = useNavigate();
   const location = useLocation();
+
+  useEffect(() => {
+    let frameId;
+
+    const animar = () => {
+      const actual = cursorActual.current;
+      const objetivo = cursorObjetivo.current;
+
+      actual.x += (objetivo.x - actual.x) * 0.11;
+      actual.y += (objetivo.y - actual.y) * 0.11;
+
+      if (loginPageRef.current) {
+        loginPageRef.current.style.setProperty('--cursor-x', actual.x.toFixed(4));
+        loginPageRef.current.style.setProperty('--cursor-y', actual.y.toFixed(4));
+        loginPageRef.current.style.setProperty('--eye-x', `${(actual.x * 9).toFixed(2)}px`);
+        loginPageRef.current.style.setProperty('--eye-y', `${(actual.y * 6.5).toFixed(2)}px`);
+        loginPageRef.current.style.setProperty('--face-x', `${(actual.x * 13).toFixed(2)}px`);
+        loginPageRef.current.style.setProperty('--face-y', `${(actual.y * 7).toFixed(2)}px`);
+        loginPageRef.current.style.setProperty('--lean-soft', `${(actual.x * -5).toFixed(2)}deg`);
+        loginPageRef.current.style.setProperty('--lean-mid', `${(actual.x * -8).toFixed(2)}deg`);
+        loginPageRef.current.style.setProperty('--lean-strong', `${(actual.x * -12).toFixed(2)}deg`);
+        loginPageRef.current.style.setProperty('--stretch-soft', (1 - actual.y * 0.025).toFixed(4));
+        loginPageRef.current.style.setProperty('--stretch-mid', (1 - actual.y * 0.045).toFixed(4));
+        loginPageRef.current.style.setProperty('--stretch-strong', (1 - actual.y * 0.07).toFixed(4));
+      }
+
+      frameId = window.requestAnimationFrame(animar);
+    };
+
+    frameId = window.requestAnimationFrame(animar);
+    return () => window.cancelAnimationFrame(frameId);
+  }, []);
 
   const actualizarMirada = (event) => {
     if (passwordActivo || mostrarPassword || negando) return;
 
     const area = event.currentTarget.getBoundingClientRect();
-    const x = ((event.clientX - area.left) / area.width - 0.5) * 8;
-    const y = ((event.clientY - area.top) / area.height - 0.5) * 7;
+    const x = ((event.clientX - area.left) / area.width - 0.5) * 2;
+    const y = ((event.clientY - area.top) / area.height - 0.5) * 2;
 
-    setMirada({
-      x: Math.max(-4, Math.min(4, x)),
-      y: Math.max(-3.5, Math.min(3.5, y))
-    });
+    cursorObjetivo.current = {
+      x: Math.max(-1, Math.min(1, x)),
+      y: Math.max(-1, Math.min(1, y))
+    };
   };
 
   const estadoPersonajes = mostrarPassword
@@ -95,9 +126,12 @@ function LoginAdmin() {
 
   return (
     <main
+      ref={loginPageRef}
       className="login-page"
       onPointerMove={actualizarMirada}
-      onPointerLeave={() => setMirada({ x: 0, y: 0 })}
+      onPointerLeave={() => {
+        cursorObjetivo.current = { x: 0, y: 0 };
+      }}
     >
       <section className="login-experience" aria-labelledby="login-title">
         <div className="login-characters" aria-label="Personajes del acceso">
@@ -106,7 +140,6 @@ function LoginAdmin() {
               key={personaje.forma}
               {...personaje}
               estado={estadoPersonajes}
-              mirada={mirada}
             />
           ))}
         </div>
