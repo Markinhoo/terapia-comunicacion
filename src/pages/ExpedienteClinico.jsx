@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { generarPDF } from '../utils/generarPDF';
+import { formatearFechaLocal } from '../utils/fechas';
 
 function ExpedienteClinico() {
   const { pacienteId } = useParams();
@@ -35,16 +36,7 @@ function ExpedienteClinico() {
     tareas_casa: ''
   });
 
-  useEffect(() => {
-    obtenerPaciente();
-    obtenerDetallePaciente();
-    obtenerExpedientes();
-    obtenerObjetivos();
-    obtenerObjetivosPaciente();
-    obtenerArchivosPaciente();
-  }, []);
-
-  const obtenerPaciente = async () => {
+  async function obtenerPaciente() {
     const { data, error } = await supabase
       .from('pacientes')
       .select('*')
@@ -53,9 +45,9 @@ function ExpedienteClinico() {
 
     if (!error) setPaciente(data);
     else console.error(error);
-  };
+  }
 
-  const obtenerDetallePaciente = async () => {
+  async function obtenerDetallePaciente() {
     const { data, error } = await supabase
       .from('paciente_detalle')
       .select('*')
@@ -75,9 +67,9 @@ function ExpedienteClinico() {
         diagnostico_inicial: data.diagnostico_inicial || ''
       });
     }
-  };
+  }
 
-  const obtenerExpedientes = async () => {
+  async function obtenerExpedientes() {
     const { data, error } = await supabase
       .from('expedientes')
       .select('*')
@@ -86,9 +78,9 @@ function ExpedienteClinico() {
 
     if (!error) setExpedientes(data);
     else console.error(error);
-  };
+  }
 
-  const obtenerObjetivos = async () => {
+  async function obtenerObjetivos() {
     const { data, error } = await supabase
       .from('objetivos_terapeuticos')
       .select('*')
@@ -97,9 +89,9 @@ function ExpedienteClinico() {
 
     if (!error) setObjetivos(data);
     else console.error(error);
-  };
+  }
 
-  const obtenerObjetivosPaciente = async () => {
+  async function obtenerObjetivosPaciente() {
     const { data, error } = await supabase
       .from('paciente_objetivos')
       .select(`
@@ -114,9 +106,9 @@ function ExpedienteClinico() {
 
     if (!error) setObjetivosPaciente(data);
     else console.error(error);
-  };
+  }
 
-  const obtenerArchivosPaciente = async () => {
+  async function obtenerArchivosPaciente() {
     const { data, error } = await supabase
       .from('archivos_paciente')
       .select('*')
@@ -125,7 +117,18 @@ function ExpedienteClinico() {
 
     if (!error) setArchivosPaciente(data);
     else console.error(error);
-  };
+  }
+
+  useEffect(() => {
+    obtenerPaciente();
+    obtenerDetallePaciente();
+    obtenerExpedientes();
+    obtenerObjetivos();
+    obtenerObjetivosPaciente();
+    obtenerArchivosPaciente();
+    // These loaders only depend on the route patient id.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pacienteId]);
 
   const handleDetalleChange = (e) => {
     setDetalle({
@@ -236,7 +239,7 @@ function ExpedienteClinico() {
 
     const nuevoExpediente = {
       paciente_id: Number(pacienteId),
-      fecha: new Date().toISOString().split('T')[0],
+      fecha: formatearFechaLocal(),
       diagnostico: form.diagnostico,
       objetivo_trabajado: form.objetivo_trabajado,
       porcentaje_avance: Number(form.porcentaje_avance),
@@ -280,7 +283,27 @@ function ExpedienteClinico() {
       return;
     }
 
-    const ruta = `${pacienteId}/${Date.now()}_${archivo.name}`;
+    const tiposPermitidos = [
+      'application/pdf',
+      'image/jpeg',
+      'image/png',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    ];
+    const limiteBytes = 10 * 1024 * 1024;
+
+    if (!tiposPermitidos.includes(archivo.type)) {
+      alert('Solo se permiten archivos PDF, JPG, PNG, DOC o DOCX.');
+      return;
+    }
+
+    if (archivo.size > limiteBytes) {
+      alert('El archivo no debe superar 10 MB.');
+      return;
+    }
+
+    const extension = archivo.name.split('.').pop()?.toLowerCase() || 'bin';
+    const ruta = `${pacienteId}/${crypto.randomUUID()}.${extension}`;
 
     const { error: errorUpload } = await supabase.storage
       .from('expedientes')
@@ -302,6 +325,16 @@ function ExpedienteClinico() {
           tipo_archivo: archivo.type
         }
       ]);
+
+    if (errorBD) {
+      const { error: errorLimpieza } = await supabase.storage
+        .from('expedientes')
+        .remove([ruta]);
+
+      if (errorLimpieza) {
+        console.error(errorLimpieza);
+      }
+    }
 
     if (errorBD) {
       alert('El archivo se subió, pero no se pudo guardar el registro.');
@@ -561,6 +594,7 @@ function ExpedienteClinico() {
 
         <input
           type="file"
+          accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
           onChange={(e) => setArchivo(e.target.files[0])}
         />
 

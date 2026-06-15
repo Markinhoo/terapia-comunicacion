@@ -24,11 +24,7 @@ function Servicios() {
   const [servicios, setServicios] = useState([]);
   const [totalCitas, setTotalCitas] = useState(0);
 
-  useEffect(() => {
-    obtenerServicios();
-  }, []);
-
-  const obtenerServicios = async () => {
+  async function obtenerServicios() {
     const { data, error } = await supabase
       .from('citas')
       .select('servicio');
@@ -56,7 +52,11 @@ function Servicios() {
 
     setServicios(resultado);
     setTotalCitas(data.length);
-  };
+  }
+
+  useEffect(() => {
+    obtenerServicios();
+  }, []);
 
   const chartData = {
     labels: servicios.map((item) => item.servicio),

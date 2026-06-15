@@ -1,15 +1,19 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 
 function LoginAdmin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [mensaje, setMensaje] = useState('');
+  const [enviando, setEnviando] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const login = async (e) => {
-    e.preventDefault();
+  const login = async (event) => {
+    event.preventDefault();
+    setEnviando(true);
+    setMensaje('');
 
     const { error } = await supabase.auth.signInWithPassword({
       email,
@@ -17,10 +21,13 @@ function LoginAdmin() {
     });
 
     if (error) {
-      setMensaje('Correo o contraseña incorrectos.');
-    } else {
-      navigate('/admin');
+      setMensaje('Correo o contrasena incorrectos.');
+      setEnviando(false);
+      return;
     }
+
+    const destino = location.state?.from?.pathname || '/admin';
+    navigate(destino, { replace: true });
   };
 
   return (
@@ -35,19 +42,21 @@ function LoginAdmin() {
           type="email"
           placeholder="Correo del administrador"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(event) => setEmail(event.target.value)}
           required
         />
 
         <input
           type="password"
-          placeholder="Contraseña"
+          placeholder="Contrasena"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={(event) => setPassword(event.target.value)}
           required
         />
 
-        <button type="submit">Iniciar sesión</button>
+        <button type="submit" disabled={enviando}>
+          {enviando ? 'Ingresando...' : 'Iniciar sesion'}
+        </button>
       </form>
 
       {mensaje && <p className="error">{mensaje}</p>}

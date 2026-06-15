@@ -21,7 +21,7 @@ function CalendarioCitas() {
     obtenerCitas();
   }, []);
 
-  const obtenerCitas = async () => {
+  async function obtenerCitas() {
     const { data, error } = await supabase
       .from('citas')
       .select('*')
@@ -48,7 +48,7 @@ function CalendarioCitas() {
     });
 
     setEventos(eventosCalendario);
-  };
+  }
 
   const estiloEvento = (event) => {
     let backgroundColor = '#f1c40f';
@@ -132,7 +132,7 @@ function CalendarioCitas() {
   setModalAbierto(false);
 
   navigate(
-    `/expediente/${citaSeleccionada.paciente_id}`
+    `/admin/expediente/${citaSeleccionada.paciente_id}`
   );
 };
 

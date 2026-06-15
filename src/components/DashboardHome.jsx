@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import { formatearFechaLocal } from '../utils/fechas';
 
 function DashboardHome() {
   const [pacientes, setPacientes] = useState(0);
@@ -7,25 +8,21 @@ function DashboardHome() {
   const [servicios, setServicios] = useState(0);
   const [citasHoy, setCitasHoy] = useState([]);
 
-  useEffect(() => {
-    obtenerDatosDashboard();
-  }, []);
-
-  const obtenerDatosDashboard = async () => {
-    const hoy = new Date().toISOString().split('T')[0];
+  async function obtenerDatosDashboard() {
+    const hoy = formatearFechaLocal();
 
     const fechaActual = new Date();
-    const inicioMes = new Date(
+    const inicioMes = formatearFechaLocal(new Date(
       fechaActual.getFullYear(),
       fechaActual.getMonth(),
       1
-    ).toISOString().split('T')[0];
+    ));
 
-    const finMes = new Date(
+    const finMes = formatearFechaLocal(new Date(
       fechaActual.getFullYear(),
       fechaActual.getMonth() + 1,
       0
-    ).toISOString().split('T')[0];
+    ));
 
     const { data: pacientesData } = await supabase
       .from('pacientes')
@@ -59,7 +56,11 @@ function DashboardHome() {
 
     setServicios(serviciosUnicos.size);
     setCitasHoy(citasHoyData || []);
-  };
+  }
+
+  useEffect(() => {
+    obtenerDatosDashboard();
+  }, []);
 
   const formatearHora = (hora) => {
     if (!hora) return '';

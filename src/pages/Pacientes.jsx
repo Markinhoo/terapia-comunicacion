@@ -5,11 +5,7 @@ function Pacientes() {
   const [citas, setCitas] = useState([]);
   const [busqueda, setBusqueda] = useState('');
 
-  useEffect(() => {
-    obtenerCitas();
-  }, []);
-
-  const obtenerCitas = async () => {
+  async function obtenerCitas() {
     const { data, error } = await supabase
       .from('citas')
       .select('*')
@@ -20,7 +16,11 @@ function Pacientes() {
     } else {
       console.error(error);
     }
-  };
+  }
+
+  useEffect(() => {
+    obtenerCitas();
+  }, []);
 
   const pacientesFiltrados = citas.filter((cita) => {
     const texto = `

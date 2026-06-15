@@ -5,6 +5,7 @@ import DashboardHome from '../components/DashboardHome';
 import CalendarioCitas from './CalendarioCitas';
 import Pacientes from './Pacientes';
 import Servicios from './Servicios';
+import ExpedienteClinico from './ExpedienteClinico';
 
 function PanelAdmin() {
   return (
@@ -34,6 +35,11 @@ function PanelAdmin() {
           <Route
             path="servicios"
             element={<Servicios />}
+          />
+
+          <Route
+            path="expediente/:pacienteId"
+            element={<ExpedienteClinico />}
           />
 
         </Routes>

@@ -1,13 +1,10 @@
-import { Routes, Route, Link } from 'react-router-dom';
+import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import Inicio from './pages/Inicio';
 import AgendarCita from './pages/AgendarCita';
 import LoginAdmin from './pages/LoginAdmin';
 import PanelAdmin from './pages/PanelAdmin';
-import CalendarioCitas from './pages/CalendarioCitas';
-import Pacientes from './pages/Pacientes';
-import ExpedienteClinico from './pages/ExpedienteClinico';
+import ProtectedRoute from './components/ProtectedRoute';
 import WhatsAppFloat from './components/WhatsAppFloat';
-import { useLocation } from 'react-router-dom';
 
 
 function App() {
@@ -32,10 +29,14 @@ function App() {
         <Route path="/" element={<Inicio />} />
         <Route path="/agendar" element={<AgendarCita />} />
         <Route path="/login" element={<LoginAdmin />} />
-        <Route path="/admin/*" element={<PanelAdmin />} />
-        <Route path="/calendario" element={<CalendarioCitas />} />
-        <Route path="/pacientes" element={<Pacientes />} />
-        <Route path="/expediente/:pacienteId" element={<ExpedienteClinico />} />
+        <Route
+          path="/admin/*"
+          element={
+            <ProtectedRoute>
+              <PanelAdmin />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
 
        {!location.pathname.startsWith('/admin') &&  location.pathname !== '/login' &&

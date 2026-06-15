@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import { formatearFechaLocal } from '../utils/fechas';
 
 function AgendarCita() {
-  const hoy = new Date().toISOString().split('T')[0];
+  const hoy = formatearFechaLocal();
 
   const [form, setForm] = useState({
     nombre_paciente: '',
@@ -19,14 +20,7 @@ function AgendarCita() {
   const [horarios, setHorarios] = useState([]);
   const [mensaje, setMensaje] = useState('');
   const [tipoMensaje, setTipoMensaje] = useState('');
-
-  useEffect(() => {
-    if (form.fecha) {
-      obtenerHorariosDisponibles(form.fecha);
-    } else {
-      setHorarios([]);
-    }
-  }, [form.fecha]);
+  const [enviando, setEnviando] = useState(false);
 
   const limpiarNombre = (valor) => {
     return valor.replace(/[^a-zA-ZÁÉÍÓÚáéíóúÑñ\s]/g, '');
@@ -77,7 +71,7 @@ function AgendarCita() {
     setForm({ ...form, [name]: value });
   };
 
-  const obtenerHorariosDisponibles = async (fecha) => {
+  async function obtenerHorariosDisponibles(fecha) {
     const { data, error } = await supabase.rpc(
       'obtener_horarios_disponibles',
       { fecha_consulta: fecha }
@@ -90,7 +84,13 @@ function AgendarCita() {
     }
 
     setHorarios(data || []);
-  };
+  }
+
+  useEffect(() => {
+    if (form.fecha) {
+      obtenerHorariosDisponibles(form.fecha);
+    }
+  }, [form.fecha]);
 
   const validarFormulario = () => {
     const soloLetras = /^[a-zA-ZÁÉÍÓÚáéíóúÑñ\s]+$/;
@@ -138,47 +138,22 @@ function AgendarCita() {
     e.preventDefault();
 
     if (!validarFormulario()) return;
+    setEnviando(true);
+    setMensaje('');
 
-    let pacienteId = null;
+    const { error } = await supabase.rpc('registrar_cita_publica', {
+      p_nombre_paciente: form.nombre_paciente.trim(),
+      p_edad: form.edad ? Number(form.edad) : null,
+      p_nombre_responsable: form.nombre_responsable.trim() || null,
+      p_telefono: form.telefono,
+      p_correo: form.correo.trim() || null,
+      p_servicio: form.servicio,
+      p_fecha: form.fecha,
+      p_hora: form.hora,
+      p_motivo_consulta: form.motivo_consulta.trim() || null
+    });
 
-    const { data: pacienteExistente } = await supabase
-      .from('pacientes')
-      .select('*')
-      .eq('telefono', form.telefono)
-      .maybeSingle();
-
-    if (pacienteExistente) {
-      pacienteId = pacienteExistente.id;
-    } else {
-      const { data: nuevoPaciente, error: errorPaciente } = await supabase
-        .from('pacientes')
-        .insert([{
-          nombre_paciente: form.nombre_paciente.trim(),
-          edad: form.edad || null,
-          nombre_responsable: form.nombre_responsable.trim(),
-          telefono: form.telefono,
-          correo: form.correo
-        }])
-        .select()
-        .single();
-
-      if (errorPaciente) {
-        setMensaje('No se pudo registrar el paciente.');
-        setTipoMensaje('error');
-        console.error(errorPaciente);
-        return;
-      }
-
-      pacienteId = nuevoPaciente.id;
-    }
-
-    const { error } = await supabase.from('citas').insert([{
-      ...form,
-      modalidad: 'Presencial',
-      nombre_paciente: form.nombre_paciente.trim(),
-      nombre_responsable: form.nombre_responsable.trim(),
-      paciente_id: pacienteId
-    }]);
+    setEnviando(false);
 
     if (error) {
       setMensaje(error.message || 'Ocurrió un error al registrar la cita.');
@@ -306,7 +281,9 @@ function AgendarCita() {
           onChange={handleChange}
         />
 
-        <button type="submit">Registrar cita</button>
+        <button type="submit" disabled={enviando}>
+          {enviando ? 'Registrando...' : 'Registrar cita'}
+        </button>
       </form>
 
       {mensaje && (

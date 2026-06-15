@@ -45,3 +45,15 @@ button {
   color: #607d8b;
   font-weight: bold;
 }
+
+.auth-loading {
+  margin: 80px auto;
+  text-align: center;
+  color: #607d8b;
+  font-weight: bold;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
