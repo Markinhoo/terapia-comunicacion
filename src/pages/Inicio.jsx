@@ -65,6 +65,13 @@ const servicios = [
   }
 ];
 
+const corrientes = [
+  'A B C 1 2 3 LENGUAJE 4 5 D E F VOZ 6 7 G H I 8 9 COMUNICACION 0',
+  'PALABRAS 2 4 6 SONIDOS 8 0 A E I O U 1 3 5 ESCUCHAR 7 9',
+  'M N Ñ O 3 1 HABLAR 4 1 P Q R 5 9 LEER 2 6 S T U 5 3',
+  '7 2 APRENDER V W X 8 4 EXPRESAR Y Z 9 6 COMPRENDER 1 0'
+];
+
 function Inicio() {
   const [slideActual, setSlideActual] = useState(0);
   const [pausado, setPausado] = useState(false);
@@ -87,6 +94,25 @@ function Inicio() {
 
   return (
     <main className="inicio-page">
+      <div className="symbol-river" aria-hidden="true">
+        <div className="symbol-river-perspective">
+          {corrientes.map((texto, index) => (
+            <div
+              className={`symbol-stream symbol-stream-${index + 1}`}
+              key={texto}
+            >
+              <div className="symbol-stream-track">
+                <span>{texto}</span>
+                <span>{texto}</span>
+                <span>{texto}</span>
+                <span>{texto}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="symbol-river-fade" />
+      </div>
+
       <section
         className="hero-carousel"
         aria-roledescription="carrusel"

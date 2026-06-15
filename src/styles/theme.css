@@ -222,9 +222,7 @@ th {
 }
 
 :root[data-theme='dark'] .inicio-page {
-  background:
-    radial-gradient(circle at top left, rgba(141, 106, 194, 0.18), transparent 34%),
-    var(--page-bg-soft);
+  background: var(--page-bg-soft);
 }
 
 :root[data-theme='dark'] .servicio-home-card::before {

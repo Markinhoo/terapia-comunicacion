@@ -1,11 +1,158 @@
 .inicio-page {
+  position: relative;
+  isolation: isolate;
   min-height: 100vh;
-  background:
-    radial-gradient(circle at top left, rgba(181, 158, 218, 0.2), transparent 34%),
-    #f6f4fb;
+  background: var(--page-bg-soft);
+  overflow: hidden;
+}
+
+.inicio-page > section {
+  position: relative;
+  z-index: 1;
+}
+
+.symbol-river {
+  --river-symbol: rgba(91, 62, 135, .36);
+  --river-glow: rgba(132, 94, 187, .24);
+  position: absolute;
+  z-index: 0;
+  inset: 0 -22vw 0;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, .72) 0%,
+    #000 12%,
+    #000 88%,
+    rgba(0, 0, 0, .68) 100%
+  );
+  mask-image: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, .72) 0%,
+    #000 12%,
+    #000 88%,
+    rgba(0, 0, 0, .68) 100%
+  );
+  pointer-events: none;
+  user-select: none;
+}
+
+.symbol-river-perspective {
+  position: sticky;
+  top: 0;
+  width: 145vw;
+  height: 115vh;
+  margin-left: -18vw;
+  transform: perspective(800px) rotateX(55deg) rotateZ(-19deg) scale(1.18);
+  transform-origin: center center;
+}
+
+.symbol-stream {
+  position: absolute;
+  left: -20%;
+  width: 140%;
+  overflow: hidden;
+  color: var(--river-symbol);
+  font-family: "Courier New", monospace;
+  font-weight: 800;
+  letter-spacing: .28em;
+  line-height: 1;
+  white-space: nowrap;
+  text-shadow: 0 0 18px var(--river-glow);
+}
+
+.symbol-stream::before,
+.symbol-stream::after {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  bottom: 0;
+  width: 12%;
+  content: '';
+}
+
+.symbol-stream::before {
+  left: 0;
+  background: linear-gradient(90deg, var(--page-bg-soft), transparent);
+}
+
+.symbol-stream::after {
+  right: 0;
+  background: linear-gradient(-90deg, var(--page-bg-soft), transparent);
+}
+
+.symbol-stream-track {
+  display: flex;
+  width: max-content;
+  will-change: transform;
+  animation: symbol-current 30s linear infinite;
+}
+
+.symbol-stream-track span {
+  display: block;
+  padding-right: 4em;
+}
+
+.symbol-stream-1 {
+  top: 3%;
+  font-size: clamp(25px, 3.2vw, 48px);
+  opacity: .94;
+}
+
+.symbol-stream-2 {
+  top: 28%;
+  font-size: clamp(18px, 2.3vw, 34px);
+  opacity: .76;
+  filter: blur(.3px);
+}
+
+.symbol-stream-2 .symbol-stream-track {
+  animation-direction: reverse;
+  animation-duration: 38s;
+}
+
+.symbol-stream-3 {
+  top: 54%;
+  font-size: clamp(30px, 4.2vw, 62px);
+  opacity: .68;
+  filter: blur(.7px);
+}
+
+.symbol-stream-3 .symbol-stream-track {
+  animation-duration: 44s;
+}
+
+.symbol-stream-4 {
+  top: 82%;
+  font-size: clamp(20px, 2.8vw, 40px);
+  opacity: .8;
+}
+
+.symbol-stream-4 .symbol-stream-track {
+  animation-direction: reverse;
+  animation-duration: 34s;
+}
+
+.symbol-river-fade {
+  display: none;
+}
+
+:root[data-theme='dark'] .symbol-river {
+  --river-symbol: rgba(218, 190, 252, .46);
+  --river-glow: rgba(190, 142, 244, .34);
+}
+
+@keyframes symbol-current {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+
+  to {
+    transform: translate3d(-25%, 0, 0);
+  }
 }
 
 .hero-carousel {
+  background: transparent;
   padding: 32px clamp(16px, 4vw, 54px) 20px;
 }
 
@@ -411,6 +558,16 @@
 }
 
 @media (max-width: 760px) {
+  .symbol-river {
+    inset: 0 -65vw;
+  }
+
+  .symbol-river-perspective {
+    width: 220vw;
+    margin-left: -60vw;
+    transform: perspective(650px) rotateX(56deg) rotateZ(-25deg) scale(1.18);
+  }
+
   .hero-carousel {
     padding: 18px 14px 10px;
   }
@@ -537,5 +694,9 @@
   .servicio-home-card p,
   .ubicacion-button {
     transition: none;
+  }
+
+  .symbol-stream-track {
+    animation-play-state: paused;
   }
 }
