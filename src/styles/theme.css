@@ -1,0 +1,302 @@
+:root {
+  --page-bg: #f4f8fb;
+  --page-bg-soft: #f6f4fb;
+  --surface: #ffffff;
+  --surface-soft: #f7f7f7;
+  --surface-muted: #fafafa;
+  --text: #263238;
+  --text-muted: #607d8b;
+  --primary: #6b4f9b;
+  --primary-strong: #4f3978;
+  --border: #d5d9dc;
+  --shadow: rgba(0, 0, 0, 0.08);
+  --table-border: #dddddd;
+  --calendar-off-range: #f2f2f2;
+  --calendar-today: #eaf6ff;
+}
+
+:root[data-theme='dark'] {
+  --page-bg: #121018;
+  --page-bg-soft: #17131f;
+  --surface: #211b2b;
+  --surface-soft: #2a2335;
+  --surface-muted: #30283d;
+  --text: #f2edf7;
+  --text-muted: #b8adbf;
+  --primary: #9a7dcc;
+  --primary-strong: #c6afe8;
+  --border: #4a4055;
+  --shadow: rgba(0, 0, 0, 0.3);
+  --table-border: #44394f;
+  --calendar-off-range: #19151f;
+  --calendar-today: #302748;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  background: var(--page-bg);
+  color: var(--text);
+  transition: background-color 220ms ease, color 220ms ease;
+}
+
+.navbar {
+  background: var(--primary);
+}
+
+.navbar-actions,
+.navbar-links {
+  display: flex;
+  align-items: center;
+}
+
+.navbar-actions {
+  gap: 22px;
+}
+
+.navbar-links {
+  gap: 20px;
+}
+
+.theme-toggle {
+  display: inline-flex;
+  min-width: 104px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 13px;
+  border: 1px solid rgba(255, 255, 255, 0.38);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.13);
+  color: white;
+  box-shadow: none;
+  transition: background 180ms ease, transform 180ms ease;
+}
+
+.theme-toggle:hover,
+.theme-toggle:focus-visible {
+  background: rgba(255, 255, 255, 0.24);
+  transform: translateY(-1px);
+}
+
+.theme-toggle-icon {
+  display: grid;
+  place-items: center;
+  font-size: 15px;
+}
+
+.theme-toggle-text {
+  font-size: 13px;
+}
+
+.inicio-page,
+.dashboard-content {
+  background: var(--page-bg-soft);
+}
+
+.form,
+.card-kpi,
+.dashboard-card,
+.chart-card,
+.dashboard-section,
+.calendar-container,
+.modal-cita,
+.expediente-card,
+.servicio-kpi,
+.servicio-home-card,
+table {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 4px 14px var(--shadow);
+}
+
+.cita-hoy-card,
+.objetivo-card,
+.archivo-card {
+  background: var(--surface-soft);
+  color: var(--text);
+}
+
+input,
+select,
+textarea {
+  border-color: var(--border);
+  background: var(--surface);
+  color: var(--text);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-muted);
+  opacity: 1;
+}
+
+select option {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.subtitle,
+.empty,
+.servicios-intro,
+.servicio-kpi p,
+.cita-hoy-card span {
+  color: var(--text-muted);
+}
+
+.card-kpi span,
+.dashboard-card h2,
+.chart-card h2,
+.expediente-card h3,
+.objetivo-card h4,
+.modal-cita-header h2,
+.servicio-kpi span,
+.servicios-home h2,
+.servicio-home-card h3 {
+  color: var(--primary-strong);
+}
+
+th,
+td {
+  border-bottom-color: var(--table-border);
+}
+
+th {
+  background: var(--primary);
+}
+
+.sidebar,
+.mobile-menu-button {
+  background: var(--primary);
+}
+
+.sidebar-nav a.active,
+.sidebar-nav a.active:hover {
+  background: var(--surface);
+  color: var(--primary);
+}
+
+.rbc-calendar,
+.rbc-toolbar,
+.rbc-time-view,
+.rbc-month-view,
+.rbc-agenda-view,
+.rbc-time-content,
+.rbc-time-header-content,
+.rbc-header,
+.rbc-day-bg,
+.rbc-timeslot-group {
+  border-color: var(--table-border);
+  color: var(--text);
+}
+
+.rbc-toolbar button {
+  border-color: var(--border);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.rbc-toolbar button:hover,
+.rbc-toolbar button:focus,
+.rbc-toolbar button.rbc-active {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: white;
+}
+
+.rbc-off-range-bg {
+  background: var(--calendar-off-range);
+}
+
+.rbc-today {
+  background: var(--calendar-today);
+}
+
+.rbc-show-more {
+  color: var(--primary-strong);
+  background: var(--surface);
+}
+
+:root[data-theme='dark'] .inicio-page {
+  background:
+    radial-gradient(circle at top left, rgba(141, 106, 194, 0.18), transparent 34%),
+    var(--page-bg-soft);
+}
+
+:root[data-theme='dark'] .servicio-home-card::before {
+  background: rgba(129, 91, 181, 0.24);
+}
+
+:root[data-theme='dark'] .servicio-icon {
+  background: #382b49;
+  color: #c8b0ec;
+}
+
+:root[data-theme='dark'] .hero-cta {
+  background: #f2edf7;
+  color: #513778;
+}
+
+:root[data-theme='dark'] .modal-close {
+  color: var(--primary-strong);
+}
+
+:root[data-theme='dark'] .badge.pendiente {
+  background: #574b18;
+  color: #ffe88a;
+}
+
+:root[data-theme='dark'] .badge.confirmada {
+  background: #173f2a;
+  color: #91e4b0;
+}
+
+:root[data-theme='dark'] .badge.cancelada {
+  background: #52252a;
+  color: #ffb4bc;
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    height: auto;
+    min-height: 72px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    gap: 12px;
+  }
+
+  .navbar-actions {
+    gap: 12px;
+  }
+
+  .navbar-links {
+    gap: 12px;
+  }
+
+  .theme-toggle {
+    min-width: 42px;
+    padding: 10px;
+  }
+
+  .theme-toggle-text {
+    display: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .navbar-actions {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body,
+  .theme-toggle {
+    transition: none;
+  }
+}

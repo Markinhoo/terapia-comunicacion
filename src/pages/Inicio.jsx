@@ -1,57 +1,174 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import {
+  FaBookOpen,
+  FaChildReaching,
+  FaClipboardCheck,
+  FaComments,
+  FaMicrophoneLines
+} from 'react-icons/fa6';
+
+const banners = [
+  {
+    src: '/banner1.png',
+    alt: 'Terapia de lenguaje',
+    titulo: 'Comunicar abre nuevas posibilidades'
+  },
+  {
+    src: '/banner2.png',
+    alt: 'Terapia infantil',
+    titulo: 'Acompanamiento cercano para cada etapa'
+  },
+  {
+    src: '/banner3.png',
+    alt: 'Comunicacion humana',
+    titulo: 'Evaluacion e intervencion especializada'
+  },
+  {
+    src: '/banner4.png',
+    alt: 'Terapia de comunicacion',
+    titulo: 'Estrategias pensadas para cada persona'
+  }
+];
+
+const servicios = [
+  {
+    titulo: 'Terapia de lenguaje',
+    descripcion:
+      'Fortalece la comprension, la expresion y el uso funcional del lenguaje en la vida diaria.',
+    Icono: FaComments
+  },
+  {
+    titulo: 'Lenguaje infantil',
+    descripcion:
+      'Acompana el desarrollo del vocabulario, las frases, la comunicacion social y la comprension.',
+    Icono: FaChildReaching
+  },
+  {
+    titulo: 'Lectoescritura',
+    descripcion:
+      'Apoya habilidades como conciencia fonologica, lectura, escritura y comprension de textos.',
+    Icono: FaBookOpen
+  },
+  {
+    titulo: 'Terapia de voz',
+    descripcion:
+      'Promueve un uso saludable y eficiente de la voz mediante respiracion, higiene y tecnica vocal.',
+    Icono: FaMicrophoneLines
+  },
+  {
+    titulo: 'Evaluacion inicial',
+    descripcion:
+      'Identifica fortalezas y necesidades para establecer objetivos y un plan terapeutico personalizado.',
+    Icono: FaClipboardCheck
+  }
+];
 
 function Inicio() {
+  const [slideActual, setSlideActual] = useState(0);
+  const [pausado, setPausado] = useState(false);
+
+  useEffect(() => {
+    if (pausado) return undefined;
+
+    const intervalo = window.setInterval(() => {
+      setSlideActual((actual) => (actual + 1) % banners.length);
+    }, 5000);
+
+    return () => window.clearInterval(intervalo);
+  }, [pausado]);
+
+  const cambiarSlide = (direccion) => {
+    setSlideActual(
+      (actual) => (actual + direccion + banners.length) % banners.length
+    );
+  };
+
   return (
     <main className="inicio-page">
-      <section className="hero-slider">
-        <div className="slider-track">
-          <img src="/banner1.png" alt="Terapia de lenguaje" />
-          <img src="/banner2.png" alt="Terapia infantil" />
-          <img src="/banner3.png" alt="Comunicación humana" />
-          <img src="/banner4.png" alt="Terapia de comunicación" />
-        </div>
+      <section
+        className="hero-carousel"
+        aria-roledescription="carrusel"
+        aria-label="Servicios de terapia de comunicacion"
+        onMouseEnter={() => setPausado(true)}
+        onMouseLeave={() => setPausado(false)}
+        onFocus={() => setPausado(true)}
+        onBlur={() => setPausado(false)}
+      >
+        <div className="carousel-viewport">
+          {banners.map((banner, index) => (
+            <article
+              className={`carousel-slide ${index === slideActual ? 'active' : ''}`}
+              key={banner.src}
+              aria-hidden={index !== slideActual}
+            >
+              <img src={banner.src} alt={banner.alt} />
+              <div className="carousel-overlay" />
+              <div className="hero-text">
+                <span className="hero-kicker">Clinica Casas</span>
+                <h1>{banner.titulo}</h1>
+                <p>
+                  Evaluacion, diagnostico e intervencion especializada en
+                  lenguaje, habla, voz, audicion y comunicacion.
+                </p>
+                <Link to="/agendar" className="btn hero-cta">
+                  Agendar valoracion
+                </Link>
+              </div>
+            </article>
+          ))}
 
-        <div className="hero-text">
-          <h1>Terapia de la Comunicación Humana</h1>
-          <p>
-            Evaluación, diagnóstico e intervención especializada en lenguaje,
-            habla, voz, audición y comunicación.
-          </p>
+          <button
+            type="button"
+            className="carousel-arrow carousel-arrow-prev"
+            onClick={() => cambiarSlide(-1)}
+            aria-label="Imagen anterior"
+          >
+            &#8249;
+          </button>
 
-          <Link to="/agendar" className="btn">
-            Agendar valoración
-          </Link>
+          <button
+            type="button"
+            className="carousel-arrow carousel-arrow-next"
+            onClick={() => cambiarSlide(1)}
+            aria-label="Imagen siguiente"
+          >
+            &#8250;
+          </button>
+
+          <div className="carousel-dots" aria-label="Seleccionar imagen">
+            {banners.map((banner, index) => (
+              <button
+                type="button"
+                key={banner.src}
+                className={index === slideActual ? 'active' : ''}
+                onClick={() => setSlideActual(index)}
+                aria-label={`Mostrar imagen ${index + 1}`}
+                aria-current={index === slideActual ? 'true' : undefined}
+              />
+            ))}
+          </div>
         </div>
       </section>
 
-      <section className="servicios-home">
-        <h2>Servicios</h2>
+      <section className="servicios-home" aria-labelledby="servicios-titulo">
+        <span className="section-kicker">Atencion especializada</span>
+        <h2 id="servicios-titulo">Nuestros servicios</h2>
+        <p className="servicios-intro">
+          Conoce cada area colocando el cursor o seleccionando una tarjeta.
+        </p>
 
         <div className="servicios-home-grid">
-          <div className="servicio-home-card">
-            <span>🗣️</span>
-            <h3>Terapia de lenguaje</h3>
-          </div>
-
-          <div className="servicio-home-card">
-            <span>👧</span>
-            <h3>Lenguaje infantil</h3>
-          </div>
-
-          <div className="servicio-home-card">
-            <span>📚</span>
-            <h3>Lectoescritura</h3>
-          </div>
-
-          <div className="servicio-home-card">
-            <span>🎙️</span>
-            <h3>Terapia de voz</h3>
-          </div>
-
-          <div className="servicio-home-card">
-            <span>📋</span>
-            <h3>Evaluación inicial</h3>
-          </div>
+          {servicios.map(({ titulo, descripcion, Icono }) => (
+            <article className="servicio-home-card" key={titulo} tabIndex="0">
+              <div className="servicio-icon" aria-hidden="true">
+                <Icono />
+              </div>
+              <h3>{titulo}</h3>
+              <p>{descripcion}</p>
+              <span className="servicio-hint">Ver informacion</span>
+            </article>
+          ))}
         </div>
       </section>
     </main>

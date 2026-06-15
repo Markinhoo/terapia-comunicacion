@@ -14,6 +14,7 @@ import './styles/whatsapp.css';
 import './styles/responsive.css';
 import './styles/servicios.css';
 import './styles/calendar.css';
+import './styles/theme.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <BrowserRouter>
