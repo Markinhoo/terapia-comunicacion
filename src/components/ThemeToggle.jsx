@@ -11,11 +11,13 @@ function ThemeToggle({ theme, onToggle }) {
       aria-label={darkMode ? 'Activar tema claro' : 'Activar tema oscuro'}
       title={darkMode ? 'Activar tema claro' : 'Activar tema oscuro'}
     >
-      <span className="theme-toggle-icon" aria-hidden="true">
-        {darkMode ? <FaSun /> : <FaMoon />}
+      <span className="theme-toggle-track" aria-hidden="true">
+        <span className="theme-toggle-thumb">
+          {darkMode ? <FaMoon /> : <FaSun />}
+        </span>
       </span>
       <span className="theme-toggle-text">
-        {darkMode ? 'Claro' : 'Oscuro'}
+        {darkMode ? 'Oscuro' : 'Claro'}
       </span>
     </button>
   );

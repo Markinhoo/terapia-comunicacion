@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Routes, Route, Link, useLocation } from 'react-router-dom';
+import { Routes, Route, NavLink, useLocation } from 'react-router-dom';
+import { FaCalendarPlus, FaHouse, FaLock } from 'react-icons/fa6';
 import Inicio from './pages/Inicio';
 import AgendarCita from './pages/AgendarCita';
 import LoginAdmin from './pages/LoginAdmin';
@@ -33,16 +34,37 @@ function App() {
   return (
     <>
       <nav className="navbar">
-        <div className="brand">
-          <img src="/logo.png" alt="Clínica Casas" className="brand-logo" />
-          <h2>Clínica Casas</h2>
-        </div>
-        
+        <NavLink to="/" className="brand" aria-label="Ir al inicio">
+          <img src="/logo.png" alt="Clinica Casas" className="brand-logo" />
+          <span className="brand-copy">
+            <strong>Clinica Casas</strong>
+            <small>Comunicacion humana</small>
+          </span>
+        </NavLink>
+
         <div className="navbar-actions">
-          <div className="navbar-links">
-            <Link to="/">Inicio</Link>
-            <Link to="/agendar">Agendar cita</Link>
-            <Link to="/login">Admin</Link>
+          <div className="navbar-links" aria-label="Navegacion principal">
+            <NavLink to="/" end>
+              <FaHouse aria-hidden="true" />
+              <span>Inicio</span>
+            </NavLink>
+
+            <NavLink to="/agendar">
+              <FaCalendarPlus aria-hidden="true" />
+              <span>Agendar cita</span>
+            </NavLink>
+
+            <NavLink
+              to="/login"
+              className={({ isActive }) => (
+                isActive || location.pathname.startsWith('/admin')
+                  ? 'active'
+                  : undefined
+              )}
+            >
+              <FaLock aria-hidden="true" />
+              <span>Admin</span>
+            </NavLink>
           </div>
 
           <ThemeToggle
@@ -68,7 +90,8 @@ function App() {
         />
       </Routes>
 
-       {!location.pathname.startsWith('/admin') &&  location.pathname !== '/login' &&
+      {!location.pathname.startsWith('/admin') &&
+        location.pathname !== '/login' &&
         <WhatsAppFloat />
       }
     </>
