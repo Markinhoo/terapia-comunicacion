@@ -34,6 +34,36 @@ textarea {
   margin: 25px 0;
 }
 
+.form-group {
+  display: grid;
+  gap: 12px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.form-group legend {
+  padding: 0 8px;
+  color: var(--primary-strong);
+  font-weight: bold;
+}
+
+.contacto-opcional {
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.contacto-opcional summary {
+  color: var(--primary-strong);
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.contacto-opcional .form-group {
+  margin-top: 16px;
+}
+
 .login-page {
   display: grid;
   min-height: calc(100vh - 72px);

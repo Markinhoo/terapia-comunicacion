@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { generarPDF } from '../utils/generarPDF';
 import { formatearFechaLocal } from '../utils/fechas';
+import ControlSesiones from '../components/ControlSesiones';
 
 function ExpedienteClinico() {
   const { pacienteId } = useParams();
@@ -416,6 +417,8 @@ function ExpedienteClinico() {
           <p><strong>Correo:</strong> {paciente.correo}</p>
         </section>
       )}
+
+      {paciente && <ControlSesiones paciente={paciente} />}
 
       <section className="expediente-card">
         <h2>Ficha clínica</h2>

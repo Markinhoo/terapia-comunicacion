@@ -8,9 +8,20 @@ function AgendarCita() {
   const [form, setForm] = useState({
     nombre_paciente: '',
     edad: '',
+    fecha_nacimiento: '',
     nombre_responsable: '',
     telefono: '',
     correo: '',
+    direccion: '',
+    contacto_2_nombre: '',
+    contacto_2_parentesco: '',
+    contacto_2_telefono: '',
+    contacto_2_direccion: '',
+    contacto_3_nombre: '',
+    contacto_3_parentesco: '',
+    contacto_3_telefono: '',
+    contacto_3_direccion: '',
+    observaciones_localizacion: '',
     servicio: '',
     fecha: '',
     hora: '',
@@ -38,13 +49,22 @@ function AgendarCita() {
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    if (name === 'nombre_paciente' || name === 'nombre_responsable') {
+    if (
+      name === 'nombre_paciente' ||
+      name === 'nombre_responsable' ||
+      name === 'contacto_2_nombre' ||
+      name === 'contacto_3_nombre'
+    ) {
       setForm({ ...form, [name]: limpiarNombre(value) });
       return;
     }
 
-    if (name === 'telefono') {
-      setForm({ ...form, telefono: limpiarTelefono(value) });
+    if (
+      name === 'telefono' ||
+      name === 'contacto_2_telefono' ||
+      name === 'contacto_3_telefono'
+    ) {
+      setForm({ ...form, [name]: limpiarTelefono(value) });
       return;
     }
 
@@ -141,12 +161,24 @@ function AgendarCita() {
     setEnviando(true);
     setMensaje('');
 
-    const { error } = await supabase.rpc('registrar_cita_publica', {
+    const { error } = await supabase.rpc('registrar_cita_publica_v2', {
       p_nombre_paciente: form.nombre_paciente.trim(),
       p_edad: form.edad ? Number(form.edad) : null,
+      p_fecha_nacimiento: form.fecha_nacimiento || null,
       p_nombre_responsable: form.nombre_responsable.trim() || null,
       p_telefono: form.telefono,
       p_correo: form.correo.trim() || null,
+      p_direccion: form.direccion.trim() || null,
+      p_contacto_2_nombre: form.contacto_2_nombre.trim() || null,
+      p_contacto_2_parentesco: form.contacto_2_parentesco.trim() || null,
+      p_contacto_2_telefono: form.contacto_2_telefono || null,
+      p_contacto_2_direccion: form.contacto_2_direccion.trim() || null,
+      p_contacto_3_nombre: form.contacto_3_nombre.trim() || null,
+      p_contacto_3_parentesco: form.contacto_3_parentesco.trim() || null,
+      p_contacto_3_telefono: form.contacto_3_telefono || null,
+      p_contacto_3_direccion: form.contacto_3_direccion.trim() || null,
+      p_observaciones_localizacion:
+        form.observaciones_localizacion.trim() || null,
       p_servicio: form.servicio,
       p_fecha: form.fecha,
       p_hora: form.hora,
@@ -168,9 +200,20 @@ function AgendarCita() {
     setForm({
       nombre_paciente: '',
       edad: '',
+      fecha_nacimiento: '',
       nombre_responsable: '',
       telefono: '',
       correo: '',
+      direccion: '',
+      contacto_2_nombre: '',
+      contacto_2_parentesco: '',
+      contacto_2_telefono: '',
+      contacto_2_direccion: '',
+      contacto_3_nombre: '',
+      contacto_3_parentesco: '',
+      contacto_3_telefono: '',
+      contacto_3_direccion: '',
+      observaciones_localizacion: '',
       servicio: '',
       fecha: '',
       hora: '',
@@ -204,6 +247,14 @@ function AgendarCita() {
         />
 
         <input
+          name="fecha_nacimiento"
+          type="date"
+          aria-label="Fecha de nacimiento"
+          value={form.fecha_nacimiento}
+          onChange={handleChange}
+        />
+
+        <input
           name="nombre_responsable"
           placeholder="Nombre del padre, madre o responsable"
           value={form.nombre_responsable}
@@ -223,6 +274,40 @@ function AgendarCita() {
           type="email"
           placeholder="Correo electrónico"
           value={form.correo}
+          onChange={handleChange}
+        />
+
+        <input
+          name="direccion"
+          placeholder="Direccion del contacto principal"
+          value={form.direccion}
+          onChange={handleChange}
+        />
+
+        <details className="contacto-opcional">
+          <summary>Agregar contactos de localizacion</summary>
+
+          <fieldset className="form-group">
+            <legend>Contacto 2 (secundario)</legend>
+            <input name="contacto_2_nombre" placeholder="Nombre" value={form.contacto_2_nombre} onChange={handleChange} />
+            <input name="contacto_2_parentesco" placeholder="Parentesco" value={form.contacto_2_parentesco} onChange={handleChange} />
+            <input name="contacto_2_telefono" placeholder="Telefono" value={form.contacto_2_telefono} onChange={handleChange} />
+            <input name="contacto_2_direccion" placeholder="Direccion" value={form.contacto_2_direccion} onChange={handleChange} />
+          </fieldset>
+
+          <fieldset className="form-group">
+            <legend>Contacto 3 (emergencia)</legend>
+            <input name="contacto_3_nombre" placeholder="Nombre" value={form.contacto_3_nombre} onChange={handleChange} />
+            <input name="contacto_3_parentesco" placeholder="Parentesco" value={form.contacto_3_parentesco} onChange={handleChange} />
+            <input name="contacto_3_telefono" placeholder="Telefono" value={form.contacto_3_telefono} onChange={handleChange} />
+            <input name="contacto_3_direccion" placeholder="Direccion" value={form.contacto_3_direccion} onChange={handleChange} />
+          </fieldset>
+        </details>
+
+        <textarea
+          name="observaciones_localizacion"
+          placeholder="Observaciones adicionales de localizacion o contacto"
+          value={form.observaciones_localizacion}
           onChange={handleChange}
         />
 
