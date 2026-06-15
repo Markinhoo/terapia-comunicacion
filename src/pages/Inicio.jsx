@@ -5,6 +5,7 @@ import {
   FaChildReaching,
   FaClipboardCheck,
   FaComments,
+  FaLocationDot,
   FaMicrophoneLines
 } from 'react-icons/fa6';
 
@@ -169,6 +170,52 @@ function Inicio() {
               <span className="servicio-hint">Ver informacion</span>
             </article>
           ))}
+        </div>
+      </section>
+
+      <section className="ubicacion-home" aria-labelledby="ubicacion-titulo">
+        <div className="ubicacion-card">
+          <div className="ubicacion-map">
+            <iframe
+              title="Ubicación de Clínica Casas"
+              src="https://www.google.com/maps?q=24.002899,-104.6377189&z=17&output=embed"
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              allowFullScreen
+            />
+          </div>
+
+          <div className="ubicacion-info">
+            <span className="section-kicker">Visítanos</span>
+            <h2 id="ubicacion-titulo">Ubicación de la clínica</h2>
+            <p>
+              Encuentra nuestras instalaciones y abre la ruta desde tu
+              ubicación para llegar fácilmente.
+            </p>
+
+            <div className="ubicacion-address">
+              <span className="ubicacion-icon" aria-hidden="true">
+                <FaLocationDot />
+              </span>
+              <div>
+                <strong>Clínica Casas</strong>
+                <address>
+                  459 C. Armonía<br />
+                  Victoria de Durango, Durango
+                </address>
+              </div>
+            </div>
+
+            <a
+              className="btn ubicacion-button"
+              href="https://maps.app.goo.gl/aDPZSECwxDrSt5sf7"
+              target="_blank"
+              rel="noreferrer"
+            >
+              <FaLocationDot aria-hidden="true" />
+              Abrir ubicación en Google Maps
+            </a>
+          </div>
         </div>
       </section>
     </main>

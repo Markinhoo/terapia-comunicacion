@@ -56,6 +56,7 @@ function Pacientes() {
   const [fechaConsultando, setFechaConsultando] = useState('');
   const [guardando, setGuardando] = useState(false);
   const [mensaje, setMensaje] = useState('');
+  const [pacienteExpandido, setPacienteExpandido] = useState(null);
   const hoy = formatearFechaLocal();
 
   async function obtenerPacientes() {
@@ -104,6 +105,10 @@ function Pacientes() {
     return (paciente.citas || []).filter(
       (cita) => cita.fecha >= hoy && cita.estatus !== 'Cancelada'
     ).length;
+  };
+
+  const alternarPaciente = (pacienteId) => {
+    setPacienteExpandido((actual) => actual === pacienteId ? null : pacienteId);
   };
 
   const abrirProgramacion = (paciente) => {
@@ -328,13 +333,27 @@ function Pacientes() {
             </tr>
           </thead>
           <tbody>
-            {pacientesFiltrados.map((paciente) => (
-              <tr key={paciente.id}>
+            {pacientesFiltrados.map((paciente) => {
+              const expandido = pacienteExpandido === paciente.id;
+
+              return (
+              <tr key={paciente.id} className={expandido ? 'patient-expanded' : ''}>
                 <td data-label="Paciente">
-                  <strong>{paciente.nombre_paciente}</strong>
-                  <small className="table-detail">
-                    {paciente.edad !== null ? `${paciente.edad} años` : 'Edad no registrada'}
-                  </small>
+                  <button
+                    type="button"
+                    className="patient-toggle"
+                    onClick={() => alternarPaciente(paciente.id)}
+                    aria-expanded={expandido}
+                    aria-label={`${expandido ? 'Ocultar' : 'Mostrar'} información de ${paciente.nombre_paciente}`}
+                  >
+                    <span className="patient-toggle-copy">
+                      <strong>{paciente.nombre_paciente}</strong>
+                      <small className="table-detail">
+                        {paciente.edad !== null ? `${paciente.edad} años` : 'Edad no registrada'}
+                      </small>
+                    </span>
+                    <span className="patient-toggle-arrow" aria-hidden="true">⌄</span>
+                  </button>
                 </td>
                 <td data-label="Responsable">
                   {paciente.nombre_responsable || 'No registrado'}
@@ -378,7 +397,8 @@ function Pacientes() {
                   </div>
                 </td>
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
       </div>

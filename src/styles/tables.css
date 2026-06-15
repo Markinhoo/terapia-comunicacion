@@ -134,6 +134,20 @@ th {
   flex-wrap: nowrap;
 }
 
+.patient-toggle {
+  display: block;
+  width: 100%;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: default;
+}
+
+.patient-toggle-arrow {
+  display: none;
+}
+
 .patient-action {
   display: inline-flex;
   min-height: 38px;
@@ -443,19 +457,67 @@ th {
 
   .patients-table td:first-child {
     display: block;
-    padding: 18px 16px;
+    padding: 0;
     background:
       linear-gradient(120deg, color-mix(in srgb, var(--primary) 14%, var(--surface)), var(--surface));
   }
 
   .patients-table td:first-child::before {
-    display: block;
-    margin-bottom: 6px;
+    display: none;
   }
 
   .patients-table td:first-child strong {
     color: var(--primary-strong);
     font-size: 18px;
+  }
+
+  .patient-toggle {
+    display: flex;
+    min-height: 76px;
+    padding: 15px 16px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    border-radius: 0;
+    cursor: pointer;
+    box-shadow: none;
+  }
+
+  .patient-toggle:hover,
+  .patient-toggle:focus-visible {
+    background: color-mix(in srgb, var(--primary) 8%, transparent);
+  }
+
+  .patient-toggle-copy {
+    min-width: 0;
+  }
+
+  .patient-toggle-arrow {
+    display: grid;
+    width: 34px;
+    height: 34px;
+    flex: 0 0 34px;
+    place-items: center;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--primary) 14%, var(--surface));
+    color: var(--primary-strong);
+    font-size: 24px;
+    line-height: 1;
+    transition: transform 200ms ease, background 200ms ease;
+  }
+
+  .patient-expanded .patient-toggle-arrow {
+    background: var(--primary);
+    color: white;
+    transform: rotate(180deg);
+  }
+
+  .patients-table tr:not(.patient-expanded) td:not(:first-child) {
+    display: none;
+  }
+
+  .patient-expanded td:not(:first-child) {
+    animation: reveal-patient-details 180ms ease both;
   }
 
   .patients-table td:last-child {
@@ -501,6 +563,28 @@ th {
 
   .schedule-row select {
     grid-column: 2 / 3;
+  }
+}
+
+@keyframes reveal-patient-details {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .patient-toggle-arrow {
+    transition: none;
+  }
+
+  .patient-expanded td:not(:first-child) {
+    animation: none;
   }
 }
 
