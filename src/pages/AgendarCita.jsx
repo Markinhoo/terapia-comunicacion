@@ -246,13 +246,16 @@ function AgendarCita() {
           onChange={handleChange}
         />
 
-        <input
-          name="fecha_nacimiento"
-          type="date"
-          aria-label="Fecha de nacimiento"
-          value={form.fecha_nacimiento}
-          onChange={handleChange}
-        />
+        <label className="form-field">
+          <span>Fecha de nacimiento del paciente</span>
+          <input
+            name="fecha_nacimiento"
+            type="date"
+            value={form.fecha_nacimiento}
+            onChange={handleChange}
+          />
+          <small>Este dato ayuda a completar la hoja de localizacion.</small>
+        </label>
 
         <input
           name="nombre_responsable"
@@ -327,14 +330,18 @@ function AgendarCita() {
           <option value="Orientación a padres">Orientación a padres</option>
         </select>
 
-        <input
-          name="fecha"
-          type="date"
-          min={hoy}
-          value={form.fecha}
-          onChange={handleChange}
-          required
-        />
+        <label className="form-field form-field-highlight">
+          <span>Fecha de la cita</span>
+          <input
+            name="fecha"
+            type="date"
+            min={hoy}
+            value={form.fecha}
+            onChange={handleChange}
+            required
+          />
+          <small>Selecciona el dia en que deseas acudir a la valoracion.</small>
+        </label>
 
         <select
           name="hora"
