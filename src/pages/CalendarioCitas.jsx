@@ -4,6 +4,14 @@ import Modal from 'react-modal';
 import { supabase } from '../lib/supabaseClient';
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
+import Toast from '../components/Toast';
+import { useToast } from '../hooks/useToast';
+import {
+  citaVisibleEnAgenda,
+  estadoCitaActual,
+  obtenerRangoCita,
+  sincronizarCitasEnCurso
+} from '../utils/citas';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 
 Modal.setAppElement('#root');
@@ -16,6 +24,7 @@ function CalendarioCitas() {
   const [eventos, setEventos] = useState([]);
   const [citaSeleccionada, setCitaSeleccionada] = useState(null);
   const [modalAbierto, setModalAbierto] = useState(false);
+  const { toast, mostrarToast, cerrarToast } = useToast();
 
   useEffect(() => {
     obtenerCitas();
@@ -33,10 +42,17 @@ function CalendarioCitas() {
       return;
     }
 
-    const eventosCalendario = data.map((cita) => {
-      const inicio = new Date(`${cita.fecha}T${cita.hora}`);
-      const fin = new Date(inicio);
-      fin.setMinutes(fin.getMinutes() + 60);
+    const ahora = new Date();
+    await sincronizarCitasEnCurso(supabase, data || [], ahora);
+
+    const eventosCalendario = (data || [])
+      .map((cita) => ({
+        ...cita,
+        estatus: estadoCitaActual(cita, ahora)
+      }))
+      .filter((cita) => citaVisibleEnAgenda(cita, ahora))
+      .map((cita) => {
+      const { inicio, fin } = obtenerRangoCita(cita);
 
       return {
         title: `${cita.nombre_paciente} - ${cita.servicio}`,
@@ -65,13 +81,20 @@ function CalendarioCitas() {
       backgroundColor = '#c0392b';
     }
 
+    if (event.estatus === 'En curso') {
+      backgroundColor = '#8e5ad7';
+    }
+
     return {
       style: {
         backgroundColor,
         color: 'white',
         borderRadius: '8px',
         border: 'none',
-        padding: '2px 6px'
+        padding: '2px 6px',
+        animation: event.estatus === 'En curso'
+          ? 'cita-pulse 1.15s ease-in-out infinite'
+          : undefined
       }
     };
   };
@@ -90,7 +113,7 @@ function CalendarioCitas() {
 
     if (error) {
       console.error(error);
-      alert('No se pudo confirmar la cita.');
+      mostrarToast('No se pudo confirmar la cita.', 'error');
       return;
     }
 
@@ -115,7 +138,7 @@ function CalendarioCitas() {
 
     if (error) {
       console.error(error);
-      alert('No se pudo cancelar la cita.');
+      mostrarToast('No se pudo cancelar la cita.', 'error');
       return;
     }
 
@@ -125,7 +148,7 @@ function CalendarioCitas() {
 
   const abrirExpediente = () => {
   if (!citaSeleccionada?.paciente_id) {
-    alert('Esta cita no tiene paciente asociado.');
+    mostrarToast('Esta cita no tiene paciente asociado.', 'error');
     return;
   }
 
@@ -138,7 +161,7 @@ function CalendarioCitas() {
 
   const abrirWhatsApp = () => {
     if (!citaSeleccionada?.telefono) {
-      alert('Esta cita no tiene teléfono registrado.');
+      mostrarToast('Esta cita no tiene telefono registrado.', 'error');
       return;
     }
 
@@ -156,6 +179,7 @@ function CalendarioCitas() {
       <div className="calendar-header">
         <div className="calendar-legend">
           <span className="legend-item confirmada">Confirmada</span>
+          <span className="legend-item en-curso">En curso</span>
           <span className="legend-item pendiente">Pendiente</span>
           <span className="legend-item cancelada">Cancelada</span>
         </div>
@@ -267,6 +291,8 @@ function CalendarioCitas() {
           </>
         )}
       </Modal>
+
+      <Toast toast={toast} onClose={cerrarToast} />
     </main>
   );
 }

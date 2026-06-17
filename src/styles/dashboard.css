@@ -86,6 +86,12 @@
   border-left-color: #c0392b;
 }
 
+.cita-hoy-card.en.curso,
+.cita-hoy-card.en-curso {
+  border-left-color: #8e5ad7;
+  background: color-mix(in srgb, var(--primary) 11%, var(--surface));
+}
+
 .cita-hoy-card p {
   margin: 5px 0 0;
   font-weight: bold;

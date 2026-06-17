@@ -4,6 +4,32 @@ import { supabase } from '../lib/supabaseClient';
 import { generarPDF } from '../utils/generarPDF';
 import { formatearFechaLocal } from '../utils/fechas';
 import ControlSesiones from '../components/ControlSesiones';
+import Toast from '../components/Toast';
+import { useToast } from '../hooks/useToast';
+
+function AccordionSection({ id, title, openSection, setOpenSection, children }) {
+  const open = openSection === id;
+
+  return (
+    <section className={`expediente-accordion ${open ? 'open' : ''}`}>
+      <button
+        type="button"
+        className="accordion-header"
+        onClick={() => setOpenSection(open ? null : id)}
+        aria-expanded={open}
+      >
+        <span>{title}</span>
+        <strong>{open ? '-' : '+'}</strong>
+      </button>
+
+      {open && (
+        <div className="accordion-content">
+          {children}
+        </div>
+      )}
+    </section>
+  );
+}
 
 function ExpedienteClinico() {
   const { pacienteId } = useParams();
@@ -17,6 +43,8 @@ function ExpedienteClinico() {
   const [archivosPaciente, setArchivosPaciente] = useState([]);
   const [fotoArchivo, setFotoArchivo] = useState(null);
   const [fotoUrl, setFotoUrl] = useState('');
+  const [openSection, setOpenSection] = useState(null);
+  const { toast, mostrarToast, cerrarToast } = useToast();
 
   const [detalle, setDetalle] = useState({
     fecha_nacimiento: '',
@@ -156,10 +184,23 @@ function ExpedienteClinico() {
   };
 
   const handleFormChange = (e) => {
+    const value = e.target.name === 'porcentaje_avance'
+      ? Math.max(0, Math.min(100, Number(e.target.value) || 0))
+      : e.target.value;
+
     setForm({
       ...form,
-      [e.target.name]: e.target.value
+      [e.target.name]: value
     });
+  };
+
+  const seleccionarObjetivoParaNota = (objetivoNombre) => {
+    setForm((actual) => ({
+      ...actual,
+      objetivo_trabajado: objetivoNombre
+    }));
+    setOpenSection('nota');
+    mostrarToast(`Objetivo seleccionado: ${objetivoNombre}`, 'success');
   };
 
   const guardarFichaClinica = async () => {
@@ -175,7 +216,7 @@ function ExpedienteClinico() {
       .maybeSingle();
 
     if (errorConsulta) {
-      alert('No se pudo consultar la ficha clínica.');
+      mostrarToast('No se pudo consultar la ficha clinica.', 'error');
       console.error(errorConsulta);
       return;
     }
@@ -187,7 +228,7 @@ function ExpedienteClinico() {
         .eq('paciente_id', pacienteId);
 
       if (error) {
-        alert('No se pudo actualizar la ficha clínica.');
+        mostrarToast('No se pudo actualizar la ficha clinica.', 'error');
         console.error(error);
         return;
       }
@@ -197,18 +238,18 @@ function ExpedienteClinico() {
         .insert([registro]);
 
       if (error) {
-        alert('No se pudo guardar la ficha clínica.');
+        mostrarToast('No se pudo guardar la ficha clinica.', 'error');
         console.error(error);
         return;
       }
     }
 
-    alert('Ficha clínica guardada correctamente.');
+    mostrarToast('Ficha clinica guardada correctamente.', 'success');
   };
 
   const subirFotoPaciente = async () => {
     if (!fotoArchivo) {
-      alert('Selecciona una foto del paciente.');
+      mostrarToast('Selecciona una foto del paciente.', 'error');
       return;
     }
 
@@ -216,12 +257,12 @@ function ExpedienteClinico() {
     const limiteBytes = 5 * 1024 * 1024;
 
     if (!tiposPermitidos.includes(fotoArchivo.type)) {
-      alert('La foto debe ser JPG, PNG o WEBP.');
+      mostrarToast('La foto debe ser JPG, PNG o WEBP.', 'error');
       return;
     }
 
     if (fotoArchivo.size > limiteBytes) {
-      alert('La foto no debe superar 5 MB.');
+      mostrarToast('La foto no debe superar 5 MB.', 'error');
       return;
     }
 
@@ -233,7 +274,7 @@ function ExpedienteClinico() {
       .upload(ruta, fotoArchivo);
 
     if (errorUpload) {
-      alert('No se pudo subir la foto.');
+      mostrarToast('No se pudo subir la foto.', 'error');
       console.error(errorUpload);
       return;
     }
@@ -251,7 +292,7 @@ function ExpedienteClinico() {
       .maybeSingle();
 
     if (errorConsulta) {
-      alert('No se pudo consultar la ficha clinica.');
+      mostrarToast('No se pudo consultar la ficha clinica.', 'error');
       console.error(errorConsulta);
       return;
     }
@@ -263,7 +304,7 @@ function ExpedienteClinico() {
     const { error: errorBD } = await guardar;
 
     if (errorBD) {
-      alert('La foto se subio, pero no se pudo guardar en la ficha.');
+      mostrarToast('La foto se subio, pero no se pudo guardar en la ficha.', 'error');
       console.error(errorBD);
       return;
     }
@@ -275,7 +316,7 @@ function ExpedienteClinico() {
     setDetalle((actual) => ({ ...actual, foto_ruta: ruta }));
     setFotoArchivo(null);
     obtenerFotoPaciente(ruta);
-    alert('Foto del paciente guardada correctamente.');
+    mostrarToast('Foto del paciente guardada correctamente.', 'success');
   };
 
   const agregarObjetivoPaciente = async (objetivoId) => {
@@ -286,7 +327,7 @@ function ExpedienteClinico() {
     );
 
     if (yaExiste) {
-      alert('Este objetivo ya está asignado al paciente.');
+      mostrarToast('Este objetivo ya esta asignado al paciente.', 'error');
       return;
     }
 
@@ -302,7 +343,7 @@ function ExpedienteClinico() {
 
     if (!error) obtenerObjetivosPaciente();
     else {
-      alert('No se pudo asignar el objetivo.');
+      mostrarToast('No se pudo asignar el objetivo.', 'error');
       console.error(error);
     }
   };
@@ -343,7 +384,7 @@ function ExpedienteClinico() {
       .insert([nuevoExpediente]);
 
     if (error) {
-      alert('No se pudo guardar la nota clínica.');
+      mostrarToast('No se pudo guardar la nota clinica.', 'error');
       console.error(error);
       return;
     }
@@ -365,11 +406,12 @@ function ExpedienteClinico() {
     });
 
     obtenerExpedientes();
+    mostrarToast('Nota clinica guardada correctamente.', 'success');
   };
 
   const subirArchivo = async () => {
     if (!archivo) {
-      alert('Selecciona un archivo.');
+      mostrarToast('Selecciona un archivo.', 'error');
       return;
     }
 
@@ -383,12 +425,12 @@ function ExpedienteClinico() {
     const limiteBytes = 10 * 1024 * 1024;
 
     if (!tiposPermitidos.includes(archivo.type)) {
-      alert('Solo se permiten archivos PDF, JPG, PNG, DOC o DOCX.');
+      mostrarToast('Solo se permiten archivos PDF, JPG, PNG, DOC o DOCX.', 'error');
       return;
     }
 
     if (archivo.size > limiteBytes) {
-      alert('El archivo no debe superar 10 MB.');
+      mostrarToast('El archivo no debe superar 10 MB.', 'error');
       return;
     }
 
@@ -400,7 +442,7 @@ function ExpedienteClinico() {
       .upload(ruta, archivo);
 
     if (errorUpload) {
-      alert('No se pudo subir el archivo.');
+      mostrarToast('No se pudo subir el archivo.', 'error');
       console.error(errorUpload);
       return;
     }
@@ -427,14 +469,14 @@ function ExpedienteClinico() {
     }
 
     if (errorBD) {
-      alert('El archivo se subió, pero no se pudo guardar el registro.');
+      mostrarToast('El archivo se subio, pero no se pudo guardar el registro.', 'error');
       console.error(errorBD);
       return;
     }
 
     setArchivo(null);
     obtenerArchivosPaciente();
-    alert('Archivo subido correctamente.');
+    mostrarToast('Archivo subido correctamente.', 'success');
   };
 
   const abrirArchivo = async (ruta) => {
@@ -443,7 +485,7 @@ function ExpedienteClinico() {
       .createSignedUrl(ruta, 60);
 
     if (error) {
-      alert('No se pudo abrir el archivo.');
+      mostrarToast('No se pudo abrir el archivo.', 'error');
       console.error(error);
       return;
     }
@@ -461,7 +503,7 @@ function ExpedienteClinico() {
       .remove([archivoPaciente.ruta_archivo]);
 
     if (errorStorage) {
-      alert('No se pudo eliminar el archivo del almacenamiento.');
+      mostrarToast('No se pudo eliminar el archivo del almacenamiento.', 'error');
       console.error(errorStorage);
       return;
     }
@@ -472,7 +514,7 @@ function ExpedienteClinico() {
       .eq('id', archivoPaciente.id);
 
     if (errorBD) {
-      alert('No se pudo eliminar el registro.');
+      mostrarToast('No se pudo eliminar el registro.', 'error');
       console.error(errorBD);
       return;
     }
@@ -532,8 +574,23 @@ function ExpedienteClinico() {
         </section>
       )}
 
-      {paciente && <ControlSesiones paciente={paciente} />}
+      {paciente && (
+        <AccordionSection
+          id="sesiones"
+          title="Control de terapias y pagos"
+          openSection={openSection}
+          setOpenSection={setOpenSection}
+        >
+          <ControlSesiones paciente={paciente} />
+        </AccordionSection>
+      )}
 
+      <AccordionSection
+        id="ficha"
+        title="Ficha clinica"
+        openSection={openSection}
+        setOpenSection={setOpenSection}
+      >
       <section className="expediente-card">
         <h2>Ficha clínica</h2>
 
@@ -607,7 +664,14 @@ function ExpedienteClinico() {
           Guardar ficha clínica
         </button>
       </section>
+      </AccordionSection>
 
+      <AccordionSection
+        id="plan"
+        title="Plan terapeutico"
+        openSection={openSection}
+        setOpenSection={setOpenSection}
+      >
       <section className="expediente-card">
         <h2>Plan terapéutico</h2>
 
@@ -625,20 +689,39 @@ function ExpedienteClinico() {
         </select>
 
         <div className="objetivos-grid">
-          {objetivosPaciente.map((obj) => (
-            <div key={obj.id} className="objetivo-card">
-              <h4>{obj.objetivos_terapeuticos?.nombre}</h4>
+          {objetivosPaciente.map((obj) => {
+            const nombreObjetivo = obj.objetivos_terapeuticos?.nombre || '';
 
-              <p>
-                Avance: <strong>{obj.porcentaje_avance}%</strong>
-              </p>
+            return (
+              <button
+                type="button"
+                key={obj.id}
+                className={`objetivo-card objetivo-card-button ${
+                  form.objetivo_trabajado === nombreObjetivo ? 'selected' : ''
+                }`}
+                onClick={() => seleccionarObjetivoParaNota(nombreObjetivo)}
+              >
+                <h4>{nombreObjetivo}</h4>
 
-              <progress value={obj.porcentaje_avance} max="100" />
-            </div>
-          ))}
+                <p>
+                  Avance: <strong>{obj.porcentaje_avance}%</strong>
+                </p>
+
+                <progress value={obj.porcentaje_avance} max="100" />
+                <small>Dar clic para abrir una nota clinica de este objetivo.</small>
+              </button>
+            );
+          })}
         </div>
       </section>
+      </AccordionSection>
 
+      <AccordionSection
+        id="nota"
+        title="Nueva nota clinica"
+        openSection={openSection}
+        setOpenSection={setOpenSection}
+      >
       <section className="form-section">
         <h2>Nueva nota clínica</h2>
 
@@ -651,32 +734,26 @@ function ExpedienteClinico() {
             required
           />
 
-          <select
-            name="objetivo_trabajado"
-            value={form.objetivo_trabajado}
-            onChange={handleFormChange}
-          >
-            <option value="">Objetivo trabajado</option>
+          <div className="selected-objective">
+            <span>Objetivo trabajado</span>
+            <strong>
+              {form.objetivo_trabajado || 'Selecciona un objetivo desde el plan terapeutico'}
+            </strong>
+          </div>
 
-            {objetivosPaciente.map((obj) => (
-              <option
-                key={obj.id}
-                value={obj.objetivos_terapeuticos?.nombre}
-              >
-                {obj.objetivos_terapeuticos?.nombre}
-              </option>
-            ))}
-          </select>
-
-          <input
-            type="number"
-            min="0"
-            max="100"
-            name="porcentaje_avance"
-            placeholder="Porcentaje de avance"
-            value={form.porcentaje_avance}
-            onChange={handleFormChange}
-          />
+          <label className="progress-field">
+            <span>Porcentaje de avance del objetivo trabajado (0 a 100)</span>
+            <input
+              type="number"
+              min="0"
+              max="100"
+              name="porcentaje_avance"
+              placeholder="Ejemplo: 45"
+              value={form.porcentaje_avance}
+              onChange={handleFormChange}
+            />
+            <progress value={Number(form.porcentaje_avance) || 0} max="100" />
+          </label>
 
           <textarea
             name="evolucion"
@@ -705,7 +782,14 @@ function ExpedienteClinico() {
           </button>
         </form>
       </section>
+      </AccordionSection>
 
+      <AccordionSection
+        id="archivos"
+        title="Archivos del paciente"
+        openSection={openSection}
+        setOpenSection={setOpenSection}
+      >
       <section className="expediente-card">
         <h2>Archivos del paciente</h2>
 
@@ -747,7 +831,14 @@ function ExpedienteClinico() {
           ))}
         </div>
       </section>
+      </AccordionSection>
 
+      <AccordionSection
+        id="historial"
+        title="Historial clinico"
+        openSection={openSection}
+        setOpenSection={setOpenSection}
+      >
       <section>
         <h2>Historial clínico</h2>
 
@@ -777,6 +868,9 @@ function ExpedienteClinico() {
           </div>
         ))}
       </section>
+      </AccordionSection>
+
+      <Toast toast={toast} onClose={cerrarToast} />
     </main>
   );
 }

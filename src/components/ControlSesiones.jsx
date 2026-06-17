@@ -3,6 +3,8 @@ import { supabase } from '../lib/supabaseClient';
 import { formatearFechaLocal } from '../utils/fechas';
 import { generarControlSesionesPDF } from '../utils/generarControlSesionesPDF';
 import FirmaCanvas from './FirmaCanvas';
+import Toast from './Toast';
+import { useToast } from '../hooks/useToast';
 
 const formularioInicial = {
   fecha_terapia: formatearFechaLocal(),
@@ -13,11 +15,16 @@ const formularioInicial = {
   firma_data_url: ''
 };
 
+const formatoPesos = new Intl.NumberFormat('es-MX', {
+  style: 'currency',
+  currency: 'MXN'
+});
+
 function ControlSesiones({ paciente }) {
   const [sesiones, setSesiones] = useState([]);
   const [form, setForm] = useState(formularioInicial);
   const [guardando, setGuardando] = useState(false);
-  const [mensaje, setMensaje] = useState('');
+  const { toast, mostrarToast, cerrarToast } = useToast();
 
   async function obtenerSesiones() {
     const { data, error } = await supabase
@@ -42,35 +49,33 @@ function ControlSesiones({ paciente }) {
   const guardarSesion = async (event) => {
     event.preventDefault();
 
-    setMensaje('');
-
     if (!form.fecha_terapia) {
-      setMensaje('Selecciona la fecha de terapia.');
+      mostrarToast('Selecciona la fecha de terapia.', 'error');
       return;
     }
 
     if (sesiones.some((sesion) => sesion.fecha_terapia === form.fecha_terapia)) {
-      setMensaje('Ya existe un registro para esa fecha de terapia.');
+      mostrarToast('Ya existe un registro para esa fecha de terapia.', 'error');
       return;
     }
 
     if (form.reagendada && !form.fecha_reagenda) {
-      setMensaje('Indica la nueva fecha cuando la terapia fue reagendada.');
+      mostrarToast('Indica la nueva fecha cuando la terapia fue reagendada.', 'error');
       return;
     }
 
     if (!form.fecha_pago) {
-      setMensaje('Agrega la fecha de pago.');
+      mostrarToast('Agrega la fecha de pago.', 'error');
       return;
     }
 
     if (!form.cantidad || Number(form.cantidad) <= 0) {
-      setMensaje('Agrega una cantidad mayor a cero.');
+      mostrarToast('Agrega una cantidad mayor a cero.', 'error');
       return;
     }
 
     if (!form.firma_data_url) {
-      setMensaje('Agrega la firma antes de guardar el registro.');
+      mostrarToast('Agrega la firma antes de guardar el registro.', 'error');
       return;
     }
 
@@ -93,9 +98,9 @@ function ControlSesiones({ paciente }) {
     setGuardando(false);
 
     if (error) {
-      setMensaje(error.code === '23505'
+      mostrarToast(error.code === '23505'
         ? 'Ya existe un registro para esa fecha de terapia.'
-        : 'No se pudo guardar la sesion.');
+        : 'No se pudo guardar la sesion.', 'error');
       console.error(error);
       return;
     }
@@ -105,6 +110,7 @@ function ControlSesiones({ paciente }) {
       fecha_terapia: formatearFechaLocal()
     });
     obtenerSesiones();
+    mostrarToast('Registro de terapia y pago agregado correctamente.', 'success');
   };
 
   return (
@@ -168,14 +174,17 @@ function ControlSesiones({ paciente }) {
 
         <label>
           Cantidad
-          <input
-            type="number"
-            min="0"
-            step="0.01"
-            value={form.cantidad}
-            onChange={(event) => setForm({ ...form, cantidad: event.target.value })}
-            placeholder="0.00"
-          />
+          <span className="money-field">
+            <span>$</span>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={form.cantidad}
+              onChange={(event) => setForm({ ...form, cantidad: event.target.value })}
+              placeholder="0.00"
+            />
+          </span>
         </label>
 
         <div className="signature-field">
@@ -190,8 +199,6 @@ function ControlSesiones({ paciente }) {
           {guardando ? 'Guardando...' : 'Agregar registro'}
         </button>
       </form>
-
-      {mensaje && <p className="error">{mensaje}</p>}
 
       <div className="table-container">
         <table>
@@ -216,7 +223,7 @@ function ControlSesiones({ paciente }) {
                 <td>{sesion.fecha_pago || '-'}</td>
                 <td>
                   {sesion.cantidad != null
-                    ? `$${Number(sesion.cantidad).toFixed(2)}`
+                    ? formatoPesos.format(Number(sesion.cantidad))
                     : '-'}
                 </td>
                 <td>
@@ -229,6 +236,8 @@ function ControlSesiones({ paciente }) {
           </tbody>
         </table>
       </div>
+
+      <Toast toast={toast} onClose={cerrarToast} />
     </section>
   );
 }

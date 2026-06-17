@@ -31,6 +31,10 @@
   background: #c0392b;
 }
 
+.legend-item.en-curso {
+  background: #8e5ad7;
+}
+
 .calendar-container {
   background: white;
   padding: 16px;
@@ -108,4 +112,17 @@
 .modal-actions button {
   flex: 1;
   min-width: 120px;
+}
+
+@keyframes cita-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(142, 90, 215, .55);
+    transform: scale(1);
+  }
+
+  50% {
+    box-shadow: 0 0 0 7px rgba(142, 90, 215, 0);
+    transform: scale(1.025);
+  }
 }

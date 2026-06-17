@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { formatearFechaLocal } from '../utils/fechas';
+import {
+  citaVisibleEnAgenda,
+  estadoCitaActual,
+  sincronizarCitasEnCurso
+} from '../utils/citas';
 
 function DashboardHome() {
   const [pacientes, setPacientes] = useState(0);
@@ -45,6 +50,9 @@ function DashboardHome() {
       .neq('estatus', 'Cancelada')
       .order('hora', { ascending: true });
 
+    const ahora = new Date();
+    await sincronizarCitasEnCurso(supabase, citasHoyData || [], ahora);
+
     setPacientes(pacientesData?.length || 0);
     setCitasMes(citasMesData?.length || 0);
 
@@ -55,7 +63,19 @@ function DashboardHome() {
     );
 
     setServicios(serviciosUnicos.size);
-    setCitasHoy(citasHoyData || []);
+    setCitasHoy(
+      (citasHoyData || [])
+        .map((cita) => ({
+          ...cita,
+          estatus: estadoCitaActual(cita, ahora)
+        }))
+        .filter((cita) => citaVisibleEnAgenda(cita, ahora))
+        .sort((a, b) => {
+          if (a.estatus === 'En curso' && b.estatus !== 'En curso') return -1;
+          if (a.estatus !== 'En curso' && b.estatus === 'En curso') return 1;
+          return String(a.hora).localeCompare(String(b.hora));
+        })
+    );
   }
 
   useEffect(() => {
@@ -93,10 +113,10 @@ function DashboardHome() {
       </div>
 
       <section className="dashboard-section">
-        <h2>Próximas citas de hoy</h2>
+        <h2>Citas en curso y proximas</h2>
 
         {citasHoy.length === 0 && (
-          <p className="empty">No hay citas programadas para hoy.</p>
+          <p className="empty">No hay citas en curso o proximas para hoy.</p>
         )}
 
         <div className="citas-hoy-lista">
