@@ -15,9 +15,12 @@ function ExpedienteClinico() {
   const [objetivosPaciente, setObjetivosPaciente] = useState([]);
   const [archivo, setArchivo] = useState(null);
   const [archivosPaciente, setArchivosPaciente] = useState([]);
+  const [fotoArchivo, setFotoArchivo] = useState(null);
+  const [fotoUrl, setFotoUrl] = useState('');
 
   const [detalle, setDetalle] = useState({
     fecha_nacimiento: '',
+    foto_ruta: '',
     sexo: '',
     antecedentes_perinatales: '',
     antecedentes_medicos: '',
@@ -58,6 +61,7 @@ function ExpedienteClinico() {
     if (!error && data) {
       setDetalle({
         fecha_nacimiento: data.fecha_nacimiento || '',
+        foto_ruta: data.foto_ruta || '',
         sexo: data.sexo || '',
         antecedentes_perinatales: data.antecedentes_perinatales || '',
         antecedentes_medicos: data.antecedentes_medicos || '',
@@ -67,7 +71,20 @@ function ExpedienteClinico() {
         articulacion: data.articulacion || '',
         diagnostico_inicial: data.diagnostico_inicial || ''
       });
+
+      if (data.foto_ruta) {
+        obtenerFotoPaciente(data.foto_ruta);
+      }
     }
+  }
+
+  async function obtenerFotoPaciente(ruta) {
+    const { data, error } = await supabase.storage
+      .from('expedientes')
+      .createSignedUrl(ruta, 60 * 60);
+
+    if (!error) setFotoUrl(data.signedUrl);
+    else console.error(error);
   }
 
   async function obtenerExpedientes() {
@@ -187,6 +204,78 @@ function ExpedienteClinico() {
     }
 
     alert('Ficha clínica guardada correctamente.');
+  };
+
+  const subirFotoPaciente = async () => {
+    if (!fotoArchivo) {
+      alert('Selecciona una foto del paciente.');
+      return;
+    }
+
+    const tiposPermitidos = ['image/jpeg', 'image/png', 'image/webp'];
+    const limiteBytes = 5 * 1024 * 1024;
+
+    if (!tiposPermitidos.includes(fotoArchivo.type)) {
+      alert('La foto debe ser JPG, PNG o WEBP.');
+      return;
+    }
+
+    if (fotoArchivo.size > limiteBytes) {
+      alert('La foto no debe superar 5 MB.');
+      return;
+    }
+
+    const extension = fotoArchivo.name.split('.').pop()?.toLowerCase() || 'jpg';
+    const ruta = `${pacienteId}/foto-paciente-${crypto.randomUUID()}.${extension}`;
+
+    const { error: errorUpload } = await supabase.storage
+      .from('expedientes')
+      .upload(ruta, fotoArchivo);
+
+    if (errorUpload) {
+      alert('No se pudo subir la foto.');
+      console.error(errorUpload);
+      return;
+    }
+
+    const registro = {
+      paciente_id: Number(pacienteId),
+      ...detalle,
+      foto_ruta: ruta
+    };
+
+    const { data: existente, error: errorConsulta } = await supabase
+      .from('paciente_detalle')
+      .select('id, foto_ruta')
+      .eq('paciente_id', pacienteId)
+      .maybeSingle();
+
+    if (errorConsulta) {
+      alert('No se pudo consultar la ficha clinica.');
+      console.error(errorConsulta);
+      return;
+    }
+
+    const guardar = existente
+      ? supabase.from('paciente_detalle').update(registro).eq('paciente_id', pacienteId)
+      : supabase.from('paciente_detalle').insert([registro]);
+
+    const { error: errorBD } = await guardar;
+
+    if (errorBD) {
+      alert('La foto se subio, pero no se pudo guardar en la ficha.');
+      console.error(errorBD);
+      return;
+    }
+
+    if (existente?.foto_ruta && existente.foto_ruta !== ruta) {
+      await supabase.storage.from('expedientes').remove([existente.foto_ruta]);
+    }
+
+    setDetalle((actual) => ({ ...actual, foto_ruta: ruta }));
+    setFotoArchivo(null);
+    obtenerFotoPaciente(ruta);
+    alert('Foto del paciente guardada correctamente.');
   };
 
   const agregarObjetivoPaciente = async (objetivoId) => {
@@ -402,19 +491,44 @@ function ExpedienteClinico() {
       {paciente && (
         <button
           type="button"
-          onClick={() => generarPDF(paciente, detalle, expedientes)}
+          onClick={() => generarPDF(paciente, detalle, expedientes, fotoUrl)}
         >
           Generar PDF
         </button>
       )}
 
       {paciente && (
-        <section className="info-section">
-          <h2>{paciente.nombre_paciente}</h2>
-          <p><strong>Edad:</strong> {paciente.edad}</p>
-          <p><strong>Responsable:</strong> {paciente.nombre_responsable}</p>
-          <p><strong>Teléfono:</strong> {paciente.telefono}</p>
-          <p><strong>Correo:</strong> {paciente.correo}</p>
+        <section className="info-section paciente-hero">
+          <div className="patient-photo-frame">
+            {fotoUrl ? (
+              <img src={fotoUrl} alt={`Foto de ${paciente.nombre_paciente}`} />
+            ) : (
+              <span>{paciente.nombre_paciente?.charAt(0) || 'P'}</span>
+            )}
+          </div>
+
+          <div className="patient-hero-info">
+            <span className="patient-hero-label">Expediente clinico</span>
+            <h2>{paciente.nombre_paciente}</h2>
+            <p><strong>Edad:</strong> {paciente.edad}</p>
+            <p><strong>Responsable:</strong> {paciente.nombre_responsable}</p>
+            <p><strong>Telefono:</strong> {paciente.telefono}</p>
+            <p><strong>Correo:</strong> {paciente.correo}</p>
+          </div>
+
+          <div className="patient-photo-actions">
+            <label className="photo-upload-label">
+              Foto del paciente
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={(e) => setFotoArchivo(e.target.files[0])}
+              />
+            </label>
+            <button type="button" onClick={subirFotoPaciente}>
+              Guardar foto
+            </button>
+          </div>
         </section>
       )}
 

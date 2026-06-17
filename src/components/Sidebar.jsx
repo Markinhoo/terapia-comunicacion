@@ -26,6 +26,15 @@ function Sidebar() {
     setMobileOpen(false);
   };
 
+  const manejarNavegacion = () => {
+    if (window.innerWidth > 768) {
+      setCollapsed(true);
+      return;
+    }
+
+    cerrarMenuMovil();
+  };
+
   return (
     <>
       <button
@@ -51,15 +60,12 @@ function Sidebar() {
         `}
       >
         <div className="sidebar-header">
-          <div className="sidebar-brand">
-            <img src="/logo.png" alt="" />
-            {(!collapsed || mobileOpen) && (
-              <span>
-                <strong>Clinica Casas</strong>
-                <small>Panel administrativo</small>
-              </span>
-            )}
-          </div>
+          {(!collapsed || mobileOpen) && (
+            <div className="sidebar-title">
+              <strong>Panel admin</strong>
+              <small>Gestion de citas</small>
+            </div>
+          )}
 
           <button
             className="menu-toggle desktop-toggle"
@@ -71,28 +77,28 @@ function Sidebar() {
         </div>
 
         <nav className="sidebar-nav">
-          <NavLink to="/admin" onClick={cerrarMenuMovil}>
+          <NavLink to="/admin" onClick={manejarNavegacion}>
             <span className="sidebar-icon"><FaHouse /></span>
             {(!collapsed || mobileOpen) && (
-              <span className="sidebar-text">Dashboard</span>
+              <span className="sidebar-text">Inicio</span>
             )}
           </NavLink>
 
-          <NavLink to="/admin/calendario" onClick={cerrarMenuMovil}>
+          <NavLink to="/admin/calendario" onClick={manejarNavegacion}>
             <span className="sidebar-icon"><FaCalendarDays /></span>
             {(!collapsed || mobileOpen) && (
               <span className="sidebar-text">Calendario</span>
             )}
           </NavLink>
 
-          <NavLink to="/admin/pacientes" onClick={cerrarMenuMovil}>
+          <NavLink to="/admin/pacientes" onClick={manejarNavegacion}>
             <span className="sidebar-icon"><FaUserGroup /></span>
             {(!collapsed || mobileOpen) && (
               <span className="sidebar-text">Pacientes</span>
             )}
           </NavLink>
 
-          <NavLink to="/admin/servicios" onClick={cerrarMenuMovil}>
+          <NavLink to="/admin/servicios" onClick={manejarNavegacion}>
             <span className="sidebar-icon"><FaChartLine /></span>
             {(!collapsed || mobileOpen) && (
               <span className="sidebar-text">Servicios</span>

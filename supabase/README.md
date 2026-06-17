@@ -77,6 +77,15 @@ Los horarios programados dejan de aparecer como disponibles porque
 `obtener_horarios_disponibles` considera todas las citas cuyo estatus no sea
 `Cancelada`.
 
+## Foto del paciente
+
+Ejecuta:
+
+`supabase/migrations/20260616_patient_photo.sql`
+
+Agrega `foto_ruta` a `paciente_detalle` para mostrar la foto del paciente en el
+expediente clinico y colocarla en el PDF.
+
 ### Envio real del reglamento
 
 La cola no envia mensajes por si sola. Para correo se necesita una Supabase
