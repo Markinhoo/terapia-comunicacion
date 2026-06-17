@@ -17,6 +17,7 @@ function ControlSesiones({ paciente }) {
   const [sesiones, setSesiones] = useState([]);
   const [form, setForm] = useState(formularioInicial);
   const [guardando, setGuardando] = useState(false);
+  const [mensaje, setMensaje] = useState('');
 
   async function obtenerSesiones() {
     const { data, error } = await supabase
@@ -40,6 +41,39 @@ function ControlSesiones({ paciente }) {
 
   const guardarSesion = async (event) => {
     event.preventDefault();
+
+    setMensaje('');
+
+    if (!form.fecha_terapia) {
+      setMensaje('Selecciona la fecha de terapia.');
+      return;
+    }
+
+    if (sesiones.some((sesion) => sesion.fecha_terapia === form.fecha_terapia)) {
+      setMensaje('Ya existe un registro para esa fecha de terapia.');
+      return;
+    }
+
+    if (form.reagendada && !form.fecha_reagenda) {
+      setMensaje('Indica la nueva fecha cuando la terapia fue reagendada.');
+      return;
+    }
+
+    if (!form.fecha_pago) {
+      setMensaje('Agrega la fecha de pago.');
+      return;
+    }
+
+    if (!form.cantidad || Number(form.cantidad) <= 0) {
+      setMensaje('Agrega una cantidad mayor a cero.');
+      return;
+    }
+
+    if (!form.firma_data_url) {
+      setMensaje('Agrega la firma antes de guardar el registro.');
+      return;
+    }
+
     setGuardando(true);
 
     const { error } = await supabase
@@ -59,7 +93,9 @@ function ControlSesiones({ paciente }) {
     setGuardando(false);
 
     if (error) {
-      alert('No se pudo guardar la sesion.');
+      setMensaje(error.code === '23505'
+        ? 'Ya existe un registro para esa fecha de terapia.'
+        : 'No se pudo guardar la sesion.');
       console.error(error);
       return;
     }
@@ -154,6 +190,8 @@ function ControlSesiones({ paciente }) {
           {guardando ? 'Guardando...' : 'Agregar registro'}
         </button>
       </form>
+
+      {mensaje && <p className="error">{mensaje}</p>}
 
       <div className="table-container">
         <table>

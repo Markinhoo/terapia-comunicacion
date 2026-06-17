@@ -276,7 +276,7 @@ function Pacientes() {
 
   const eliminarPaciente = async (paciente) => {
     const confirmado = window.confirm(
-      `¿Eliminar a ${paciente.nombre_paciente}? Se borrarán sus citas, sesiones, pagos y firmas. Esta acción no se puede deshacer.`
+      `¿Archivar a ${paciente.nombre_paciente}? Sus datos se conservarán para futuras citas, pero sus citas activas se cancelarán.`
     );
 
     if (!confirmado) return;
@@ -290,7 +290,7 @@ function Pacientes() {
       return;
     }
 
-    setMensaje('El registro del paciente fue eliminado.');
+    setMensaje('El paciente fue archivado y sus datos se conservaron.');
     await obtenerPacientes();
   };
 
@@ -392,7 +392,7 @@ function Pacientes() {
                       onClick={() => eliminarPaciente(paciente)}
                     >
                       <span className="patient-action-icon" aria-hidden="true">×</span>
-                      <span>Eliminar</span>
+                      <span>Archivar</span>
                     </button>
                   </div>
                 </td>

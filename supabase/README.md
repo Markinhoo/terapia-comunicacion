@@ -86,6 +86,46 @@ Ejecuta:
 Agrega `foto_ruta` a `paciente_detalle` para mostrar la foto del paciente en el
 expediente clinico y colocarla en el PDF.
 
+## Roles, solo lectura y bitacora
+
+Ejecuta:
+
+`supabase/migrations/20260617_roles_audit_and_session_rules.sql`
+
+Esta migracion agrega:
+
+- Roles `admin` y `user`.
+- Usuarios normales con solo lectura mediante RLS.
+- Bitacora `bitacora_cambios` para saber quien hizo cambios.
+- Validaciones para no guardar controles de terapia incompletos o repetidos.
+- Archivado de pacientes sin borrar datos, para poder reagendar en el futuro.
+
+Nota: registrar un usuario desde el panel crea la solicitud y su rol. La cuenta
+real de Supabase Auth debe crearse/invitarse desde Supabase Auth o mediante una
+Edge Function con service role, para no exponer credenciales administrativas en
+el frontend.
+
+## Administrador maestro y galeria publica
+
+Ejecuta:
+
+`supabase/migrations/20260617_master_admin_gallery.sql`
+
+Esta migracion agrega:
+
+- Rol `master_admin`: unico rol que puede crear usuarios y cambiar permisos.
+- Rol `admin`: puede editar informacion, pero no crear usuarios.
+- Rol `user`: solo lectura.
+- Tabla y bucket `galeria-terapias` para fotos/videos publicos.
+
+Despliega tambien la Edge Function:
+
+`supabase/functions/crear-usuario-admin`
+
+La funcion requiere las variables normales de Supabase (`SUPABASE_URL`,
+`SUPABASE_ANON_KEY` y `SUPABASE_SERVICE_ROLE_KEY`) y permite que el panel cree
+usuarios reales sin exponer la service role key en el navegador.
+
 ### Envio real del reglamento
 
 La cola no envia mensajes por si sola. Para correo se necesita una Supabase

@@ -15,6 +15,7 @@ import './styles/responsive.css';
 import './styles/servicios.css';
 import './styles/calendar.css';
 import './styles/theme.css';
+import './styles/galeria.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <BrowserRouter>

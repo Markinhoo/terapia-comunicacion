@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Routes, Route, NavLink, useLocation } from 'react-router-dom';
-import { FaCalendarPlus, FaHouse, FaLock } from 'react-icons/fa6';
+import { FaCalendarPlus, FaHouse, FaImages, FaLock } from 'react-icons/fa6';
 import Inicio from './pages/Inicio';
 import AgendarCita from './pages/AgendarCita';
+import Galeria from './pages/Galeria';
 import LoginAdmin from './pages/LoginAdmin';
 import PanelAdmin from './pages/PanelAdmin';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -54,6 +55,11 @@ function App() {
               <span>Agendar cita</span>
             </NavLink>
 
+            <NavLink to="/galeria">
+              <FaImages aria-hidden="true" />
+              <span>Galeria</span>
+            </NavLink>
+
             <NavLink
               to="/login"
               className={({ isActive }) => (
@@ -79,6 +85,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Inicio />} />
         <Route path="/agendar" element={<AgendarCita />} />
+        <Route path="/galeria" element={<Galeria />} />
         <Route path="/login" element={<LoginAdmin />} />
         <Route
           path="/admin/*"

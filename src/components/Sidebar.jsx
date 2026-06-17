@@ -5,13 +5,55 @@ import {
   FaChartLine,
   FaChevronLeft,
   FaHouse,
+  FaImages,
   FaRightFromBracket,
+  FaUserGear,
   FaUserGroup,
   FaXmark
 } from 'react-icons/fa6';
 import { supabase } from '../lib/supabaseClient';
+import { puedeVerRuta } from '../utils/roles';
 
-function Sidebar() {
+const menuItems = [
+  {
+    to: '/admin',
+    routeKey: '',
+    label: 'Inicio',
+    Icon: FaHouse
+  },
+  {
+    to: '/admin/calendario',
+    routeKey: 'calendario',
+    label: 'Calendario',
+    Icon: FaCalendarDays
+  },
+  {
+    to: '/admin/pacientes',
+    routeKey: 'pacientes',
+    label: 'Pacientes',
+    Icon: FaUserGroup
+  },
+  {
+    to: '/admin/servicios',
+    routeKey: 'servicios',
+    label: 'Servicios',
+    Icon: FaChartLine
+  },
+  {
+    to: '/admin/usuarios',
+    routeKey: 'usuarios',
+    label: 'Usuarios',
+    Icon: FaUserGear
+  },
+  {
+    to: '/admin/galeria',
+    routeKey: 'galeria',
+    label: 'Galeria',
+    Icon: FaImages
+  }
+];
+
+function Sidebar({ role }) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -77,33 +119,16 @@ function Sidebar() {
         </div>
 
         <nav className="sidebar-nav">
-          <NavLink to="/admin" onClick={manejarNavegacion}>
-            <span className="sidebar-icon"><FaHouse /></span>
-            {(!collapsed || mobileOpen) && (
-              <span className="sidebar-text">Inicio</span>
-            )}
-          </NavLink>
-
-          <NavLink to="/admin/calendario" onClick={manejarNavegacion}>
-            <span className="sidebar-icon"><FaCalendarDays /></span>
-            {(!collapsed || mobileOpen) && (
-              <span className="sidebar-text">Calendario</span>
-            )}
-          </NavLink>
-
-          <NavLink to="/admin/pacientes" onClick={manejarNavegacion}>
-            <span className="sidebar-icon"><FaUserGroup /></span>
-            {(!collapsed || mobileOpen) && (
-              <span className="sidebar-text">Pacientes</span>
-            )}
-          </NavLink>
-
-          <NavLink to="/admin/servicios" onClick={manejarNavegacion}>
-            <span className="sidebar-icon"><FaChartLine /></span>
-            {(!collapsed || mobileOpen) && (
-              <span className="sidebar-text">Servicios</span>
-            )}
-          </NavLink>
+          {menuItems
+            .filter((item) => puedeVerRuta(role, item.routeKey))
+            .map(({ to, label, Icon }) => (
+              <NavLink key={to} to={to} onClick={manejarNavegacion} end={to === '/admin'}>
+                <span className="sidebar-icon"><Icon /></span>
+                {(!collapsed || mobileOpen) && (
+                  <span className="sidebar-text">{label}</span>
+                )}
+              </NavLink>
+            ))}
 
           <button className="logout-link" onClick={cerrarSesion}>
             <span className="sidebar-icon"><FaRightFromBracket /></span>
