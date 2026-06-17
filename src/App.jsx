@@ -9,6 +9,8 @@ import PanelAdmin from './pages/PanelAdmin';
 import ProtectedRoute from './components/ProtectedRoute';
 import ThemeToggle from './components/ThemeToggle';
 import WhatsAppFloat from './components/WhatsAppFloat';
+import ScrollToTopButton from './components/ScrollToTopButton';
+import { supabase } from './lib/supabaseClient';
 
 function obtenerTemaInicial() {
   const temaGuardado = window.localStorage.getItem('theme');
@@ -25,6 +27,38 @@ function obtenerTemaInicial() {
 function App() {
   const location = useLocation();
   const [theme, setTheme] = useState(obtenerTemaInicial);
+  const [userName, setUserName] = useState('');
+  const isAdminRoute = location.pathname.startsWith('/admin');
+
+  useEffect(() => {
+    let active = true;
+
+    const actualizarUsuario = (session) => {
+      const email = session?.user?.email || '';
+      const nombre = email.split('@')[0] || '';
+      const nombreLimpio = nombre
+        .replace(/[._-]+/g, ' ')
+        .trim()
+        .replace(/\b\w/g, (letra) => letra.toUpperCase());
+
+      if (active) {
+        setUserName(nombreLimpio);
+      }
+    };
+
+    supabase.auth.getSession().then(({ data }) => {
+      actualizarUsuario(data.session);
+    });
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      actualizarUsuario(session);
+    });
+
+    return () => {
+      active = false;
+      listener.subscription.unsubscribe();
+    };
+  }, []);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -34,7 +68,7 @@ function App() {
 
   return (
     <>
-      <nav className="navbar">
+      <nav className={`navbar ${isAdminRoute ? 'admin-navbar' : ''}`}>
         <NavLink to="/" className="brand" aria-label="Ir al inicio">
           <img src="/logo.png" alt="Clinica Casas" className="brand-logo" />
           <span className="brand-copy">
@@ -44,6 +78,12 @@ function App() {
         </NavLink>
 
         <div className="navbar-actions">
+          {isAdminRoute && (
+            <div className="admin-mobile-welcome">
+              Bienvenido {userName || 'usuario'}
+            </div>
+          )}
+
           <div className="navbar-links" aria-label="Navegacion principal">
             <NavLink to="/" end>
               <FaHouse aria-hidden="true" />
@@ -101,6 +141,8 @@ function App() {
         location.pathname !== '/login' &&
         <WhatsAppFloat />
       }
+
+      <ScrollToTopButton routeKey={location.pathname} />
     </>
   );
 }

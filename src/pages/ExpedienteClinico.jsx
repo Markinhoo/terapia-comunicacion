@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { generarPDF } from '../utils/generarPDF';
 import { formatearFechaLocal } from '../utils/fechas';
@@ -33,7 +33,6 @@ function AccordionSection({ id, title, openSection, setOpenSection, children }) 
 
 function ExpedienteClinico() {
   const { pacienteId } = useParams();
-  const navigate = useNavigate();
 
   const [paciente, setPaciente] = useState(null);
   const [expedientes, setExpedientes] = useState([]);
@@ -524,20 +523,7 @@ function ExpedienteClinico() {
 
   return (
     <main className="container">
-      <button onClick={() => navigate('/admin')}>
-        Regresar al panel
-      </button>
-
       <h1>Expediente clínico</h1>
-
-      {paciente && (
-        <button
-          type="button"
-          onClick={() => generarPDF(paciente, detalle, expedientes, fotoUrl)}
-        >
-          Generar PDF
-        </button>
-      )}
 
       {paciente && (
         <section className="info-section paciente-hero">
@@ -569,6 +555,12 @@ function ExpedienteClinico() {
             </label>
             <button type="button" onClick={subirFotoPaciente}>
               Guardar foto
+            </button>
+            <button
+              type="button"
+              onClick={() => generarPDF(paciente, detalle, expedientes, fotoUrl)}
+            >
+              Generar Expediente
             </button>
           </div>
         </section>

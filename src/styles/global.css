@@ -137,6 +137,39 @@ button:disabled {
   font-size: 18px;
 }
 
+.scroll-top-button {
+  position: fixed;
+  left: clamp(16px, 4vw, 34px);
+  bottom: clamp(18px, 4vw, 34px);
+  z-index: 4200;
+  display: grid;
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--primary) 26%, white);
+  border-radius: 50%;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--primary) 92%, white), var(--primary-strong));
+  color: white;
+  box-shadow: 0 14px 30px rgba(35, 20, 52, .24);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(10px) scale(.94);
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.scroll-top-button.visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+}
+
+.scroll-top-button:hover,
+.scroll-top-button:focus-visible {
+  transform: translateY(-2px) scale(1.03);
+}
+
 @keyframes toast-in {
   from {
     opacity: 0;
