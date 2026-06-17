@@ -167,14 +167,14 @@
   }
 
   .admin-navbar .brand,
-  .admin-navbar .navbar-links,
-  .admin-navbar .theme-toggle {
+  .admin-navbar .navbar-links {
     display: none;
   }
 
   .admin-navbar .navbar-actions {
     width: 100%;
     justify-content: center;
+    gap: 10px;
   }
 
   .admin-navbar .admin-mobile-welcome {
@@ -184,6 +184,16 @@
     border-radius: 999px;
     background: rgba(255, 255, 255, .12);
     box-shadow: 0 8px 18px rgba(35, 20, 52, .18);
+  }
+
+  .admin-navbar .theme-toggle {
+    display: inline-flex;
+    min-width: 48px;
+    padding: 6px;
+  }
+
+  .admin-navbar .theme-toggle-text {
+    display: none;
   }
 }
 

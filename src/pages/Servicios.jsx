@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import PaginationControls from '../components/PaginationControls';
+import { usePaginatedList } from '../hooks/usePaginatedList';
 
 import {
   Chart as ChartJS,
@@ -57,6 +59,8 @@ function Servicios() {
   useEffect(() => {
     obtenerServicios();
   }, []);
+
+  const serviciosPagination = usePaginatedList(servicios, 5, servicios.length);
 
   const chartData = {
     labels: servicios.map((item) => item.servicio),
@@ -139,9 +143,9 @@ function Servicios() {
             Distribución
           </h2>
 
-          <div className="table-container">
+          <div className="table-container users-table-container">
 
-            <table>
+            <table className="responsive-admin-table">
 
               <thead>
                 <tr>
@@ -153,19 +157,19 @@ function Servicios() {
 
               <tbody>
 
-                {servicios.map((item) => (
+                {serviciosPagination.paginatedItems.map((item) => (
 
                   <tr key={item.servicio}>
 
-                    <td>
+                    <td data-label="Servicio">
                       {item.servicio}
                     </td>
 
-                    <td>
+                    <td data-label="Total">
                       {item.total}
                     </td>
 
-                    <td>
+                    <td data-label="%">
                       {
                         (
                           (item.total / totalCitas) *
@@ -183,6 +187,13 @@ function Servicios() {
             </table>
 
           </div>
+
+          <PaginationControls
+            page={serviciosPagination.page}
+            totalPages={serviciosPagination.totalPages}
+            totalItems={servicios.length}
+            onPageChange={serviciosPagination.setPage}
+          />
 
         </section>
 

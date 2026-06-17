@@ -94,6 +94,7 @@
 .patient-photo-actions {
   display: grid;
   gap: 10px;
+  min-width: 0;
 }
 
 .photo-upload-label {
@@ -101,6 +102,13 @@
   gap: 8px;
   color: var(--primary-strong);
   font-weight: 800;
+  min-width: 0;
+}
+
+.photo-upload-label input {
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .section-actions {
@@ -296,6 +304,90 @@
   height: 14px;
 }
 
+.embedded-note-form {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid color-mix(in srgb, var(--primary) 18%, var(--border));
+}
+
+.embedded-note-form .form {
+  box-shadow: none;
+}
+
+.plan-helper {
+  margin: 18px 0 0;
+  padding: 14px;
+  border: 1px dashed color-mix(in srgb, var(--primary) 32%, var(--border));
+  border-radius: 14px;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.history-book {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) 48px;
+  gap: 14px;
+  align-items: center;
+  perspective: 1000px;
+}
+
+.book-page {
+  position: relative;
+  min-height: 300px;
+  margin: 0;
+  border: 1px solid color-mix(in srgb, var(--primary) 20%, var(--border));
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, .055), transparent 8%, transparent 92%, rgba(0, 0, 0, .045)),
+    var(--surface);
+  transform-origin: left center;
+  animation: page-turn 300ms ease both;
+}
+
+.book-page::after {
+  position: absolute;
+  inset: 16px 18px 16px auto;
+  width: 1px;
+  background: color-mix(in srgb, var(--primary) 18%, transparent);
+  content: '';
+}
+
+.book-page-count {
+  display: inline-flex;
+  margin-bottom: 10px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary) 12%, var(--surface));
+  color: var(--primary-strong);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.book-nav {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  place-items: center;
+  border-radius: 50%;
+  font-size: 24px;
+}
+
+.book-nav:disabled {
+  opacity: .35;
+}
+
+@keyframes page-turn {
+  from {
+    opacity: .45;
+    transform: rotateY(-10deg) translateX(-8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: rotateY(0) translateX(0);
+  }
+}
+
 @keyframes accordion-open {
   from {
     opacity: 0;
@@ -316,9 +408,37 @@
   .paciente-hero {
     grid-template-columns: 1fr;
     text-align: center;
+    overflow: hidden;
   }
 
   .patient-photo-frame {
     margin: 0 auto;
+  }
+
+  .patient-photo-actions {
+    width: 100%;
+  }
+
+  .patient-photo-actions button {
+    width: 100%;
+  }
+
+  .photo-upload-label input {
+    width: 100%;
+    font-size: 14px;
+  }
+
+  .history-book {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .book-page {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+
+  .book-nav {
+    width: 100%;
+    border-radius: 14px;
   }
 }

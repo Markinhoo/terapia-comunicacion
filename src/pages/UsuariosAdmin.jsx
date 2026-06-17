@@ -1,6 +1,45 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { etiquetaRol } from '../utils/roles';
+import PaginationControls from '../components/PaginationControls';
+import { usePaginatedList } from '../hooks/usePaginatedList';
+
+function AccordionSection({ id, title, total, openSection, setOpenSection, children }) {
+  const open = openSection === id;
+
+  return (
+    <section className={`dashboard-section user-list-accordion ${open ? 'open' : ''}`}>
+      <button
+        type="button"
+        className="user-accordion-header"
+        onClick={() => setOpenSection(open ? null : id)}
+        aria-expanded={open}
+      >
+        <span>{title}</span>
+        <small>{total} registro{total === 1 ? '' : 's'}</small>
+        <strong>{open ? '-' : '+'}</strong>
+      </button>
+
+      {open && (
+        <div className="user-accordion-content">
+          {children}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function coincideBusqueda(valores, busqueda) {
+  const termino = busqueda.trim().toLowerCase();
+
+  if (!termino) return true;
+
+  return valores
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase()
+    .includes(termino);
+}
 
 function UsuariosAdmin() {
   const [perfiles, setPerfiles] = useState([]);
@@ -9,6 +48,13 @@ function UsuariosAdmin() {
   const [form, setForm] = useState({ email: '', password: '', role: 'user' });
   const [mensaje, setMensaje] = useState('');
   const [cargando, setCargando] = useState(false);
+  const [openSection, setOpenSection] = useState(null);
+  const [busquedaPerfiles, setBusquedaPerfiles] = useState('');
+  const [busquedaInvitaciones, setBusquedaInvitaciones] = useState('');
+  const [busquedaBitacora, setBusquedaBitacora] = useState('');
+  const [mobilePageSize, setMobilePageSize] = useState(() => (
+    window.innerWidth <= 620 ? 1 : 5
+  ));
 
   async function cargarDatos() {
     const [
@@ -45,6 +91,16 @@ function UsuariosAdmin() {
 
   useEffect(() => {
     cargarDatos();
+  }, []);
+
+  useEffect(() => {
+    const actualizarTamanoPagina = () => {
+      setMobilePageSize(window.innerWidth <= 620 ? 1 : 5);
+    };
+
+    window.addEventListener('resize', actualizarTamanoPagina);
+
+    return () => window.removeEventListener('resize', actualizarTamanoPagina);
   }, []);
 
   const registrarUsuario = async (event) => {
@@ -88,6 +144,44 @@ function UsuariosAdmin() {
 
     cargarDatos();
   };
+
+  const perfilesFiltrados = perfiles.filter((perfil) => coincideBusqueda([
+    perfil.email,
+    etiquetaRol(perfil.role),
+    perfil.active ? 'Activo' : 'Inactivo'
+  ], busquedaPerfiles));
+
+  const invitacionesFiltradas = invitaciones.filter((item) => coincideBusqueda([
+    item.email,
+    etiquetaRol(item.role),
+    item.estado,
+    item.created_at ? new Date(item.created_at).toLocaleString() : ''
+  ], busquedaInvitaciones));
+
+  const bitacoraFiltrada = bitacora.filter((item) => coincideBusqueda([
+    item.created_at ? new Date(item.created_at).toLocaleString() : '',
+    item.usuario_email,
+    item.usuario_id,
+    item.tabla,
+    item.accion,
+    item.registro_id
+  ], busquedaBitacora));
+
+  const perfilesPagination = usePaginatedList(
+    perfilesFiltrados,
+    mobilePageSize,
+    `${busquedaPerfiles}-${mobilePageSize}-${perfiles.length}`
+  );
+  const invitacionesPagination = usePaginatedList(
+    invitacionesFiltradas,
+    mobilePageSize,
+    `${busquedaInvitaciones}-${mobilePageSize}-${invitaciones.length}`
+  );
+  const bitacoraPagination = usePaginatedList(
+    bitacoraFiltrada,
+    mobilePageSize,
+    `${busquedaBitacora}-${mobilePageSize}-${bitacora.length}`
+  );
 
   return (
     <main className="container">
@@ -145,11 +239,25 @@ function UsuariosAdmin() {
         </form>
       </section>
 
-      <section className="dashboard-section">
-        <h2>Usuarios existentes</h2>
+      <AccordionSection
+        id="perfiles"
+        title="Usuarios existentes"
+        total={perfilesFiltrados.length}
+        openSection={openSection}
+        setOpenSection={setOpenSection}
+      >
+        <label className="section-search">
+          Buscar en usuarios existentes
+          <input
+            type="search"
+            value={busquedaPerfiles}
+            onChange={(event) => setBusquedaPerfiles(event.target.value)}
+            placeholder="Correo, rol o estado..."
+          />
+        </label>
 
-        <div className="table-container">
-          <table>
+        <div className="table-container users-table-container">
+          <table className="responsive-admin-table">
             <thead>
               <tr>
                 <th>Correo</th>
@@ -159,12 +267,12 @@ function UsuariosAdmin() {
               </tr>
             </thead>
             <tbody>
-              {perfiles.map((perfil) => (
+              {perfilesPagination.paginatedItems.map((perfil) => (
                 <tr key={perfil.id}>
-                  <td>{perfil.email}</td>
-                  <td>{etiquetaRol(perfil.role)}</td>
-                  <td>{perfil.active ? 'Activo' : 'Inactivo'}</td>
-                  <td>
+                  <td data-label="Correo">{perfil.email}</td>
+                  <td data-label="Rol">{etiquetaRol(perfil.role)}</td>
+                  <td data-label="Estado">{perfil.active ? 'Activo' : 'Inactivo'}</td>
+                  <td data-label="Acciones">
                     <div className="acciones">
                       <button
                         type="button"
@@ -202,17 +310,42 @@ function UsuariosAdmin() {
             </tbody>
           </table>
         </div>
-      </section>
 
-      <section className="dashboard-section">
-        <h2>Registros pendientes</h2>
+        {perfilesFiltrados.length === 0 && (
+          <p className="empty">No se encontraron usuarios.</p>
+        )}
+
+        <PaginationControls
+          page={perfilesPagination.page}
+          totalPages={perfilesPagination.totalPages}
+          totalItems={perfilesFiltrados.length}
+          onPageChange={perfilesPagination.setPage}
+        />
+      </AccordionSection>
+
+      <AccordionSection
+        id="invitaciones"
+        title="Registros pendientes"
+        total={invitacionesFiltradas.length}
+        openSection={openSection}
+        setOpenSection={setOpenSection}
+      >
+        <label className="section-search">
+          Buscar en registros pendientes
+          <input
+            type="search"
+            value={busquedaInvitaciones}
+            onChange={(event) => setBusquedaInvitaciones(event.target.value)}
+            placeholder="Correo, rol, estado o fecha..."
+          />
+        </label>
 
         {invitaciones.length === 0 && (
           <p className="empty">No hay usuarios pendientes.</p>
         )}
 
-        <div className="table-container">
-          <table>
+        <div className="table-container users-table-container">
+          <table className="responsive-admin-table">
             <thead>
               <tr>
                 <th>Correo</th>
@@ -222,31 +355,57 @@ function UsuariosAdmin() {
               </tr>
             </thead>
             <tbody>
-              {invitaciones.map((item) => (
+              {invitacionesPagination.paginatedItems.map((item) => (
                 <tr key={item.id}>
-                  <td>{item.email}</td>
-                  <td>{etiquetaRol(item.role)}</td>
-                  <td>{item.estado}</td>
-                  <td>{new Date(item.created_at).toLocaleString()}</td>
+                  <td data-label="Correo">{item.email}</td>
+                  <td data-label="Rol solicitado">{etiquetaRol(item.role)}</td>
+                  <td data-label="Estado">{item.estado}</td>
+                  <td data-label="Fecha">{new Date(item.created_at).toLocaleString()}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-      </section>
 
-      <section className="dashboard-section">
-        <h2>Bitacora de cambios recientes</h2>
+        {invitaciones.length > 0 && invitacionesFiltradas.length === 0 && (
+          <p className="empty">No se encontraron registros pendientes.</p>
+        )}
+
+        <PaginationControls
+          page={invitacionesPagination.page}
+          totalPages={invitacionesPagination.totalPages}
+          totalItems={invitacionesFiltradas.length}
+          onPageChange={invitacionesPagination.setPage}
+        />
+      </AccordionSection>
+
+      <AccordionSection
+        id="bitacora"
+        title="Bitacora de cambios recientes"
+        total={bitacoraFiltrada.length}
+        openSection={openSection}
+        setOpenSection={setOpenSection}
+      >
         <p className="subtitle">
           Ultimos movimientos registrados en tablas clinicas y administrativas.
         </p>
+
+        <label className="section-search">
+          Buscar en bitacora
+          <input
+            type="search"
+            value={busquedaBitacora}
+            onChange={(event) => setBusquedaBitacora(event.target.value)}
+            placeholder="Usuario, tabla, accion, registro o fecha..."
+          />
+        </label>
 
         {bitacora.length === 0 && (
           <p className="empty">No hay movimientos registrados.</p>
         )}
 
-        <div className="table-container">
-          <table>
+        <div className="table-container users-table-container">
+          <table className="responsive-admin-table">
             <thead>
               <tr>
                 <th>Fecha</th>
@@ -257,19 +416,30 @@ function UsuariosAdmin() {
               </tr>
             </thead>
             <tbody>
-              {bitacora.map((item) => (
+              {bitacoraPagination.paginatedItems.map((item) => (
                 <tr key={item.id}>
-                  <td>{new Date(item.created_at).toLocaleString()}</td>
-                  <td>{item.usuario_email || item.usuario_id || 'Sistema'}</td>
-                  <td>{item.tabla}</td>
-                  <td>{item.accion}</td>
-                  <td>{item.registro_id || '-'}</td>
+                  <td data-label="Fecha">{new Date(item.created_at).toLocaleString()}</td>
+                  <td data-label="Usuario">{item.usuario_email || item.usuario_id || 'Sistema'}</td>
+                  <td data-label="Tabla">{item.tabla}</td>
+                  <td data-label="Accion">{item.accion}</td>
+                  <td data-label="Registro">{item.registro_id || '-'}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-      </section>
+
+        {bitacora.length > 0 && bitacoraFiltrada.length === 0 && (
+          <p className="empty">No se encontraron movimientos.</p>
+        )}
+
+        <PaginationControls
+          page={bitacoraPagination.page}
+          totalPages={bitacoraPagination.totalPages}
+          totalItems={bitacoraFiltrada.length}
+          onPageChange={bitacoraPagination.setPage}
+        />
+      </AccordionSection>
     </main>
   );
 }

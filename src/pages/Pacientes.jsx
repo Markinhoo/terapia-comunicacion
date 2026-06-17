@@ -3,6 +3,8 @@ import Modal from 'react-modal';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { formatearFechaLocal } from '../utils/fechas';
+import PaginationControls from '../components/PaginationControls';
+import { usePaginatedList } from '../hooks/usePaginatedList';
 
 const servicios = [
   'Evaluación inicial',
@@ -100,6 +102,12 @@ function Pacientes() {
 
     return texto.includes(busqueda.toLowerCase());
   });
+
+  const pacientesPagination = usePaginatedList(
+    pacientesFiltrados,
+    5,
+    busqueda
+  );
 
   const citasFuturas = (paciente) => {
     return (paciente.citas || []).filter(
@@ -333,7 +341,7 @@ function Pacientes() {
             </tr>
           </thead>
           <tbody>
-            {pacientesFiltrados.map((paciente) => {
+            {pacientesPagination.paginatedItems.map((paciente) => {
               const expandido = pacienteExpandido === paciente.id;
 
               return (
@@ -402,6 +410,13 @@ function Pacientes() {
           </tbody>
         </table>
       </div>
+
+      <PaginationControls
+        page={pacientesPagination.page}
+        totalPages={pacientesPagination.totalPages}
+        totalItems={pacientesFiltrados.length}
+        onPageChange={pacientesPagination.setPage}
+      />
 
       {!cargando && pacientesFiltrados.length === 0 && (
         <p className="empty">No se encontraron pacientes.</p>

@@ -4,7 +4,9 @@ import { formatearFechaLocal } from '../utils/fechas';
 import { generarControlSesionesPDF } from '../utils/generarControlSesionesPDF';
 import FirmaCanvas from './FirmaCanvas';
 import Toast from './Toast';
+import PaginationControls from './PaginationControls';
 import { useToast } from '../hooks/useToast';
+import { usePaginatedList } from '../hooks/usePaginatedList';
 
 const formularioInicial = {
   fecha_terapia: formatearFechaLocal(),
@@ -25,6 +27,7 @@ function ControlSesiones({ paciente }) {
   const [form, setForm] = useState(formularioInicial);
   const [guardando, setGuardando] = useState(false);
   const { toast, mostrarToast, cerrarToast } = useToast();
+  const sesionesPagination = usePaginatedList(sesiones, 5, sesiones.length);
 
   async function obtenerSesiones() {
     const { data, error } = await supabase
@@ -200,8 +203,8 @@ function ControlSesiones({ paciente }) {
         </button>
       </form>
 
-      <div className="table-container">
-        <table>
+      <div className="table-container users-table-container">
+        <table className="responsive-admin-table">
           <thead>
             <tr>
               <th>Fecha de terapia</th>
@@ -212,21 +215,21 @@ function ControlSesiones({ paciente }) {
             </tr>
           </thead>
           <tbody>
-            {sesiones.map((sesion) => (
+            {sesionesPagination.paginatedItems.map((sesion) => (
               <tr key={sesion.id}>
-                <td>{sesion.fecha_terapia}</td>
-                <td>
+                <td data-label="Fecha de terapia">{sesion.fecha_terapia}</td>
+                <td data-label="Reagenda">
                   {sesion.reagendada
                     ? `Si${sesion.fecha_reagenda ? `: ${sesion.fecha_reagenda}` : ''}`
                     : 'No'}
                 </td>
-                <td>{sesion.fecha_pago || '-'}</td>
-                <td>
+                <td data-label="Fecha de pago">{sesion.fecha_pago || '-'}</td>
+                <td data-label="Cantidad">
                   {sesion.cantidad != null
                     ? formatoPesos.format(Number(sesion.cantidad))
                     : '-'}
                 </td>
-                <td>
+                <td data-label="Firma">
                   {sesion.firma_data_url
                     ? <img className="firma-miniatura" src={sesion.firma_data_url} alt="Firma registrada" />
                     : 'Sin firma'}
@@ -236,6 +239,13 @@ function ControlSesiones({ paciente }) {
           </tbody>
         </table>
       </div>
+
+      <PaginationControls
+        page={sesionesPagination.page}
+        totalPages={sesionesPagination.totalPages}
+        totalItems={sesiones.length}
+        onPageChange={sesionesPagination.setPage}
+      />
 
       <Toast toast={toast} onClose={cerrarToast} />
     </section>

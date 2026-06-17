@@ -43,6 +43,7 @@ function ExpedienteClinico() {
   const [fotoArchivo, setFotoArchivo] = useState(null);
   const [fotoUrl, setFotoUrl] = useState('');
   const [openSection, setOpenSection] = useState(null);
+  const [historialIndex, setHistorialIndex] = useState(0);
   const { toast, mostrarToast, cerrarToast } = useToast();
 
   const [detalle, setDetalle] = useState({
@@ -175,6 +176,10 @@ function ExpedienteClinico() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pacienteId]);
 
+  useEffect(() => {
+    setHistorialIndex(0);
+  }, [expedientes.length]);
+
   const handleDetalleChange = (e) => {
     setDetalle({
       ...detalle,
@@ -198,7 +203,7 @@ function ExpedienteClinico() {
       ...actual,
       objetivo_trabajado: objetivoNombre
     }));
-    setOpenSection('nota');
+    setOpenSection('plan');
     mostrarToast(`Objetivo seleccionado: ${objetivoNombre}`, 'success');
   };
 
@@ -665,13 +670,13 @@ function ExpedienteClinico() {
         setOpenSection={setOpenSection}
       >
       <section className="expediente-card">
-        <h2>Plan terapéutico</h2>
+        <h2>Plan terapeutico</h2>
 
         <select
           onChange={(e) => agregarObjetivoPaciente(e.target.value)}
           defaultValue=""
         >
-          <option value="">Seleccionar objetivo terapéutico</option>
+          <option value="">Seleccionar objetivo terapeutico</option>
 
           {objetivos.map((obj) => (
             <option key={obj.id} value={obj.id}>
@@ -700,79 +705,76 @@ function ExpedienteClinico() {
                 </p>
 
                 <progress value={obj.porcentaje_avance} max="100" />
-                <small>Dar clic para abrir una nota clinica de este objetivo.</small>
+                <small>Dar clic para abrir aqui la nota clinica de este objetivo.</small>
               </button>
             );
           })}
         </div>
-      </section>
-      </AccordionSection>
 
-      <AccordionSection
-        id="nota"
-        title="Nueva nota clinica"
-        openSection={openSection}
-        setOpenSection={setOpenSection}
-      >
-      <section className="form-section">
-        <h2>Nueva nota clínica</h2>
+        {form.objetivo_trabajado ? (
+          <div className="embedded-note-form">
+            <h3>Nueva nota clinica</h3>
 
-        <form className="form" onSubmit={guardarExpediente}>
-          <textarea
-            name="diagnostico"
-            placeholder="Diagnóstico o impresión clínica"
-            value={form.diagnostico}
-            onChange={handleFormChange}
-            required
-          />
+            <form className="form" onSubmit={guardarExpediente}>
+              <textarea
+                name="diagnostico"
+                placeholder="Diagnostico o impresion clinica"
+                value={form.diagnostico}
+                onChange={handleFormChange}
+                required
+              />
 
-          <div className="selected-objective">
-            <span>Objetivo trabajado</span>
-            <strong>
-              {form.objetivo_trabajado || 'Selecciona un objetivo desde el plan terapeutico'}
-            </strong>
+              <div className="selected-objective">
+                <span>Objetivo trabajado</span>
+                <strong>{form.objetivo_trabajado}</strong>
+              </div>
+
+              <label className="progress-field">
+                <span>Porcentaje de avance del objetivo trabajado (0 a 100)</span>
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  name="porcentaje_avance"
+                  placeholder="Ejemplo: 45"
+                  value={form.porcentaje_avance}
+                  onChange={handleFormChange}
+                />
+                <progress value={Number(form.porcentaje_avance) || 0} max="100" />
+              </label>
+
+              <textarea
+                name="evolucion"
+                placeholder="Evolucion de la sesion"
+                value={form.evolucion}
+                onChange={handleFormChange}
+                required
+              />
+
+              <textarea
+                name="recomendaciones"
+                placeholder="Recomendaciones"
+                value={form.recomendaciones}
+                onChange={handleFormChange}
+              />
+
+              <textarea
+                name="tareas_casa"
+                placeholder="Tareas para casa"
+                value={form.tareas_casa}
+                onChange={handleFormChange}
+              />
+
+              <button type="submit">
+                Guardar nota clinica
+              </button>
+            </form>
           </div>
-
-          <label className="progress-field">
-            <span>Porcentaje de avance del objetivo trabajado (0 a 100)</span>
-            <input
-              type="number"
-              min="0"
-              max="100"
-              name="porcentaje_avance"
-              placeholder="Ejemplo: 45"
-              value={form.porcentaje_avance}
-              onChange={handleFormChange}
-            />
-            <progress value={Number(form.porcentaje_avance) || 0} max="100" />
-          </label>
-
-          <textarea
-            name="evolucion"
-            placeholder="Evolución de la sesión"
-            value={form.evolucion}
-            onChange={handleFormChange}
-            required
-          />
-
-          <textarea
-            name="recomendaciones"
-            placeholder="Recomendaciones"
-            value={form.recomendaciones}
-            onChange={handleFormChange}
-          />
-
-          <textarea
-            name="tareas_casa"
-            placeholder="Tareas para casa"
-            value={form.tareas_casa}
-            onChange={handleFormChange}
-          />
-
-          <button type="submit">
-            Guardar nota clínica
-          </button>
-        </form>
+        ) : (
+          <p className="plan-helper">
+            Selecciona una tarjeta del plan terapeutico para abrir aqui la nota clinica.
+          </p>
+        )}
       </section>
       </AccordionSection>
 
@@ -831,34 +833,59 @@ function ExpedienteClinico() {
         openSection={openSection}
         setOpenSection={setOpenSection}
       >
-      <section>
-        <h2>Historial clínico</h2>
+      <section className="history-book-section">
+        <h2>Historial clinico</h2>
 
         {expedientes.length === 0 && (
-          <p className="empty">No hay notas clínicas registradas.</p>
+          <p className="empty">No hay notas clinicas registradas.</p>
         )}
 
-        {expedientes.map((exp) => (
-          <div className="expediente-card" key={exp.id}>
-            <h3>Fecha: {exp.fecha}</h3>
+        {expedientes.length > 0 && (
+          <div className="history-book">
+            <button
+              type="button"
+              className="book-nav"
+              onClick={() => setHistorialIndex((actual) => Math.max(0, actual - 1))}
+              disabled={historialIndex === 0}
+              aria-label="Nota anterior"
+            >
+              {'<'}
+            </button>
 
-            <p><strong>Diagnóstico:</strong> {exp.diagnostico}</p>
+            <article className="expediente-card book-page" key={expedientes[historialIndex].id}>
+              <span className="book-page-count">
+                {historialIndex + 1} / {expedientes.length}
+              </span>
+              <h3>Fecha: {expedientes[historialIndex].fecha}</h3>
 
-            <p>
-              <strong>Objetivo:</strong> {exp.objetivo_trabajado || 'Sin objetivo'}
-            </p>
+              <p><strong>Diagnostico:</strong> {expedientes[historialIndex].diagnostico}</p>
 
-            <p>
-              <strong>Avance:</strong> {exp.porcentaje_avance || 0}%
-            </p>
+              <p>
+                <strong>Objetivo:</strong> {expedientes[historialIndex].objetivo_trabajado || 'Sin objetivo'}
+              </p>
 
-            <p><strong>Evolución:</strong> {exp.evolucion}</p>
+              <p>
+                <strong>Avance:</strong> {expedientes[historialIndex].porcentaje_avance || 0}%
+              </p>
 
-            <p><strong>Recomendaciones:</strong> {exp.recomendaciones}</p>
+              <p><strong>Evolucion:</strong> {expedientes[historialIndex].evolucion}</p>
 
-            <p><strong>Tareas en casa:</strong> {exp.tareas_casa}</p>
+              <p><strong>Recomendaciones:</strong> {expedientes[historialIndex].recomendaciones}</p>
+
+              <p><strong>Tareas en casa:</strong> {expedientes[historialIndex].tareas_casa}</p>
+            </article>
+
+            <button
+              type="button"
+              className="book-nav"
+              onClick={() => setHistorialIndex((actual) => Math.min(expedientes.length - 1, actual + 1))}
+              disabled={historialIndex === expedientes.length - 1}
+              aria-label="Nota siguiente"
+            >
+              {'>'}
+            </button>
           </div>
-        ))}
+        )}
       </section>
       </AccordionSection>
 
