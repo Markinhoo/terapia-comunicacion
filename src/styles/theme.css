@@ -292,6 +292,55 @@ th {
   }
 }
 
+@media (max-width: 820px) {
+  .navbar:not(.admin-navbar) {
+    height: 60px;
+    min-height: 60px;
+    padding: 7px 12px;
+    flex-wrap: nowrap;
+  }
+
+  .navbar:not(.admin-navbar) .brand {
+    width: auto;
+    min-width: 0;
+  }
+
+  .navbar:not(.admin-navbar) .navbar-actions {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    width: auto;
+    margin: 0;
+    justify-content: flex-end;
+  }
+
+  .navbar:not(.admin-navbar) .theme-toggle {
+    min-width: 46px;
+    min-height: 40px;
+    padding: 4px;
+  }
+}
+
+@media (max-width: 820px) {
+  .navbar:not(.admin-navbar) {
+    height: 60px;
+    min-height: 60px;
+    padding: 7px 12px;
+  }
+
+  .navbar:not(.admin-navbar) .navbar-actions {
+    width: auto;
+    margin-left: auto;
+    justify-content: flex-end;
+  }
+
+  .navbar:not(.admin-navbar) .theme-toggle {
+    min-width: 46px;
+    min-height: 40px;
+    padding: 4px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   body,
   .theme-toggle {
@@ -399,5 +448,35 @@ th {
   .navbar-actions {
     width: 100%;
     justify-content: center;
+  }
+}
+
+/* Keep the public mobile header on one compact row. */
+@media (max-width: 820px) {
+  .navbar:not(.admin-navbar) {
+    height: 60px;
+    min-height: 60px;
+    padding: 7px 12px;
+    flex-wrap: nowrap;
+  }
+
+  .navbar:not(.admin-navbar) .brand {
+    width: auto;
+    min-width: 0;
+  }
+
+  .navbar:not(.admin-navbar) .navbar-actions {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    width: auto;
+    margin: 0;
+    justify-content: flex-end;
+  }
+
+  .navbar:not(.admin-navbar) .theme-toggle {
+    min-width: 46px;
+    min-height: 40px;
+    padding: 4px;
   }
 }

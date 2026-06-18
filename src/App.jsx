@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Routes, Route, NavLink, useLocation } from 'react-router-dom';
 import { FaCalendarPlus, FaHouse, FaImages, FaLock } from 'react-icons/fa6';
+import { FaWhatsapp } from 'react-icons/fa';
 import Inicio from './pages/Inicio';
 import AgendarCita from './pages/AgendarCita';
 import Galeria from './pages/Galeria';
@@ -29,6 +30,9 @@ function App() {
   const [theme, setTheme] = useState(obtenerTemaInicial);
   const [userName, setUserName] = useState('');
   const isAdminRoute = location.pathname.startsWith('/admin');
+  const whatsappUrl = `https://wa.me/526182363755?text=${encodeURIComponent(
+    'Hola, me gustaria solicitar informacion sobre terapia de comunicacion humana.'
+  )}`;
 
   useEffect(() => {
     let active = true;
@@ -121,6 +125,45 @@ function App() {
           />
         </div>
       </nav>
+
+      {!isAdminRoute && (
+        <nav className="mobile-bottom-nav" aria-label="Navegacion movil">
+          <NavLink to="/" end>
+            <FaHouse aria-hidden="true" />
+            <span>Inicio</span>
+          </NavLink>
+
+          <NavLink to="/agendar">
+            <FaCalendarPlus aria-hidden="true" />
+            <span>Agendar</span>
+          </NavLink>
+
+          <NavLink to="/galeria">
+            <FaImages aria-hidden="true" />
+            <span>Galeria</span>
+          </NavLink>
+
+          <NavLink
+            to="/login"
+            className={({ isActive }) => (
+              isActive || isAdminRoute ? 'active' : undefined
+            )}
+          >
+            <FaLock aria-hidden="true" />
+            <span>Admin</span>
+          </NavLink>
+
+          <a
+            href={whatsappUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mobile-whatsapp-link"
+          >
+            <FaWhatsapp aria-hidden="true" />
+            <span>WhatsApp</span>
+          </a>
+        </nav>
+      )}
 
       <Routes>
         <Route path="/" element={<Inicio />} />
