@@ -26,12 +26,43 @@ serve(async (req) => {
 
     if (permissionError || !canManage) {
       return new Response(
-        JSON.stringify({ error: 'Solo el administrador maestro puede crear usuarios.' }),
+        JSON.stringify({ error: 'Solo el administrador maestro puede gestionar usuarios.' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const { email, password, role } = await req.json();
+    const { action = 'create_user', user_id, email, password, role } = await req.json();
+
+    if (!password || String(password).length < 8) {
+      throw new Error('La contrasena debe tener al menos 8 caracteres.');
+    }
+
+    const adminClient = createClient(supabaseUrl, serviceRoleKey);
+
+    if (action === 'update_password') {
+      const targetUserId = String(user_id || '').trim();
+
+      if (!targetUserId) {
+        throw new Error('No se indico el usuario.');
+      }
+
+      const { error: updateError } = await adminClient.auth.admin.updateUserById(
+        targetUserId,
+        { password: String(password) }
+      );
+
+      if (updateError) throw updateError;
+
+      return new Response(
+        JSON.stringify({ updated: true }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (action !== 'create_user') {
+      throw new Error('La accion solicitada no es valida.');
+    }
+
     const normalizedEmail = String(email || '').trim().toLowerCase();
     const normalizedRole = String(role || 'user');
 
@@ -42,12 +73,6 @@ serve(async (req) => {
     if (!['master_admin', 'admin', 'user'].includes(normalizedRole)) {
       throw new Error('El rol no es valido.');
     }
-
-    if (!password || String(password).length < 8) {
-      throw new Error('La contrasena debe tener al menos 8 caracteres.');
-    }
-
-    const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
     const { data: userData, error: createError } =
       await adminClient.auth.admin.createUser({

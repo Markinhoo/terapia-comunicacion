@@ -52,6 +52,12 @@ function UsuariosAdmin() {
   const [busquedaPerfiles, setBusquedaPerfiles] = useState('');
   const [busquedaInvitaciones, setBusquedaInvitaciones] = useState('');
   const [busquedaBitacora, setBusquedaBitacora] = useState('');
+  const [usuarioPassword, setUsuarioPassword] = useState(null);
+  const [passwordForm, setPasswordForm] = useState({
+    password: '',
+    confirmacion: ''
+  });
+  const [cambiandoPassword, setCambiandoPassword] = useState(false);
   const [mobilePageSize, setMobilePageSize] = useState(() => (
     window.innerWidth <= 620 ? 1 : 5
   ));
@@ -143,6 +149,52 @@ function UsuariosAdmin() {
     }
 
     cargarDatos();
+  };
+
+  const abrirCambioPassword = (perfil) => {
+    setUsuarioPassword(perfil);
+    setPasswordForm({ password: '', confirmacion: '' });
+    setMensaje('');
+  };
+
+  const cerrarCambioPassword = () => {
+    setUsuarioPassword(null);
+    setPasswordForm({ password: '', confirmacion: '' });
+  };
+
+  const cambiarPassword = async (event) => {
+    event.preventDefault();
+    setMensaje('');
+
+    if (passwordForm.password.length < 8) {
+      setMensaje('La nueva contrasena debe tener al menos 8 caracteres.');
+      return;
+    }
+
+    if (passwordForm.password !== passwordForm.confirmacion) {
+      setMensaje('Las contrasenas no coinciden.');
+      return;
+    }
+
+    setCambiandoPassword(true);
+
+    const { error } = await supabase.functions.invoke('crear-usuario-admin', {
+      body: {
+        action: 'update_password',
+        user_id: usuarioPassword.id,
+        password: passwordForm.password
+      }
+    });
+
+    setCambiandoPassword(false);
+
+    if (error) {
+      setMensaje(error.message || 'No se pudo cambiar la contrasena.');
+      return;
+    }
+
+    setMensaje(`Contrasena actualizada para ${usuarioPassword.email}.`);
+    cerrarCambioPassword();
   };
 
   const perfilesFiltrados = perfiles.filter((perfil) => coincideBusqueda([
@@ -256,6 +308,59 @@ function UsuariosAdmin() {
           />
         </label>
 
+        {usuarioPassword && (
+          <form className="password-admin-card" onSubmit={cambiarPassword}>
+            <div>
+              <span>Cambiar contrasena</span>
+              <strong>{usuarioPassword.email}</strong>
+            </div>
+
+            <label>
+              Nueva contrasena
+              <input
+                type="password"
+                minLength="8"
+                value={passwordForm.password}
+                onChange={(event) => setPasswordForm({
+                  ...passwordForm,
+                  password: event.target.value
+                })}
+                autoComplete="new-password"
+                required
+              />
+            </label>
+
+            <label>
+              Confirmar contrasena
+              <input
+                type="password"
+                minLength="8"
+                value={passwordForm.confirmacion}
+                onChange={(event) => setPasswordForm({
+                  ...passwordForm,
+                  confirmacion: event.target.value
+                })}
+                autoComplete="new-password"
+                required
+              />
+            </label>
+
+            <div className="password-admin-actions">
+              <button type="submit" disabled={cambiandoPassword}>
+                {cambiandoPassword ? 'Actualizando...' : 'Guardar contrasena'}
+              </button>
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={cerrarCambioPassword}
+                disabled={cambiandoPassword}
+              >
+                Cancelar
+              </button>
+            </div>
+          </form>
+        )}
+
         <div className="table-container users-table-container">
           <table className="responsive-admin-table">
             <thead>
@@ -302,6 +407,12 @@ function UsuariosAdmin() {
                         onClick={() => cambiarRol(perfil, perfil.role, !perfil.active)}
                       >
                         {perfil.active ? 'Desactivar' : 'Activar'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => abrirCambioPassword(perfil)}
+                      >
+                        Cambiar contrasena
                       </button>
                     </div>
                   </td>
