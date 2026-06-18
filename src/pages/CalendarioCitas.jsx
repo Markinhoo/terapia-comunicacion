@@ -4,6 +4,7 @@ import Modal from 'react-modal';
 import { supabase } from '../lib/supabaseClient';
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
+import 'moment/locale/es';
 import Toast from '../components/Toast';
 import { useToast } from '../hooks/useToast';
 import {
@@ -16,7 +17,42 @@ import 'react-big-calendar/lib/css/react-big-calendar.css';
 
 Modal.setAppElement('#root');
 
+moment.locale('es');
 const localizer = momentLocalizer(moment);
+const formatearCalendario = (date, options) => (
+  new Intl.DateTimeFormat('es-MX', options).format(date)
+);
+const formatosCalendario = {
+  monthHeaderFormat: (date) => formatearCalendario(date, {
+    month: 'long',
+    year: 'numeric'
+  }),
+  dayHeaderFormat: (date) => formatearCalendario(date, {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long'
+  }),
+  dayRangeHeaderFormat: ({ start, end }) => (
+    `${formatearCalendario(start, { day: 'numeric', month: 'long' })} - ${
+      formatearCalendario(end, { day: 'numeric', month: 'long', year: 'numeric' })
+    }`
+  ),
+  agendaHeaderFormat: ({ start, end }) => (
+    `${formatearCalendario(start, { day: 'numeric', month: 'long' })} - ${
+      formatearCalendario(end, { day: 'numeric', month: 'long', year: 'numeric' })
+    }`
+  ),
+  agendaDateFormat: (date) => formatearCalendario(date, {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short'
+  }),
+  agendaTimeFormat: (date) => formatearCalendario(date, {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  })
+};
 
 function CalendarioCitas() {
   const navigate = useNavigate();
@@ -24,10 +60,18 @@ function CalendarioCitas() {
   const [eventos, setEventos] = useState([]);
   const [citaSeleccionada, setCitaSeleccionada] = useState(null);
   const [modalAbierto, setModalAbierto] = useState(false);
+  const [vistaMovil, setVistaMovil] = useState(() => window.innerWidth <= 768);
   const { toast, mostrarToast, cerrarToast } = useToast();
 
   useEffect(() => {
     obtenerCitas();
+  }, []);
+
+  useEffect(() => {
+    const actualizarVista = () => setVistaMovil(window.innerWidth <= 768);
+    window.addEventListener('resize', actualizarVista);
+
+    return () => window.removeEventListener('resize', actualizarVista);
   }, []);
 
   async function obtenerCitas() {
@@ -175,38 +219,44 @@ function CalendarioCitas() {
   };
 
   return (
-    <main>
-      <div className="calendar-header">
-        <div className="calendar-legend">
-          <span className="legend-item confirmada">Confirmada</span>
-          <span className="legend-item en-curso">En curso</span>
-          <span className="legend-item pendiente">Pendiente</span>
-          <span className="legend-item cancelada">Cancelada</span>
-        </div>
-      </div>
-
+    <main className="calendar-page">
       <div className="calendar-container">
         <Calendar
+          key={vistaMovil ? 'agenda-movil' : 'calendario-escritorio'}
           localizer={localizer}
+          culture="es"
           events={eventos}
           startAccessor="start"
           endAccessor="end"
+          defaultView={vistaMovil ? 'agenda' : 'month'}
+          views={vistaMovil ? ['agenda', 'day'] : ['month', 'week', 'day', 'agenda']}
+          formats={formatosCalendario}
           eventPropGetter={estiloEvento}
           onSelectEvent={(evento) => {
             setCitaSeleccionada(evento.cita);
             setModalAbierto(true);
           }}
-          style={{ height: 'calc(100vh - 150px)' }}
           messages={{
             next: 'Siguiente',
             previous: 'Anterior',
             today: 'Hoy',
             month: 'Mes',
             week: 'Semana',
-            day: 'Día',
-            agenda: 'Agenda'
+            day: 'Dia',
+            agenda: 'Agenda',
+            date: 'Fecha',
+            time: 'Hora',
+            event: 'Cita',
+            noEventsInRange: 'No hay citas en este periodo.'
           }}
         />
+
+        <div className="calendar-legend">
+          <span className="legend-item confirmada">Confirmada</span>
+          <span className="legend-item en-curso">En curso</span>
+          <span className="legend-item pendiente">Pendiente</span>
+          <span className="legend-item cancelada">Cancelada</span>
+        </div>
       </div>
 
       <Modal

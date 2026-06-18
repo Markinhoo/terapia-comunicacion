@@ -90,29 +90,7 @@ function DashboardHome() {
 
   return (
     <div className="dashboard-home">
-      <div className="cards-grid">
-        <div className="card-kpi">
-          <h3>Pacientes</h3>
-          <span>{pacientes}</span>
-        </div>
-
-        <div className="card-kpi">
-          <h3>Citas del mes</h3>
-          <span>{citasMes}</span>
-        </div>
-
-        <div className="card-kpi">
-          <h3>Citas hoy</h3>
-          <span>{citasHoy.length}</span>
-        </div>
-
-        <div className="card-kpi">
-          <h3>Servicios</h3>
-          <span>{servicios}</span>
-        </div>
-      </div>
-
-      <section className="dashboard-section">
+      <section className="dashboard-section dashboard-appointments">
         <h2>Citas en curso y proximas</h2>
 
         {citasHoy.length === 0 && (
@@ -135,6 +113,28 @@ function DashboardHome() {
           ))}
         </div>
       </section>
+
+      <div className="cards-grid">
+        <div className="card-kpi">
+          <h3>Pacientes</h3>
+          <span>{pacientes}</span>
+        </div>
+
+        <div className="card-kpi">
+          <h3>Citas del mes</h3>
+          <span>{citasMes}</span>
+        </div>
+
+        <div className="card-kpi">
+          <h3>Citas hoy</h3>
+          <span>{citasHoy.length}</span>
+        </div>
+
+        <div className="card-kpi">
+          <h3>Servicios</h3>
+          <span>{servicios}</span>
+        </div>
+      </div>
     </div>
   );
 }

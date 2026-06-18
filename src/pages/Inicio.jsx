@@ -75,7 +75,6 @@ const corrientes = [
 function Inicio() {
   const [slideActual, setSlideActual] = useState(0);
   const [pausado, setPausado] = useState(false);
-  const [serviciosPausados, setServiciosPausados] = useState(false);
 
   useEffect(() => {
     if (pausado) return undefined;
@@ -186,20 +185,13 @@ function Inicio() {
           Conoce cada area colocando el cursor o seleccionando una tarjeta.
         </p>
 
-        <div
-          className={`servicios-carousel-mobile ${serviciosPausados ? 'paused' : ''}`}
-          onTouchStart={() => setServiciosPausados(true)}
-          onTouchEnd={() => setServiciosPausados(false)}
-          onTouchCancel={() => setServiciosPausados(false)}
-          aria-label="Carrusel de servicios"
-        >
+        <div className="servicios-carousel-mobile" aria-label="Carrusel de servicios">
           <div className="servicios-home-grid">
-            {[...servicios, ...servicios].map(({ titulo, descripcion, Icono }, index) => (
+            {servicios.map(({ titulo, descripcion, Icono }) => (
               <article
                 className="servicio-home-card"
-                key={`${titulo}-${index}`}
-                tabIndex={index < servicios.length ? '0' : '-1'}
-                aria-hidden={index >= servicios.length}
+                key={titulo}
+                tabIndex="0"
               >
                 <div className="servicio-icon" aria-hidden="true">
                   <Icono />

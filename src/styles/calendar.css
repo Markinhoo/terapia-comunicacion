@@ -1,13 +1,11 @@
-.calendar-header {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 10px;
-}
-
 .calendar-legend {
   display: flex;
+  justify-content: center;
   gap: 10px;
   flex-wrap: wrap;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
 }
 
 .legend-item {
@@ -42,6 +40,11 @@
   box-shadow: 0 4px 12px rgba(0,0,0,.08);
 }
 
+.calendar-container .rbc-calendar {
+  height: calc(100vh - 190px);
+  min-height: 520px;
+}
+
 .rbc-calendar {
   font-family: Arial, sans-serif;
 }
@@ -52,6 +55,71 @@
 
 .rbc-event {
   font-size: 12px;
+}
+
+@media (max-width: 768px) {
+  .calendar-page {
+    min-height: 0;
+  }
+
+  .calendar-container {
+    padding: 10px;
+    border-radius: 16px;
+  }
+
+  .calendar-container .rbc-calendar {
+    height: min(52vh, 430px);
+    min-height: 350px;
+  }
+
+  .rbc-toolbar {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .rbc-toolbar-label {
+    grid-row: 1;
+    font-size: 16px;
+    font-weight: 800;
+    text-transform: capitalize;
+  }
+
+  .rbc-btn-group {
+    display: flex;
+    justify-content: center;
+  }
+
+  .rbc-toolbar button {
+    min-height: 34px;
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+
+  .rbc-agenda-view table.rbc-agenda-table {
+    font-size: 12px;
+  }
+
+  .rbc-agenda-date-cell,
+  .rbc-agenda-time-cell,
+  .rbc-agenda-event-cell {
+    padding: 8px 6px !important;
+  }
+
+  .calendar-legend {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+    margin-top: 9px;
+    padding-top: 9px;
+  }
+
+  .legend-item {
+    padding: 6px 3px;
+    font-size: 9px;
+    text-align: center;
+  }
 }
 
 /* MODAL CITA */

@@ -333,10 +333,6 @@
   gap: 18px;
 }
 
-.servicios-home-grid .servicio-home-card:nth-child(n + 6) {
-  display: none;
-}
-
 .servicios-carousel-mobile {
   display: contents;
 }
@@ -605,7 +601,7 @@
   }
 
   .servicios-home {
-    padding-top: 42px;
+    padding-top: 30px;
     overflow: hidden;
   }
 
@@ -613,50 +609,53 @@
     display: block;
     width: calc(100% + 28px);
     margin-left: -14px;
-    overflow: hidden;
-    touch-action: pan-y;
-    -webkit-mask-image: linear-gradient(
-      90deg,
-      transparent,
-      #000 5%,
-      #000 95%,
-      transparent
-    );
-    mask-image: linear-gradient(
-      90deg,
-      transparent,
-      #000 5%,
-      #000 95%,
-      transparent
-    );
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-padding-inline: 14px;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    touch-action: pan-x pan-y;
+    overscroll-behavior-inline: contain;
+  }
+
+  .servicios-carousel-mobile::-webkit-scrollbar {
+    display: none;
   }
 
   .servicios-home-grid {
     display: flex;
     width: max-content;
-    gap: 16px;
-    padding: 8px 14px 24px;
-    animation: servicios-infinito 42s linear infinite;
-    will-change: transform;
+    gap: 12px;
+    padding: 8px 14px 18px;
   }
 
-  .servicios-carousel-mobile.paused .servicios-home-grid {
-    animation-play-state: paused;
-  }
-
-  .servicios-home-grid .servicio-home-card,
-  .servicios-home-grid .servicio-home-card:nth-child(n + 6) {
+  .servicios-home-grid .servicio-home-card {
     display: block;
-    width: clamp(250px, 78vw, 310px);
-    min-height: 230px;
-    flex: 0 0 clamp(250px, 78vw, 310px);
+    width: min(84vw, 340px);
+    min-height: 205px;
+    flex: 0 0 min(84vw, 340px);
     box-sizing: border-box;
+    scroll-snap-align: center;
+    scroll-snap-stop: always;
+    background:
+      linear-gradient(135deg, rgba(107, 79, 155, .96), rgba(62, 42, 88, .98));
+    text-align: left;
+  }
+
+  .servicio-home-card .servicio-icon {
+    margin: 0 0 16px;
+    background: rgba(255, 255, 255, .16);
+    color: white;
+  }
+
+  .servicio-home-card h3 {
+    color: white;
   }
 
   .servicio-home-card p {
     max-height: 145px;
     margin-top: 14px;
-    color: var(--text-muted);
+    color: white;
     opacity: 1;
     transform: none;
   }
@@ -702,13 +701,13 @@
   }
 
   .servicio-home-card {
-    min-height: 230px;
+    min-height: 205px;
   }
 
   .servicio-home-card p {
     max-height: 145px;
     margin-top: 14px;
-    color: #60717a;
+    color: white;
     opacity: 1;
     transform: none;
   }
@@ -744,16 +743,6 @@
   }
 }
 
-@keyframes servicios-infinito {
-  from {
-    transform: translateX(0);
-  }
-
-  to {
-    transform: translateX(calc(-50% - 8px));
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .carousel-slide,
   .carousel-slide img,
@@ -767,7 +756,4 @@
     animation-play-state: paused;
   }
 
-  .servicios-home-grid {
-    animation-play-state: paused;
-  }
 }

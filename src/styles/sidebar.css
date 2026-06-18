@@ -12,11 +12,17 @@
   flex: 1;
   height: calc(100vh - 72px);
   overflow-y: auto;
-  padding: 24px;
+  padding: 18px;
   background:
     radial-gradient(circle at top right, color-mix(in srgb, var(--primary) 8%, transparent), transparent 34%),
     var(--page-bg-soft);
   box-sizing: border-box;
+}
+
+.dashboard-content > .container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0;
 }
 
 /* ======================================
@@ -211,15 +217,15 @@
 
   .dashboard-layout {
     display: block;
-    height: calc(100vh - 72px);
+    height: calc(100vh - 60px);
     overflow: hidden;
   }
 
   .dashboard-content {
     width: 100%;
-    height: calc(100vh - 72px);
+    height: calc(100vh - 60px);
     overflow-y: auto;
-    padding: 70px 16px 16px;
+    padding: 12px;
     box-sizing: border-box;
   }
 
