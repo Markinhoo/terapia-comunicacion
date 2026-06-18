@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import GalleryMagicBento from '../components/GalleryMagicBento';
 
 function Galeria() {
   const [items, setItems] = useState([]);
@@ -47,22 +48,7 @@ function Galeria() {
         <p className="empty">Todavia no hay contenido publicado.</p>
       )}
 
-      <section className="galeria-grid">
-        {items.map((item) => (
-          <article className="galeria-card" key={item.id}>
-            {item.tipo === 'video' ? (
-              <video src={urlPublica(item.ruta_archivo)} controls />
-            ) : (
-              <img src={urlPublica(item.ruta_archivo)} alt={item.titulo} />
-            )}
-
-            <div>
-              <h2>{item.titulo}</h2>
-              {item.descripcion && <p>{item.descripcion}</p>}
-            </div>
-          </article>
-        ))}
-      </section>
+      <GalleryMagicBento items={items} getMediaUrl={urlPublica} />
     </main>
   );
 }

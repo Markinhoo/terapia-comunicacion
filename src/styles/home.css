@@ -333,6 +333,14 @@
   gap: 18px;
 }
 
+.servicios-home-grid .servicio-home-card:nth-child(n + 6) {
+  display: none;
+}
+
+.servicios-carousel-mobile {
+  display: contents;
+}
+
 .servicio-home-card {
   position: relative;
   min-height: 210px;
@@ -598,10 +606,63 @@
 
   .servicios-home {
     padding-top: 42px;
+    overflow: hidden;
+  }
+
+  .servicios-carousel-mobile {
+    display: block;
+    width: calc(100% + 28px);
+    margin-left: -14px;
+    overflow: hidden;
+    touch-action: pan-y;
+    -webkit-mask-image: linear-gradient(
+      90deg,
+      transparent,
+      #000 5%,
+      #000 95%,
+      transparent
+    );
+    mask-image: linear-gradient(
+      90deg,
+      transparent,
+      #000 5%,
+      #000 95%,
+      transparent
+    );
   }
 
   .servicios-home-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    display: flex;
+    width: max-content;
+    gap: 16px;
+    padding: 8px 14px 24px;
+    animation: servicios-infinito 42s linear infinite;
+    will-change: transform;
+  }
+
+  .servicios-carousel-mobile.paused .servicios-home-grid {
+    animation-play-state: paused;
+  }
+
+  .servicios-home-grid .servicio-home-card,
+  .servicios-home-grid .servicio-home-card:nth-child(n + 6) {
+    display: block;
+    width: clamp(250px, 78vw, 310px);
+    min-height: 230px;
+    flex: 0 0 clamp(250px, 78vw, 310px);
+    box-sizing: border-box;
+  }
+
+  .servicio-home-card p {
+    max-height: 145px;
+    margin-top: 14px;
+    color: var(--text-muted);
+    opacity: 1;
+    transform: none;
+  }
+
+  .servicio-hint {
+    display: none;
   }
 
   .ubicacion-card {
@@ -640,12 +701,8 @@
     padding-left: 14px;
   }
 
-  .servicios-home-grid {
-    grid-template-columns: 1fr;
-  }
-
   .servicio-home-card {
-    min-height: 190px;
+    min-height: 230px;
   }
 
   .servicio-home-card p {
@@ -687,6 +744,16 @@
   }
 }
 
+@keyframes servicios-infinito {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(calc(-50% - 8px));
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .carousel-slide,
   .carousel-slide img,
@@ -697,6 +764,10 @@
   }
 
   .symbol-stream-track {
+    animation-play-state: paused;
+  }
+
+  .servicios-home-grid {
     animation-play-state: paused;
   }
 }
