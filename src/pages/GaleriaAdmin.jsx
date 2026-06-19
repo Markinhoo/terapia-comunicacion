@@ -6,8 +6,7 @@ function GaleriaAdmin() {
   const [archivos, setArchivos] = useState([]);
   const [form, setForm] = useState({
     titulo: '',
-    descripcion: '',
-    orden: 0
+    descripcion: ''
   });
   const [mensaje, setMensaje] = useState('');
   const [subiendo, setSubiendo] = useState(false);
@@ -16,7 +15,6 @@ function GaleriaAdmin() {
     const { data, error } = await supabase
       .from('galeria_terapias')
       .select('*')
-      .order('orden', { ascending: true })
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -49,7 +47,12 @@ function GaleriaAdmin() {
       grupos.get(id).medios.push(item);
     });
 
-    return Array.from(grupos.values());
+    return Array.from(grupos.values())
+      .map((publicacion) => ({
+        ...publicacion,
+        medios: publicacion.medios.sort((a, b) => a.orden - b.orden)
+      }))
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
   }, [items]);
 
   const urlPublica = (ruta) => {
@@ -123,7 +126,7 @@ function GaleriaAdmin() {
         descripcion: form.descripcion.trim() || null,
         tipo: archivo.type.startsWith('video/') ? 'video' : 'imagen',
         ruta_archivo: ruta,
-        orden: (Number(form.orden) || 0) + index
+        orden: index
       });
     }
 
@@ -142,7 +145,7 @@ function GaleriaAdmin() {
 
     setMensaje('Publicacion creada correctamente.');
     setArchivos([]);
-    setForm({ titulo: '', descripcion: '', orden: 0 });
+    setForm({ titulo: '', descripcion: '' });
     cargarGaleria();
   };
 
@@ -204,13 +207,6 @@ function GaleriaAdmin() {
             placeholder="Descripcion opcional"
             value={form.descripcion}
             onChange={(event) => setForm({ ...form, descripcion: event.target.value })}
-          />
-
-          <input
-            type="number"
-            placeholder="Orden"
-            value={form.orden}
-            onChange={(event) => setForm({ ...form, orden: event.target.value })}
           />
 
           <input

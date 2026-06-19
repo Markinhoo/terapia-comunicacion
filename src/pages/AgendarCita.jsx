@@ -4,6 +4,7 @@ import { formatearFechaLocal } from '../utils/fechas';
 
 function AgendarCita() {
   const hoy = formatearFechaLocal();
+  const fechaNacimientoMinima = `${Number(hoy.slice(0, 4)) - 99}${hoy.slice(4)}`;
 
   const [form, setForm] = useState({
     nombre_paciente: '',
@@ -44,6 +45,35 @@ function AgendarCita() {
   const esDomingo = (fecha) => {
     const dia = new Date(`${fecha}T00:00:00`).getDay();
     return dia === 0;
+  };
+
+  const calcularEdad = (fechaNacimiento) => {
+    if (!fechaNacimiento) return null;
+
+    const nacimiento = new Date(`${fechaNacimiento}T00:00:00`);
+    const fechaActual = new Date(`${hoy}T00:00:00`);
+
+    if (
+      Number.isNaN(nacimiento.getTime())
+      || nacimiento > fechaActual
+      || nacimiento < new Date(`${fechaNacimientoMinima}T00:00:00`)
+    ) {
+      return null;
+    }
+
+    let anos = fechaActual.getFullYear() - nacimiento.getFullYear();
+    let meses = fechaActual.getMonth() - nacimiento.getMonth();
+
+    if (fechaActual.getDate() < nacimiento.getDate()) {
+      meses -= 1;
+    }
+
+    if (meses < 0) {
+      anos -= 1;
+      meses += 12;
+    }
+
+    return { anos, meses };
   };
 
   const handleChange = (e) => {
@@ -88,8 +118,29 @@ function AgendarCita() {
       return;
     }
 
+    if (name === 'fecha_nacimiento') {
+      const edadCalculada = calcularEdad(value);
+
+      if (value && !edadCalculada) {
+        setMensaje('Selecciona una fecha de nacimiento válida para una edad de 0 a 99 años.');
+        setTipoMensaje('error');
+        setForm({ ...form, fecha_nacimiento: '', edad: '' });
+        return;
+      }
+
+      setMensaje('');
+      setForm({
+        ...form,
+        fecha_nacimiento: value,
+        edad: edadCalculada ? String(edadCalculada.anos).slice(0, 2) : ''
+      });
+      return;
+    }
+
     setForm({ ...form, [name]: value });
   };
+
+  const edadCalculada = calcularEdad(form.fecha_nacimiento);
 
   async function obtenerHorariosDisponibles(fecha) {
     const { data, error } = await supabase.rpc(
@@ -236,25 +287,35 @@ function AgendarCita() {
           required
         />
 
-        <input
-          name="edad"
-          type="number"
-          min="0"
-          max="120"
-          placeholder="Edad"
-          value={form.edad}
-          onChange={handleChange}
-        />
-
         <label className="form-field">
           <span>Fecha de nacimiento del paciente</span>
           <input
             name="fecha_nacimiento"
             type="date"
+            min={fechaNacimientoMinima}
+            max={hoy}
             value={form.fecha_nacimiento}
             onChange={handleChange}
           />
-          <small>Este dato ayuda a completar la hoja de localizacion.</small>
+          <small>Al seleccionarla se calcularán automáticamente los años y meses.</small>
+        </label>
+
+        <label className="form-field">
+          <span>Edad calculada del paciente</span>
+          <input
+            name="edad"
+            type="text"
+            inputMode="numeric"
+            maxLength={2}
+            placeholder="Edad en años"
+            value={form.edad}
+            readOnly
+          />
+          <small>
+            {edadCalculada
+              ? `${edadCalculada.anos} año${edadCalculada.anos === 1 ? '' : 's'} y ${edadCalculada.meses} mes${edadCalculada.meses === 1 ? '' : 'es'}`
+              : 'Selecciona primero la fecha de nacimiento.'}
+          </small>
         </label>
 
         <input

@@ -33,13 +33,60 @@ serve(async (req) => {
 
     const { action = 'create_user', user_id, email, password, role } = await req.json();
 
-    if (!password || String(password).length < 8) {
-      throw new Error('La contrasena debe tener al menos 8 caracteres.');
-    }
-
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
+    if (action === 'delete_user') {
+      const targetUserId = String(user_id || '').trim();
+      const { data: callerData } = await callerClient.auth.getUser();
+
+      if (!targetUserId) {
+        throw new Error('No se indico el usuario.');
+      }
+
+      if (callerData.user?.id === targetUserId) {
+        throw new Error('No puedes eliminar tu propia cuenta.');
+      }
+
+      const { data: targetProfile, error: profileLookupError } = await adminClient
+        .from('app_profiles')
+        .select('email, role')
+        .eq('id', targetUserId)
+        .single();
+
+      if (profileLookupError) throw profileLookupError;
+
+      if (targetProfile.role === 'master_admin') {
+        const { count, error: countError } = await adminClient
+          .from('app_profiles')
+          .select('id', { count: 'exact', head: true })
+          .eq('role', 'master_admin')
+          .eq('active', true);
+
+        if (countError) throw countError;
+        if ((count || 0) <= 1) {
+          throw new Error('No se puede eliminar al unico administrador maestro.');
+        }
+      }
+
+      const { error: deleteError } = await adminClient.auth.admin.deleteUser(targetUserId);
+      if (deleteError) throw deleteError;
+
+      await adminClient
+        .from('invitaciones_usuario')
+        .delete()
+        .eq('email', targetProfile.email);
+
+      return new Response(
+        JSON.stringify({ deleted: true }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     if (action === 'update_password') {
+      if (!password || String(password).length < 8) {
+        throw new Error('La contrasena debe tener al menos 8 caracteres.');
+      }
+
       const targetUserId = String(user_id || '').trim();
 
       if (!targetUserId) {
@@ -61,6 +108,10 @@ serve(async (req) => {
 
     if (action !== 'create_user') {
       throw new Error('La accion solicitada no es valida.');
+    }
+
+    if (!password || String(password).length < 8) {
+      throw new Error('La contrasena debe tener al menos 8 caracteres.');
     }
 
     const normalizedEmail = String(email || '').trim().toLowerCase();
@@ -100,14 +151,6 @@ serve(async (req) => {
       });
 
     if (profileError) throw profileError;
-
-    await adminClient
-      .from('invitaciones_usuario')
-      .insert({
-        email: normalizedEmail,
-        role: normalizedRole,
-        estado: 'aceptada'
-      });
 
     return new Response(
       JSON.stringify({ user_id: userId }),

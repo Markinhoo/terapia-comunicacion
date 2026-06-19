@@ -43,14 +43,12 @@ function coincideBusqueda(valores, busqueda) {
 
 function UsuariosAdmin() {
   const [perfiles, setPerfiles] = useState([]);
-  const [invitaciones, setInvitaciones] = useState([]);
   const [bitacora, setBitacora] = useState([]);
   const [form, setForm] = useState({ email: '', password: '', role: 'user' });
   const [mensaje, setMensaje] = useState('');
   const [cargando, setCargando] = useState(false);
   const [openSection, setOpenSection] = useState(null);
   const [busquedaPerfiles, setBusquedaPerfiles] = useState('');
-  const [busquedaInvitaciones, setBusquedaInvitaciones] = useState('');
   const [busquedaBitacora, setBusquedaBitacora] = useState('');
   const [usuarioPassword, setUsuarioPassword] = useState(null);
   const [passwordForm, setPasswordForm] = useState({
@@ -65,16 +63,11 @@ function UsuariosAdmin() {
   async function cargarDatos() {
     const [
       { data: perfilesData, error: errorPerfiles },
-      { data: invitacionesData },
       { data: bitacoraData }
     ] =
       await Promise.all([
         supabase
           .from('app_profiles')
-          .select('*')
-          .order('created_at', { ascending: false }),
-        supabase
-          .from('invitaciones_usuario')
           .select('*')
           .order('created_at', { ascending: false }),
         supabase
@@ -91,7 +84,6 @@ function UsuariosAdmin() {
     }
 
     setPerfiles(perfilesData || []);
-    setInvitaciones(invitacionesData || []);
     setBitacora(bitacoraData || []);
   }
 
@@ -151,6 +143,30 @@ function UsuariosAdmin() {
     cargarDatos();
   };
 
+  const eliminarUsuario = async (perfil) => {
+    const confirmar = window.confirm(
+      `¿Deseas eliminar definitivamente a ${perfil.email}? Esta acción quitará su acceso.`
+    );
+
+    if (!confirmar) return;
+
+    setMensaje('');
+    const { error } = await supabase.functions.invoke('crear-usuario-admin', {
+      body: {
+        action: 'delete_user',
+        user_id: perfil.id
+      }
+    });
+
+    if (error) {
+      setMensaje(error.message || 'No se pudo eliminar el usuario.');
+      return;
+    }
+
+    setMensaje(`Usuario ${perfil.email} eliminado correctamente.`);
+    cargarDatos();
+  };
+
   const abrirCambioPassword = (perfil) => {
     setUsuarioPassword(perfil);
     setPasswordForm({ password: '', confirmacion: '' });
@@ -203,13 +219,6 @@ function UsuariosAdmin() {
     perfil.active ? 'Activo' : 'Inactivo'
   ], busquedaPerfiles));
 
-  const invitacionesFiltradas = invitaciones.filter((item) => coincideBusqueda([
-    item.email,
-    etiquetaRol(item.role),
-    item.estado,
-    item.created_at ? new Date(item.created_at).toLocaleString() : ''
-  ], busquedaInvitaciones));
-
   const bitacoraFiltrada = bitacora.filter((item) => coincideBusqueda([
     item.created_at ? new Date(item.created_at).toLocaleString() : '',
     item.usuario_email,
@@ -223,11 +232,6 @@ function UsuariosAdmin() {
     perfilesFiltrados,
     mobilePageSize,
     `${busquedaPerfiles}-${mobilePageSize}-${perfiles.length}`
-  );
-  const invitacionesPagination = usePaginatedList(
-    invitacionesFiltradas,
-    mobilePageSize,
-    `${busquedaInvitaciones}-${mobilePageSize}-${invitaciones.length}`
   );
   const bitacoraPagination = usePaginatedList(
     bitacoraFiltrada,
@@ -414,6 +418,13 @@ function UsuariosAdmin() {
                       >
                         Cambiar contrasena
                       </button>
+                      <button
+                        type="button"
+                        className="btn-danger"
+                        onClick={() => eliminarUsuario(perfil)}
+                      >
+                        Eliminar usuario
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -431,62 +442,6 @@ function UsuariosAdmin() {
           totalPages={perfilesPagination.totalPages}
           totalItems={perfilesFiltrados.length}
           onPageChange={perfilesPagination.setPage}
-        />
-      </AccordionSection>
-
-      <AccordionSection
-        id="invitaciones"
-        title="Registros pendientes"
-        total={invitacionesFiltradas.length}
-        openSection={openSection}
-        setOpenSection={setOpenSection}
-      >
-        <label className="section-search">
-          Buscar en registros pendientes
-          <input
-            type="search"
-            value={busquedaInvitaciones}
-            onChange={(event) => setBusquedaInvitaciones(event.target.value)}
-            placeholder="Correo, rol, estado o fecha..."
-          />
-        </label>
-
-        {invitaciones.length === 0 && (
-          <p className="empty">No hay usuarios pendientes.</p>
-        )}
-
-        <div className="table-container users-table-container">
-          <table className="responsive-admin-table">
-            <thead>
-              <tr>
-                <th>Correo</th>
-                <th>Rol solicitado</th>
-                <th>Estado</th>
-                <th>Fecha</th>
-              </tr>
-            </thead>
-            <tbody>
-              {invitacionesPagination.paginatedItems.map((item) => (
-                <tr key={item.id}>
-                  <td data-label="Correo">{item.email}</td>
-                  <td data-label="Rol solicitado">{etiquetaRol(item.role)}</td>
-                  <td data-label="Estado">{item.estado}</td>
-                  <td data-label="Fecha">{new Date(item.created_at).toLocaleString()}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {invitaciones.length > 0 && invitacionesFiltradas.length === 0 && (
-          <p className="empty">No se encontraron registros pendientes.</p>
-        )}
-
-        <PaginationControls
-          page={invitacionesPagination.page}
-          totalPages={invitacionesPagination.totalPages}
-          totalItems={invitacionesFiltradas.length}
-          onPageChange={invitacionesPagination.setPage}
         />
       </AccordionSection>
 

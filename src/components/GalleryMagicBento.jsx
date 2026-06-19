@@ -198,6 +198,26 @@ function GalleryMagicBento({ publications, getMediaUrl, onOpen }) {
   const gridRef = useRef(null);
   const spotlightRef = useRef(null);
   const isDesktop = useDesktopDetection();
+  const [paginaActiva, setPaginaActiva] = useState(0);
+
+  const desplazarCarrusel = (direccion) => {
+    const carrusel = gridRef.current;
+    if (!carrusel) return;
+
+    carrusel.scrollBy({
+      left: carrusel.clientWidth * .82 * direccion,
+      behavior: 'smooth'
+    });
+  };
+
+  const actualizarPagina = () => {
+    const carrusel = gridRef.current;
+    if (!carrusel?.clientWidth) return;
+
+    setPaginaActiva(Math.round(carrusel.scrollLeft / (carrusel.clientWidth * .82)));
+  };
+
+  const totalPaginas = Math.max(1, Math.ceil(publications.length / 3));
 
   useEffect(() => {
     if (!isDesktop || !gridRef.current) return undefined;
@@ -238,19 +258,46 @@ function GalleryMagicBento({ publications, getMediaUrl, onOpen }) {
   }, [isDesktop]);
 
   return (
-    <section
-      ref={gridRef}
-      className={`galeria-grid gallery-magic-grid ${isDesktop ? 'animations-enabled' : ''}`}
-    >
-      {publications.map((publication) => (
-        <GalleryBentoCard
-          key={publication.id}
-          publication={publication}
-          getMediaUrl={getMediaUrl}
-          animationsEnabled={isDesktop}
-          onOpen={onOpen}
-        />
-      ))}
+    <section className="gallery-carousel-shell" aria-label="Publicaciones de la galeria">
+      {publications.length > 3 && (
+        <button
+          type="button"
+          className="gallery-carousel-control previous"
+          onClick={() => desplazarCarrusel(-1)}
+          disabled={paginaActiva === 0}
+          aria-label="Ver publicaciones anteriores"
+        >
+          {'<'}
+        </button>
+      )}
+
+      <div
+        ref={gridRef}
+        className={`galeria-grid gallery-magic-grid ${isDesktop ? 'animations-enabled' : ''}`}
+        onScroll={actualizarPagina}
+      >
+        {publications.map((publication) => (
+          <GalleryBentoCard
+            key={publication.id}
+            publication={publication}
+            getMediaUrl={getMediaUrl}
+            animationsEnabled={isDesktop}
+            onOpen={onOpen}
+          />
+        ))}
+      </div>
+
+      {publications.length > 3 && (
+        <button
+          type="button"
+          className="gallery-carousel-control next"
+          onClick={() => desplazarCarrusel(1)}
+          disabled={paginaActiva >= totalPaginas - 1}
+          aria-label="Ver publicaciones siguientes"
+        >
+          {'>'}
+        </button>
+      )}
     </section>
   );
 }

@@ -49,7 +49,6 @@ function Galeria() {
         .from('galeria_terapias')
         .select('*')
         .eq('activo', true)
-        .order('orden', { ascending: true })
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -82,7 +81,6 @@ function Galeria() {
           id,
           titulo: item.titulo,
           descripcion: item.descripcion,
-          orden: item.orden,
           created_at: item.created_at,
           likes_count: item.likes_count || 0,
           medios: []
@@ -92,9 +90,12 @@ function Galeria() {
       grupos.get(id).medios.push(item);
     });
 
-    return Array.from(grupos.values()).sort(
-      (a, b) => new Date(b.created_at) - new Date(a.created_at)
-    );
+    return Array.from(grupos.values())
+      .map((publicacion) => ({
+        ...publicacion,
+        medios: publicacion.medios.sort((a, b) => a.orden - b.orden)
+      }))
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
   }, [items]);
 
   const publicacionUrlId = new URLSearchParams(location.search).get('publicacion');
@@ -293,7 +294,6 @@ function Galeria() {
   return (
     <main className="galeria-page">
       <section className="galeria-hero">
-        <span className="section-kicker">Galeria</span>
         <h1>Sesiones y momentos de terapia</h1>
         <p>
           Un espacio para compartir avances, actividades y experiencias de
