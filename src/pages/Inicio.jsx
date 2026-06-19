@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   FaBookOpen,
@@ -75,6 +75,7 @@ const corrientes = [
 function Inicio() {
   const [slideActual, setSlideActual] = useState(0);
   const [pausado, setPausado] = useState(false);
+  const gestoCarrusel = useRef({ inicioX: 0, inicioY: 0 });
 
   useEffect(() => {
     if (pausado) return undefined;
@@ -90,6 +91,34 @@ function Inicio() {
     setSlideActual(
       (actual) => (actual + direccion + banners.length) % banners.length
     );
+  };
+
+  const iniciarDeslizamiento = (event) => {
+    const touch = event.touches[0];
+    if (!touch) return;
+
+    gestoCarrusel.current = {
+      inicioX: touch.clientX,
+      inicioY: touch.clientY
+    };
+    setPausado(true);
+  };
+
+  const terminarDeslizamiento = (event) => {
+    const touch = event.changedTouches[0];
+    if (!touch) return;
+
+    const desplazamientoX = touch.clientX - gestoCarrusel.current.inicioX;
+    const desplazamientoY = touch.clientY - gestoCarrusel.current.inicioY;
+
+    if (
+      Math.abs(desplazamientoX) >= 45
+      && Math.abs(desplazamientoX) > Math.abs(desplazamientoY)
+    ) {
+      cambiarSlide(desplazamientoX < 0 ? 1 : -1);
+    }
+
+    setPausado(false);
   };
 
   return (
@@ -121,6 +150,9 @@ function Inicio() {
         onMouseLeave={() => setPausado(false)}
         onFocus={() => setPausado(true)}
         onBlur={() => setPausado(false)}
+        onTouchStart={iniciarDeslizamiento}
+        onTouchEnd={terminarDeslizamiento}
+        onTouchCancel={() => setPausado(false)}
       >
         <div className="carousel-viewport">
           {banners.map((banner, index) => (

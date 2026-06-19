@@ -595,9 +595,7 @@
   }
 
   .carousel-arrow {
-    top: 42%;
-    width: 42px;
-    height: 42px;
+    display: none;
   }
 
   .servicios-home {
