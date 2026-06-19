@@ -183,6 +183,19 @@
   background: #0c0a0e;
 }
 
+.instagram-double-like {
+  position: absolute;
+  z-index: 4;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: white;
+  font-size: clamp(72px, 20vw, 112px);
+  filter: drop-shadow(0 5px 18px rgba(0, 0, 0, .42));
+  pointer-events: none;
+  animation: instagram-double-like 700ms ease both;
+}
+
 .instagram-media-carousel {
   display: flex;
   overflow-x: auto;
@@ -323,6 +336,28 @@
 
   100% {
     transform: scale(1);
+  }
+}
+
+@keyframes instagram-double-like {
+  0% {
+    opacity: 0;
+    transform: scale(.35);
+  }
+
+  24% {
+    opacity: 1;
+    transform: scale(1.18);
+  }
+
+  52% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(.88);
   }
 }
 

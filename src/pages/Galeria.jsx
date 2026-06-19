@@ -30,8 +30,18 @@ function Galeria() {
   const [mediosActivos, setMediosActivos] = useState({});
   const [likesLocales, setLikesLocales] = useState(obtenerLikesLocales);
   const [procesandoLike, setProcesandoLike] = useState(null);
+  const [likeAnimado, setLikeAnimado] = useState(null);
   const overlayRef = useRef(null);
   const carouselRefs = useRef(new Map());
+  const touchLikeRef = useRef({
+    ultimoId: null,
+    ultimoTiempo: 0,
+    inicioX: 0,
+    inicioY: 0
+  });
+  const dobleLikeRef = useRef({ id: null, tiempo: 0 });
+  const likeAnimadoTimeoutRef = useRef(null);
+  const publicacionActivaId = publicacionActiva?.id;
 
   useEffect(() => {
     async function cargarGaleria() {
@@ -54,12 +64,12 @@ function Galeria() {
   }, []);
 
   useEffect(() => {
-    document.body.style.overflow = publicacionActiva ? 'hidden' : '';
+    document.body.style.overflow = publicacionActivaId ? 'hidden' : '';
 
     return () => {
       document.body.style.overflow = '';
     };
-  }, [publicacionActiva]);
+  }, [publicacionActivaId]);
 
   const publicaciones = useMemo(() => {
     const grupos = new Map();
@@ -131,10 +141,10 @@ function Galeria() {
   };
 
   useEffect(() => {
-    if (!publicacionActiva) return;
+    if (!publicacionActivaId) return;
 
     const frame = window.requestAnimationFrame(() => {
-      const publicacion = document.getElementById(`publicacion-${publicacionActiva.id}`);
+      const publicacion = document.getElementById(`publicacion-${publicacionActivaId}`);
       const overlay = overlayRef.current;
 
       if (publicacion && overlay) {
@@ -146,7 +156,7 @@ function Galeria() {
     });
 
     return () => window.cancelAnimationFrame(frame);
-  }, [publicacionActiva]);
+  }, [publicacionActivaId]);
 
   const desplazarMedia = (publicacion, index) => {
     const carousel = carouselRefs.current.get(publicacion.id);
@@ -211,6 +221,66 @@ function Galeria() {
         : actual
     ));
   };
+
+  const animarDobleLike = (publicacion, tiempoEvento) => {
+    if (
+      dobleLikeRef.current.id === publicacion.id
+      && tiempoEvento - dobleLikeRef.current.tiempo < 500
+    ) {
+      return;
+    }
+
+    dobleLikeRef.current = { id: publicacion.id, tiempo: tiempoEvento };
+    setLikeAnimado(publicacion.id);
+    window.clearTimeout(likeAnimadoTimeoutRef.current);
+    likeAnimadoTimeoutRef.current = window.setTimeout(() => {
+      setLikeAnimado(null);
+    }, 700);
+
+    if (!likesLocales.includes(publicacion.id) && procesandoLike !== publicacion.id) {
+      alternarLike(publicacion);
+    }
+  };
+
+  const iniciarTouchLike = (event) => {
+    const touch = event.touches[0];
+    if (!touch) return;
+
+    touchLikeRef.current.inicioX = touch.clientX;
+    touchLikeRef.current.inicioY = touch.clientY;
+  };
+
+  const terminarTouchLike = (publicacion, event) => {
+    if (event.target.tagName !== 'IMG') return;
+
+    const touch = event.changedTouches[0];
+    if (!touch) return;
+
+    const distancia = Math.hypot(
+      touch.clientX - touchLikeRef.current.inicioX,
+      touch.clientY - touchLikeRef.current.inicioY
+    );
+
+    if (distancia > 18) return;
+
+    const esDobleTap = (
+      touchLikeRef.current.ultimoId === publicacion.id
+      && event.timeStamp - touchLikeRef.current.ultimoTiempo < 340
+    );
+
+    touchLikeRef.current.ultimoId = publicacion.id;
+    touchLikeRef.current.ultimoTiempo = event.timeStamp;
+
+    if (esDobleTap) {
+      animarDobleLike(publicacion, event.timeStamp);
+      touchLikeRef.current.ultimoId = null;
+      touchLikeRef.current.ultimoTiempo = 0;
+    }
+  };
+
+  useEffect(() => () => {
+    window.clearTimeout(likeAnimadoTimeoutRef.current);
+  }, []);
 
   const formatearFechaPublicacion = (fecha) => (
     new Intl.DateTimeFormat('es-MX', {
@@ -313,7 +383,16 @@ function Galeria() {
                     </div>
                   </header>
 
-                  <div className="instagram-media-shell">
+                  <div
+                    className="instagram-media-shell"
+                    onTouchStart={iniciarTouchLike}
+                    onTouchEnd={(event) => terminarTouchLike(publicacion, event)}
+                    onDoubleClick={(event) => {
+                      if (event.target.tagName === 'IMG') {
+                        animarDobleLike(publicacion, event.timeStamp);
+                      }
+                    }}
+                  >
                     <div
                       className="instagram-media-carousel"
                       ref={(element) => {
@@ -334,6 +413,12 @@ function Galeria() {
                         </div>
                       ))}
                     </div>
+
+                    {likeAnimado === publicacion.id && (
+                      <span className="instagram-double-like" aria-hidden="true">
+                        <FaHeart />
+                      </span>
+                    )}
 
                     {publicacion.medios.length > 1 && (
                       <>
