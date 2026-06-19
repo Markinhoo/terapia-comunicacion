@@ -73,6 +73,259 @@
   font-weight: 800;
 }
 
+.instagram-gallery-grid {
+  display: none;
+}
+
+.gallery-media-count {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 3;
+  padding: 6px 9px;
+  border-radius: 999px;
+  background: rgba(20, 13, 29, .62);
+  color: white;
+  font-size: 11px;
+  font-weight: 900;
+  backdrop-filter: blur(8px);
+}
+
+.instagram-viewer-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 6000;
+  overflow-y: auto;
+  background: rgba(9, 7, 12, .9);
+  overscroll-behavior: contain;
+  scroll-behavior: smooth;
+}
+
+.instagram-feed {
+  width: min(100%, 760px);
+  margin: 0 auto;
+  background: var(--surface);
+}
+
+.instagram-post-viewer {
+  width: min(100%, 760px);
+  margin: 0 auto;
+  scroll-margin-top: 58px;
+  border-bottom: 10px solid var(--page-bg-soft);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.instagram-feed-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  min-height: 58px;
+  padding: 8px 14px;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  backdrop-filter: blur(14px);
+}
+
+.instagram-feed-header > div {
+  flex: 1;
+  text-align: center;
+}
+
+.instagram-feed-header > div,
+.instagram-post-header > div {
+  display: grid;
+  gap: 2px;
+}
+
+.instagram-feed-header span,
+.instagram-post-header span {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.instagram-feed-header button {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  place-items: center;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--primary) 12%, var(--surface));
+  color: var(--primary-strong);
+  font-size: 20px;
+}
+
+.instagram-feed-back {
+  flex: 0 0 40px;
+}
+
+.instagram-feed-header-spacer {
+  width: 40px;
+  flex: 0 0 40px;
+}
+
+.instagram-post-header {
+  display: flex;
+  min-height: 48px;
+  padding: 7px 14px;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.instagram-media-shell {
+  position: relative;
+  overflow: hidden;
+  background: #0c0a0e;
+}
+
+.instagram-media-carousel {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  touch-action: pan-x pan-y;
+}
+
+.instagram-media-carousel::-webkit-scrollbar {
+  display: none;
+}
+
+.instagram-media-slide {
+  display: grid;
+  width: 100%;
+  min-width: 100%;
+  min-height: min(68vh, 680px);
+  place-items: center;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+.instagram-media-slide img,
+.instagram-media-slide video {
+  display: block;
+  width: 100%;
+  max-height: min(78vh, 780px);
+  object-fit: contain;
+}
+
+.instagram-media-nav {
+  position: absolute;
+  top: 50%;
+  display: grid;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(20, 14, 27, .62);
+  color: white;
+  transform: translateY(-50%);
+  backdrop-filter: blur(8px);
+}
+
+.instagram-media-nav.previous {
+  left: 12px;
+}
+
+.instagram-media-nav.next {
+  right: 12px;
+}
+
+.instagram-media-dots {
+  display: flex;
+  min-height: 22px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.instagram-media-dots button {
+  width: 7px;
+  height: 7px;
+  padding: 0;
+  border-radius: 50%;
+  background: var(--border);
+}
+
+.instagram-media-dots button.active {
+  background: var(--primary);
+  transform: scale(1.25);
+}
+
+.instagram-post-actions {
+  display: flex;
+  padding: 4px 12px 0;
+  align-items: center;
+  gap: 10px;
+}
+
+.instagram-post-actions button {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  place-items: center;
+  background: transparent;
+  color: var(--text);
+  font-size: 25px;
+}
+
+.instagram-post-actions button.liked {
+  color: #e33b54;
+  animation: instagram-like-pop 280ms ease;
+}
+
+.instagram-post-copy {
+  padding: 0 14px 14px;
+}
+
+.instagram-post-copy p {
+  margin: 5px 0;
+  color: var(--text);
+  line-height: 1.4;
+}
+
+.instagram-post-copy time {
+  display: block;
+  margin-top: 7px;
+  color: var(--text-muted);
+  font-size: 11px;
+  text-transform: capitalize;
+}
+
+.galeria-admin-media-strip {
+  display: flex;
+  margin: -18px -18px 14px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
+}
+
+.galeria-admin-card .galeria-admin-media-strip img,
+.galeria-admin-card .galeria-admin-media-strip video {
+  min-width: 100%;
+  scroll-snap-align: start;
+}
+
+@keyframes instagram-like-pop {
+  0% {
+    transform: scale(.7);
+  }
+
+  70% {
+    transform: scale(1.18);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
 .gallery-magic-card {
   --gallery-glow-x: 50%;
   --gallery-glow-y: 50%;
@@ -293,12 +546,106 @@
 }
 
 @media (max-width: 599px) {
-  .gallery-magic-grid {
-    grid-template-columns: 1fr;
+  body:has(.instagram-viewer-overlay) .navbar {
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 0;
+    z-index: 4600;
   }
 
-  .gallery-magic-card {
-    min-height: 270px;
+  .galeria-page {
+    padding: 20px 0 76px;
+  }
+
+  .galeria-hero {
+    padding: 0 16px;
+    margin-bottom: 20px;
+  }
+
+  .galeria-hero h1 {
+    font-size: 31px;
+  }
+
+  .galeria-hero p {
+    font-size: 14px;
+  }
+
+  .gallery-magic-grid {
+    display: none;
+  }
+
+  .instagram-gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 2px;
+  }
+
+  .instagram-grid-item {
+    position: relative;
+    display: block;
+    width: 100%;
+    padding: 0;
+    overflow: hidden;
+    aspect-ratio: 1;
+    border-radius: 0;
+    background: var(--surface-soft);
+  }
+
+  .instagram-grid-item img,
+  .instagram-grid-item video {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .instagram-multi-count {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    display: grid;
+    min-width: 23px;
+    height: 23px;
+    padding: 0 5px;
+    place-items: center;
+    border-radius: 999px;
+    background: rgba(18, 12, 25, .68);
+    color: white;
+    font-size: 11px;
+  }
+
+  .instagram-post-viewer {
+    width: 100%;
+  }
+
+  .instagram-viewer-overlay {
+    top: 60px;
+    bottom: calc(62px + env(safe-area-inset-bottom));
+    z-index: 4000;
+  }
+
+  .instagram-feed-header {
+    min-height: 52px;
+    padding: 6px 10px;
+  }
+
+  .instagram-post-viewer {
+    scroll-margin-top: 52px;
+  }
+
+  .instagram-media-slide {
+    min-height: 52vh;
+  }
+
+  .instagram-media-nav {
+    display: none;
+  }
+}
+
+@media (min-width: 600px) {
+  .instagram-gallery-grid {
+    display: none;
   }
 }
 

@@ -56,9 +56,11 @@ function crearParticula(element, color) {
   return particula;
 }
 
-function GalleryBentoCard({ item, mediaUrl, animationsEnabled }) {
+function GalleryBentoCard({ publication, getMediaUrl, animationsEnabled, onOpen }) {
   const cardRef = useRef(null);
   const particlesRef = useRef([]);
+  const item = publication.medios[0];
+  const mediaUrl = getMediaUrl(item.ruta_archivo);
 
   const limpiarParticulas = useCallback(() => {
     particlesRef.current.forEach((particula) => {
@@ -130,26 +132,30 @@ function GalleryBentoCard({ item, mediaUrl, animationsEnabled }) {
 
   const manejarClick = (event) => {
     const element = cardRef.current;
-    if (!animationsEnabled || !element || event.target.closest('video')) return;
+    if (!element || event.target.closest('video')) return;
 
-    const rect = element.getBoundingClientRect();
-    const ripple = document.createElement('span');
-    ripple.className = 'gallery-bento-ripple';
-    ripple.style.left = `${event.clientX - rect.left}px`;
-    ripple.style.top = `${event.clientY - rect.top}px`;
-    element.appendChild(ripple);
+    if (animationsEnabled) {
+      const rect = element.getBoundingClientRect();
+      const ripple = document.createElement('span');
+      ripple.className = 'gallery-bento-ripple';
+      ripple.style.left = `${event.clientX - rect.left}px`;
+      ripple.style.top = `${event.clientY - rect.top}px`;
+      element.appendChild(ripple);
 
-    gsap.fromTo(
-      ripple,
-      { scale: 0, opacity: .8 },
-      {
-        scale: 1,
-        opacity: 0,
-        duration: .75,
-        ease: 'power2.out',
-        onComplete: () => ripple.remove()
-      }
-    );
+      gsap.fromTo(
+        ripple,
+        { scale: 0, opacity: .8 },
+        {
+          scale: 1,
+          opacity: 0,
+          duration: .75,
+          ease: 'power2.out',
+          onComplete: () => ripple.remove()
+        }
+      );
+    }
+
+    onOpen(publication);
   };
 
   return (
@@ -167,7 +173,12 @@ function GalleryBentoCard({ item, mediaUrl, animationsEnabled }) {
         {item.tipo === 'video' ? (
           <video src={mediaUrl} controls preload="metadata" />
         ) : (
-          <img src={mediaUrl} alt={item.titulo} loading="lazy" />
+          <img src={mediaUrl} alt={publication.titulo} loading="lazy" />
+        )}
+        {publication.medios.length > 1 && (
+          <span className="gallery-media-count">
+            1 / {publication.medios.length}
+          </span>
         )}
         <span className="gallery-media-type">
           {item.tipo === 'video' ? 'Video' : 'Imagen'}
@@ -176,14 +187,14 @@ function GalleryBentoCard({ item, mediaUrl, animationsEnabled }) {
 
       <div className="gallery-magic-content">
         <span className="gallery-card-label">Clinica Casas</span>
-        <h2>{item.titulo}</h2>
-        {item.descripcion && <p>{item.descripcion}</p>}
+        <h2>{publication.titulo}</h2>
+        {publication.descripcion && <p>{publication.descripcion}</p>}
       </div>
     </article>
   );
 }
 
-function GalleryMagicBento({ items, getMediaUrl }) {
+function GalleryMagicBento({ publications, getMediaUrl, onOpen }) {
   const gridRef = useRef(null);
   const spotlightRef = useRef(null);
   const isDesktop = useDesktopDetection();
@@ -231,12 +242,13 @@ function GalleryMagicBento({ items, getMediaUrl }) {
       ref={gridRef}
       className={`galeria-grid gallery-magic-grid ${isDesktop ? 'animations-enabled' : ''}`}
     >
-      {items.map((item) => (
+      {publications.map((publication) => (
         <GalleryBentoCard
-          key={item.id}
-          item={item}
-          mediaUrl={getMediaUrl(item.ruta_archivo)}
+          key={publication.id}
+          publication={publication}
+          getMediaUrl={getMediaUrl}
           animationsEnabled={isDesktop}
+          onOpen={onOpen}
         />
       ))}
     </section>
