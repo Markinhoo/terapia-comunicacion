@@ -19,7 +19,7 @@ export function generarControlSesionesPDF(paciente, sesiones) {
     body: sesiones.map((sesion) => [
       sesion.fecha_terapia || '',
       sesion.reagendada
-        ? `Si${sesion.fecha_reagenda ? `: ${sesion.fecha_reagenda}` : ''}`
+        ? `Sí${sesion.fecha_reagenda ? `: ${sesion.fecha_reagenda}` : ''}`
         : 'No',
       sesion.fecha_pago || '',
       sesion.cantidad != null ? `$${Number(sesion.cantidad).toFixed(2)}` : '',

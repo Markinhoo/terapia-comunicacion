@@ -23,6 +23,16 @@ const formatearCalendario = (date, options) => (
   new Intl.DateTimeFormat('es-MX', options).format(date)
 );
 const formatosCalendario = {
+  weekdayFormat: (date) => formatearCalendario(date, {
+    weekday: 'short'
+  }),
+  dayFormat: (date) => formatearCalendario(date, {
+    day: 'numeric',
+    weekday: 'short'
+  }),
+  dateFormat: (date) => formatearCalendario(date, {
+    day: '2-digit'
+  }),
   monthHeaderFormat: (date) => formatearCalendario(date, {
     month: 'long',
     year: 'numeric'
@@ -57,16 +67,16 @@ const formatosCalendario = {
 const ESTADOS_CITA = [
   'Pendiente',
   'Confirmada',
-  'En curso',
   'Asistió',
-  'No asistió',
   'Reagendada',
-  'Pagada',
   'Pendiente de pago',
   'Cancelada'
 ];
 
-const ESTADOS_DE_CIERRE = ['Asistió', 'No asistió', 'Pagada'];
+const ESTADOS_DE_CIERRE = ['Asistió', 'Pagada', 'Pendiente de pago'];
+const ESTADOS_BLOQUEADOS = ['Asistió', 'Pagada'];
+const HORARIOS_REAGENDA = ['09:00:00', '10:00:00', '11:00:00', '12:00:00', '13:00:00'];
+const normalizarHora = (hora = '') => String(hora).slice(0, 5);
 
 const claseEstatus = (estatus = '') => (
   estatus
@@ -84,6 +94,10 @@ function CalendarioCitas() {
   const [busqueda, setBusqueda] = useState('');
   const [citaSeleccionada, setCitaSeleccionada] = useState(null);
   const [modalAbierto, setModalAbierto] = useState(false);
+  const [reagendaActiva, setReagendaActiva] = useState(false);
+  const [reagendaForm, setReagendaForm] = useState({ fecha: '', hora: '' });
+  const [horariosReagenda, setHorariosReagenda] = useState([]);
+  const [cargandoHorariosReagenda, setCargandoHorariosReagenda] = useState(false);
   const [vistaMovil, setVistaMovil] = useState(() => window.innerWidth <= 768);
   const { toast, mostrarToast, cerrarToast } = useToast();
 
@@ -119,6 +133,42 @@ function CalendarioCitas() {
     })));
   }
 
+  useEffect(() => {
+    if (!reagendaActiva || !reagendaForm.fecha) {
+      setHorariosReagenda([]);
+      return;
+    }
+
+    let activo = true;
+
+    async function cargarHorariosReagenda() {
+      setCargandoHorariosReagenda(true);
+
+      const { data, error } = await supabase.rpc(
+        'obtener_horarios_disponibles',
+        { fecha_consulta: reagendaForm.fecha }
+      );
+
+      if (!activo) return;
+
+      setCargandoHorariosReagenda(false);
+
+      if (error) {
+        console.error(error);
+        setHorariosReagenda([]);
+        return;
+      }
+
+      setHorariosReagenda(data || []);
+    }
+
+    cargarHorariosReagenda();
+
+    return () => {
+      activo = false;
+    };
+  }, [reagendaActiva, reagendaForm.fecha]);
+
   const normalizarTexto = (valor = '') => (
     String(valor)
       .normalize('NFD')
@@ -129,9 +179,10 @@ function CalendarioCitas() {
 
   const crearEvento = (cita) => {
     const { inicio, fin } = obtenerRangoCita(cita);
+    const pagada = cita.estatus === 'Pagada';
 
     return {
-      title: `${cita.nombre_paciente} - ${cita.servicio}`,
+      title: `${pagada ? '$ ' : ''}${cita.nombre_paciente} - ${cita.servicio}`,
       start: inicio,
       end: fin,
       estatus: cita.estatus,
@@ -201,12 +252,12 @@ function CalendarioCitas() {
       backgroundColor = '#c0392b';
     }
 
-    if (event.estatus === 'Asistió' || event.estatus === 'Pagada') {
-      backgroundColor = '#2f8f83';
+    if (event.estatus === 'Asistió') {
+      backgroundColor = '#2f80ed';
     }
 
-    if (event.estatus === 'No asistió') {
-      backgroundColor = '#a8324a';
+    if (event.estatus === 'Pagada') {
+      backgroundColor = '#2f8f83';
     }
 
     if (event.estatus === 'Reagendada' || event.estatus === 'Pendiente de pago') {
@@ -256,11 +307,20 @@ function CalendarioCitas() {
   const actualizarEstatusCita = async (estatus) => {
     if (!citaSeleccionada) return;
 
+    if (estatus === 'Reagendada') {
+      setReagendaActiva(true);
+      setReagendaForm({
+        fecha: citaSeleccionada.fecha || '',
+        hora: ''
+      });
+      return;
+    }
+
     const { error } = await supabase
       .from('citas')
       .update({
         estatus,
-        confirmado: estatus === 'Confirmada' || estatus === 'En curso'
+        confirmado: estatus === 'Confirmada'
           ? true
           : citaSeleccionada.confirmado
       })
@@ -275,6 +335,60 @@ function CalendarioCitas() {
     setCitaSeleccionada((actual) => ({ ...actual, estatus }));
     await obtenerCitas();
     mostrarToast(`Cita marcada como ${estatus}.`, 'success');
+  };
+
+  const guardarReagenda = async (event) => {
+    event.preventDefault();
+
+    if (!citaSeleccionada) return;
+
+    if (!reagendaForm.fecha || !reagendaForm.hora) {
+      mostrarToast('Selecciona la nueva fecha y hora de la cita.', 'error');
+      return;
+    }
+
+    const horaNueva = reagendaForm.hora.length === 5
+      ? `${reagendaForm.hora}:00`
+      : reagendaForm.hora;
+
+    const mismaFecha = reagendaForm.fecha === citaSeleccionada.fecha;
+    const mismaHora = horaNueva.slice(0, 5) === citaSeleccionada.hora?.slice(0, 5);
+
+    if (mismaFecha && mismaHora) {
+      mostrarToast('Selecciona una fecha u hora diferente para reagendar.', 'error');
+      return;
+    }
+
+    const { error } = await supabase
+      .from('citas')
+      .update({
+        fecha: reagendaForm.fecha,
+        hora: horaNueva,
+        estatus: 'Reagendada',
+        confirmado: false,
+        fecha_confirmacion: null
+      })
+      .eq('id', citaSeleccionada.id);
+
+    if (error) {
+      console.error(error);
+      mostrarToast(error.code === '23505'
+        ? 'Ese horario ya está ocupado por otra cita.'
+        : 'No se pudo reagendar la cita.', 'error');
+      return;
+    }
+
+    setCitaSeleccionada((actual) => ({
+      ...actual,
+      fecha: reagendaForm.fecha,
+      hora: horaNueva,
+      estatus: 'Reagendada',
+      confirmado: false,
+      fecha_confirmacion: null
+    }));
+    setReagendaActiva(false);
+    await obtenerCitas();
+    mostrarToast('Cita reagendada correctamente.', 'success');
   };
 
   const cancelarCita = async () => {
@@ -315,9 +429,24 @@ function CalendarioCitas() {
   );
 };
 
+  const abrirModalCita = (cita) => {
+    setCitaSeleccionada(cita);
+    setReagendaActiva(false);
+    setReagendaForm({
+      fecha: cita.fecha || '',
+      hora: ''
+    });
+    setModalAbierto(true);
+  };
+
+  const cerrarModalCita = () => {
+    setModalAbierto(false);
+    setReagendaActiva(false);
+  };
+
   const abrirWhatsApp = () => {
     if (!citaSeleccionada?.telefono) {
-      mostrarToast('Esta cita no tiene telefono registrado.', 'error');
+      mostrarToast('Esta cita no tiene teléfono registrado.', 'error');
       return;
     }
 
@@ -333,12 +462,12 @@ function CalendarioCitas() {
   return (
     <main className="calendar-page">
       <div className="calendar-container">
-        <section className="calendar-search-panel" aria-label="Busqueda de citas">
+        <section className="calendar-search-panel" aria-label="Búsqueda de citas">
           <label>
             Buscar citas
             <input
               type="search"
-              placeholder="Paciente, responsable, telefono, correo, servicio o fecha..."
+              placeholder="Paciente, responsable, teléfono, correo, servicio o fecha..."
               value={busqueda}
               onChange={(event) => setBusqueda(event.target.value)}
             />
@@ -358,9 +487,9 @@ function CalendarioCitas() {
         </section>
 
         {busqueda.trim() && (
-          <section className="calendar-search-results" aria-label="Resultados de busqueda">
+          <section className="calendar-search-results" aria-label="Resultados de búsqueda">
             {citasFiltradas.length === 0 && (
-              <p>No se encontraron citas con esa busqueda.</p>
+              <p>No se encontraron citas con esa búsqueda.</p>
             )}
 
             {citasFiltradas.slice(0, 8).map((cita) => (
@@ -368,14 +497,11 @@ function CalendarioCitas() {
                 type="button"
                 key={cita.id}
                 className="calendar-result-card"
-                onClick={() => {
-                  setCitaSeleccionada(cita);
-                  setModalAbierto(true);
-                }}
+                onClick={() => abrirModalCita(cita)}
               >
                 <strong>{cita.nombre_paciente}</strong>
                 <span>{cita.fecha} - {cita.hora?.slice(0, 5)} - {cita.estatus}</span>
-                <small>{cita.nombre_responsable || 'Sin responsable'} - {cita.telefono || 'Sin telefono'}</small>
+                <small>{cita.nombre_responsable || 'Sin responsable'} - {cita.telefono || 'Sin teléfono'}</small>
               </button>
             ))}
           </section>
@@ -392,17 +518,14 @@ function CalendarioCitas() {
           views={vistaMovil ? ['agenda', 'day'] : ['month', 'week', 'day', 'agenda']}
           formats={formatosCalendario}
           eventPropGetter={estiloEvento}
-          onSelectEvent={(evento) => {
-            setCitaSeleccionada(evento.cita);
-            setModalAbierto(true);
-          }}
+          onSelectEvent={(evento) => abrirModalCita(evento.cita)}
           messages={{
             next: 'Siguiente',
             previous: 'Anterior',
             today: 'Hoy',
             month: 'Mes',
             week: 'Semana',
-            day: 'Dia',
+            day: 'Día',
             agenda: 'Agenda',
             date: 'Fecha',
             time: 'Hora',
@@ -414,6 +537,7 @@ function CalendarioCitas() {
         <div className="calendar-legend">
           <span className="legend-item confirmada">Confirmada</span>
           <span className="legend-item en-curso">En curso</span>
+          <span className="legend-item asistio">Asistió</span>
           <span className="legend-item pendiente">Pendiente</span>
           <span className="legend-item cancelada">Cancelada</span>
         </div>
@@ -421,7 +545,7 @@ function CalendarioCitas() {
 
       <Modal
         isOpen={modalAbierto}
-        onRequestClose={() => setModalAbierto(false)}
+        onRequestClose={cerrarModalCita}
         className="modal-cita"
         overlayClassName="overlay-cita"
       >
@@ -433,7 +557,7 @@ function CalendarioCitas() {
               <button
                 type="button"
                 className="modal-close"
-                onClick={() => setModalAbierto(false)}
+                onClick={cerrarModalCita}
               >
                 ×
               </button>
@@ -479,17 +603,21 @@ function CalendarioCitas() {
             </div>
 
             <div className="modal-actions">
-              <button type="button" onClick={confirmarCita}>
-                Confirmar
-              </button>
+              {!ESTADOS_BLOQUEADOS.includes(citaSeleccionada.estatus) && (
+                <>
+                  <button type="button" onClick={confirmarCita}>
+                    Confirmar
+                  </button>
 
-              <button
-                type="button"
-                className="btn-danger"
-                onClick={cancelarCita}
-              >
-                Cancelar
-              </button>
+                  <button
+                    type="button"
+                    className="btn-danger"
+                    onClick={cancelarCita}
+                  >
+                    Cancelar
+                  </button>
+                </>
+              )}
 
               <button
                 type="button"
@@ -508,22 +636,85 @@ function CalendarioCitas() {
               </button>
             </div>
 
-            <div className="status-actions">
-              <strong>Cambiar estado</strong>
-              <div>
-                {ESTADOS_CITA.map((estatus) => (
-                  <button
-                    type="button"
-                    key={estatus}
-                    className={claseEstatus(estatus)}
-                    onClick={() => actualizarEstatusCita(estatus)}
-                    disabled={citaSeleccionada.estatus === estatus}
-                  >
-                    {estatus}
-                  </button>
-                ))}
+            {!ESTADOS_BLOQUEADOS.includes(citaSeleccionada.estatus) && (
+              <div className="status-actions">
+                <strong>Cambiar estado</strong>
+                <div>
+                  {ESTADOS_CITA.map((estatus) => (
+                    <button
+                      type="button"
+                      key={estatus}
+                      className={claseEstatus(estatus)}
+                      onClick={() => actualizarEstatusCita(estatus)}
+                      disabled={estatus !== 'Reagendada' && citaSeleccionada.estatus === estatus}
+                    >
+                      {estatus}
+                    </button>
+                  ))}
+                </div>
+
+                {reagendaActiva && (
+                  <form className="reschedule-form" onSubmit={guardarReagenda}>
+                    <label>
+                      Nueva fecha
+                      <input
+                        type="date"
+                        value={reagendaForm.fecha}
+                        onChange={(event) => setReagendaForm((actual) => ({
+                          ...actual,
+                          fecha: event.target.value,
+                          hora: ''
+                        }))}
+                      />
+                    </label>
+
+                    <label>
+                      Nueva hora
+                      <select
+                        value={reagendaForm.hora}
+                        onChange={(event) => setReagendaForm((actual) => ({
+                          ...actual,
+                          hora: event.target.value
+                        }))}
+                      >
+                        <option value="">
+                          {cargandoHorariosReagenda
+                            ? 'Cargando horarios...'
+                            : 'Selecciona un horario disponible'}
+                        </option>
+                        {HORARIOS_REAGENDA.map((hora) => {
+                          const horario = horariosReagenda.find(
+                            (item) => normalizarHora(item.hora_disponible) === normalizarHora(hora)
+                          );
+                          const disponible = Boolean(horario?.disponible);
+
+                          return (
+                            <option
+                              key={hora}
+                              value={hora}
+                              disabled={!disponible}
+                            >
+                              {hora.slice(0, 5)} - {disponible ? 'Disponible' : 'Ocupado'}
+                            </option>
+                          );
+                        })}
+                      </select>
+                    </label>
+
+                    <div>
+                      <button type="submit">Guardar reagenda</button>
+                      <button
+                        type="button"
+                        className="btn-secondary"
+                        onClick={() => setReagendaActiva(false)}
+                      >
+                        Cerrar
+                      </button>
+                    </div>
+                  </form>
+                )}
               </div>
-            </div>
+            )}
           </>
         )}
       </Modal>

@@ -8,12 +8,13 @@ import PaginationControls from './PaginationControls';
 import { useToast } from '../hooks/useToast';
 import { usePaginatedList } from '../hooks/usePaginatedList';
 
+const MONTO_TERAPIA = 300;
+
 const formularioInicial = {
-  fecha_terapia: formatearFechaLocal(),
-  reagendada: false,
-  fecha_reagenda: '',
+  cita_id: '',
+  fecha_terapia: '',
   fecha_pago: '',
-  cantidad: '',
+  cantidad: String(MONTO_TERAPIA),
   firma_data_url: ''
 };
 
@@ -24,6 +25,7 @@ const formatoPesos = new Intl.NumberFormat('es-MX', {
 
 function ControlSesiones({ paciente }) {
   const [sesiones, setSesiones] = useState([]);
+  const [citasPendientesPago, setCitasPendientesPago] = useState([]);
   const [form, setForm] = useState(formularioInicial);
   const [guardando, setGuardando] = useState(false);
   const { toast, mostrarToast, cerrarToast } = useToast();
@@ -44,26 +46,51 @@ function ControlSesiones({ paciente }) {
     setSesiones(data || []);
   }
 
+  async function obtenerCitasPendientesPago() {
+    const { data, error } = await supabase
+      .from('citas')
+      .select('id, fecha, hora, servicio, estatus')
+      .eq('paciente_id', paciente.id)
+      .neq('estatus', 'Pagada')
+      .neq('estatus', 'Cancelada')
+      .order('fecha', { ascending: false })
+      .order('hora', { ascending: false });
+
+    if (error) {
+      console.error(error);
+      setCitasPendientesPago([]);
+      return;
+    }
+
+    setCitasPendientesPago(data || []);
+  }
+
   useEffect(() => {
     obtenerSesiones();
+    obtenerCitasPendientesPago();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paciente.id]);
+
+  const seleccionarCita = (citaId) => {
+    const cita = citasPendientesPago.find((item) => String(item.id) === String(citaId));
+    const sesionExistente = sesiones.find((sesion) => sesion.fecha_terapia === cita?.fecha);
+
+    setForm({
+      cita_id: citaId,
+      fecha_terapia: cita?.fecha || '',
+      fecha_pago: sesionExistente?.fecha_pago || formatearFechaLocal(),
+      cantidad: sesionExistente?.cantidad != null
+        ? String(Number(sesionExistente.cantidad))
+        : String(MONTO_TERAPIA),
+      firma_data_url: sesionExistente?.firma_data_url || ''
+    });
+  };
 
   const guardarSesion = async (event) => {
     event.preventDefault();
 
-    if (!form.fecha_terapia) {
-      mostrarToast('Selecciona la fecha de terapia.', 'error');
-      return;
-    }
-
-    if (sesiones.some((sesion) => sesion.fecha_terapia === form.fecha_terapia)) {
-      mostrarToast('Ya existe un registro para esa fecha de terapia.', 'error');
-      return;
-    }
-
-    if (form.reagendada && !form.fecha_reagenda) {
-      mostrarToast('Indica la nueva fecha cuando la terapia fue reagendada.', 'error');
+    if (!form.cita_id || !form.fecha_terapia) {
+      mostrarToast('Selecciona la terapia pendiente de pago.', 'error');
       return;
     }
 
@@ -84,36 +111,67 @@ function ControlSesiones({ paciente }) {
 
     setGuardando(true);
 
-    const { error } = await supabase
-      .from('sesiones_paciente')
-      .insert([{
-        paciente_id: paciente.id,
-        fecha_terapia: form.fecha_terapia,
-        reagendada: form.reagendada,
-        fecha_reagenda: form.reagendada && form.fecha_reagenda
-          ? form.fecha_reagenda
-          : null,
-        fecha_pago: form.fecha_pago || null,
-        cantidad: form.cantidad ? Number(form.cantidad) : null,
-        firma_data_url: form.firma_data_url || null
-      }]);
+    const cantidad = Number(form.cantidad);
+    const estatusPago = cantidad >= MONTO_TERAPIA ? 'Pagada' : 'Pendiente de pago';
+    const citaSeleccionada = citasPendientesPago.find(
+      (cita) => String(cita.id) === String(form.cita_id)
+    );
+    const sesionExistente = sesiones.find((sesion) => sesion.fecha_terapia === form.fecha_terapia);
 
-    setGuardando(false);
+    const datosSesion = {
+      paciente_id: paciente.id,
+      fecha_terapia: form.fecha_terapia,
+      reagendada: citaSeleccionada?.estatus === 'Reagendada',
+      fecha_reagenda: citaSeleccionada?.estatus === 'Reagendada'
+        ? citaSeleccionada.fecha
+        : null,
+      fecha_pago: form.fecha_pago,
+      cantidad,
+      firma_data_url: form.firma_data_url || null
+    };
+
+    const { error } = sesionExistente
+      ? await supabase
+        .from('sesiones_paciente')
+        .update(datosSesion)
+        .eq('id', sesionExistente.id)
+      : await supabase
+        .from('sesiones_paciente')
+        .insert([datosSesion]);
 
     if (error) {
+      setGuardando(false);
       mostrarToast(error.code === '23505'
         ? 'Ya existe un registro para esa fecha de terapia.'
-        : 'No se pudo guardar la sesion.', 'error');
+        : 'No se pudo guardar la sesión.', 'error');
       console.error(error);
       return;
     }
 
-    setForm({
-      ...formularioInicial,
-      fecha_terapia: formatearFechaLocal()
-    });
-    obtenerSesiones();
-    mostrarToast('Registro de terapia y pago agregado correctamente.', 'success');
+    const { error: errorCita } = await supabase
+      .from('citas')
+      .update({
+        estatus: estatusPago,
+        confirmado: true
+      })
+      .eq('id', form.cita_id);
+
+    setGuardando(false);
+
+    if (errorCita) {
+      console.error(errorCita);
+      mostrarToast('El pago se guardó, pero no se pudo actualizar el estatus de la cita.', 'error');
+    }
+
+    setForm(formularioInicial);
+    await obtenerSesiones();
+    await obtenerCitasPendientesPago();
+    mostrarToast(
+      estatusPago === 'Pagada'
+        ? 'Pago completo registrado. La cita quedó pagada.'
+        : 'Pago parcial registrado. La cita quedó pendiente de pago.',
+      'success'
+    );
   };
 
   return (
@@ -137,34 +195,24 @@ function ControlSesiones({ paciente }) {
 
       <form className="session-form" onSubmit={guardarSesion}>
         <label>
-          Fecha de terapia
-          <input
-            type="date"
-            value={form.fecha_terapia}
-            onChange={(event) => setForm({ ...form, fecha_terapia: event.target.value })}
+          Terapia pendiente de pago
+          <select
+            value={form.cita_id}
+            onChange={(event) => seleccionarCita(event.target.value)}
             required
-          />
+          >
+            <option value="">
+              {citasPendientesPago.length
+                ? 'Selecciona una terapia'
+                : 'No hay terapias pendientes de pago'}
+            </option>
+            {citasPendientesPago.map((cita) => (
+              <option key={cita.id} value={cita.id}>
+                {cita.fecha} - {cita.hora?.slice(0, 5)} - {cita.servicio} ({cita.estatus})
+              </option>
+            ))}
+          </select>
         </label>
-
-        <label className="checkbox-field">
-          <input
-            type="checkbox"
-            checked={form.reagendada}
-            onChange={(event) => setForm({ ...form, reagendada: event.target.checked })}
-          />
-          Fue reagendada
-        </label>
-
-        {form.reagendada && (
-          <label>
-            Nueva fecha
-            <input
-              type="date"
-              value={form.fecha_reagenda}
-              onChange={(event) => setForm({ ...form, fecha_reagenda: event.target.value })}
-            />
-          </label>
-        )}
 
         <label>
           Fecha de pago
@@ -185,9 +233,12 @@ function ControlSesiones({ paciente }) {
               step="0.01"
               value={form.cantidad}
               onChange={(event) => setForm({ ...form, cantidad: event.target.value })}
-              placeholder="0.00"
+              placeholder="300.00"
             />
           </span>
+          <small>
+            $300 marca la cita como pagada. Una cantidad menor la deja pendiente de pago.
+          </small>
         </label>
 
         <div className="signature-field">
@@ -220,7 +271,7 @@ function ControlSesiones({ paciente }) {
                 <td data-label="Fecha de terapia">{sesion.fecha_terapia}</td>
                 <td data-label="Reagenda">
                   {sesion.reagendada
-                    ? `Si${sesion.fecha_reagenda ? `: ${sesion.fecha_reagenda}` : ''}`
+                    ? `Sí${sesion.fecha_reagenda ? `: ${sesion.fecha_reagenda}` : ''}`
                     : 'No'}
                 </td>
                 <td data-label="Fecha de pago">{sesion.fecha_pago || '-'}</td>

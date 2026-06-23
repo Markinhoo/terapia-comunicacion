@@ -8,8 +8,36 @@ export function obtenerRangoCita(cita) {
 
 export function estadoCitaActual(cita, ahora = new Date()) {
   const { inicio, fin } = obtenerRangoCita(cita);
+  const limitePago = new Date(fin);
+  limitePago.setMinutes(limitePago.getMinutes() + 60);
 
   if (cita.estatus === 'Cancelada') return 'Cancelada';
+  if (cita.estatus === 'Pagada') return 'Pagada';
+  if (cita.estatus === 'Pendiente de pago') return 'Pendiente de pago';
+
+  if (cita.estatus === 'Asistió' && ahora >= limitePago) {
+    return 'Pendiente de pago';
+  }
+
+  if (cita.estatus === 'Pendiente' && ahora >= inicio) {
+    return 'Cancelada';
+  }
+
+  if (
+    (cita.estatus === 'En curso' || cita.estatus === 'Confirmada') &&
+    cita.confirmado &&
+    ahora >= limitePago
+  ) {
+    return 'Pendiente de pago';
+  }
+
+  if (
+    (cita.estatus === 'En curso' || cita.estatus === 'Confirmada') &&
+    cita.confirmado &&
+    ahora >= fin
+  ) {
+    return 'Asistió';
+  }
 
   if (cita.estatus === 'Confirmada' && cita.confirmado && inicio <= ahora && ahora < fin) {
     return 'En curso';
@@ -34,10 +62,44 @@ export async function sincronizarCitasEnCurso(supabase, citas, ahora = new Date(
     return cita.estatus !== 'En curso' && estadoCitaActual(cita, ahora) === 'En curso';
   });
 
-  if (citasEnCurso.length === 0) return;
+  const citasAsistidas = citas.filter((cita) => {
+    return cita.estatus !== 'Asistió' && estadoCitaActual(cita, ahora) === 'Asistió';
+  });
 
-  await supabase
-    .from('citas')
-    .update({ estatus: 'En curso' })
-    .in('id', citasEnCurso.map((cita) => cita.id));
+  const citasPendientesPago = citas.filter((cita) => {
+    return cita.estatus !== 'Pendiente de pago'
+      && estadoCitaActual(cita, ahora) === 'Pendiente de pago';
+  });
+
+  const citasCanceladas = citas.filter((cita) => {
+    return cita.estatus !== 'Cancelada' && estadoCitaActual(cita, ahora) === 'Cancelada';
+  });
+
+  if (citasEnCurso.length > 0) {
+    await supabase
+      .from('citas')
+      .update({ estatus: 'En curso' })
+      .in('id', citasEnCurso.map((cita) => cita.id));
+  }
+
+  if (citasAsistidas.length > 0) {
+    await supabase
+      .from('citas')
+      .update({ estatus: 'Asistió' })
+      .in('id', citasAsistidas.map((cita) => cita.id));
+  }
+
+  if (citasPendientesPago.length > 0) {
+    await supabase
+      .from('citas')
+      .update({ estatus: 'Pendiente de pago' })
+      .in('id', citasPendientesPago.map((cita) => cita.id));
+  }
+
+  if (citasCanceladas.length > 0) {
+    await supabase
+      .from('citas')
+      .update({ estatus: 'Cancelada', confirmado: false })
+      .in('id', citasCanceladas.map((cita) => cita.id));
+  }
 }

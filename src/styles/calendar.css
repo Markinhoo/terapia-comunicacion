@@ -33,8 +33,12 @@
   background: #8e5ad7;
 }
 
+.legend-item.asistio {
+  background: #2f80ed;
+}
+
 .calendar-container {
-  background: white;
+  background: var(--surface);
   padding: 16px;
   border-radius: 16px;
   box-shadow: 0 4px 12px rgba(0,0,0,.08);
@@ -144,16 +148,73 @@
 }
 
 .calendar-container .rbc-calendar {
-  height: calc(100vh - 190px);
-  min-height: 520px;
+  height: min(66vh, 610px);
+  min-height: 460px;
 }
 
 .rbc-calendar {
   font-family: Arial, sans-serif;
+  color: var(--text);
 }
 
 .rbc-toolbar button {
+  border: 1px solid color-mix(in srgb, var(--primary) 28%, var(--border));
   border-radius: 8px;
+  background: var(--surface);
+  color: var(--text) !important;
+  font-weight: 800;
+}
+
+.calendar-container .rbc-toolbar button:hover,
+.calendar-container .rbc-toolbar button:focus-visible,
+.calendar-container .rbc-toolbar button.rbc-active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: white !important;
+  box-shadow: none;
+}
+
+.rbc-toolbar button:disabled {
+  color: var(--text) !important;
+  opacity: .45;
+}
+
+.rbc-toolbar-label {
+  color: var(--text);
+  font-weight: 900;
+  text-transform: capitalize;
+}
+
+.rbc-month-view,
+.rbc-time-view,
+.rbc-time-header-content,
+.rbc-time-content,
+.rbc-day-bg,
+.rbc-header,
+.rbc-timeslot-group,
+.rbc-time-slot,
+.rbc-month-row {
+  border-color: color-mix(in srgb, var(--border) 62%, transparent);
+}
+
+.rbc-header,
+.rbc-time-gutter,
+.rbc-label {
+  color: var(--text);
+}
+
+.rbc-off-range-bg {
+  background: color-mix(in srgb, var(--text-muted) 13%, transparent);
+}
+
+.calendar-container .rbc-today,
+.calendar-container .rbc-day-bg.rbc-today,
+.calendar-container .rbc-time-column.rbc-today {
+  background: transparent;
+}
+
+.rbc-current-time-indicator {
+  display: none;
 }
 
 .rbc-event {
@@ -244,7 +305,7 @@
 
   .calendar-legend {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 6px;
     margin-top: 9px;
     padding-top: 9px;
@@ -350,7 +411,6 @@
   color: #14584a;
 }
 
-.status-actions button.no-asistio,
 .status-actions button.cancelada {
   background: #f8d7da;
   color: #721c24;
@@ -365,6 +425,48 @@
 .status-actions button:disabled {
   opacity: .5;
   cursor: default;
+}
+
+.reschedule-form {
+  display: grid;
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 14px;
+  border: 1px solid color-mix(in srgb, var(--primary) 24%, var(--border));
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--primary) 8%, var(--surface));
+}
+
+.reschedule-form label {
+  display: grid;
+  gap: 6px;
+  color: var(--text);
+  font-weight: 800;
+}
+
+.reschedule-form input,
+.reschedule-form select {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.reschedule-form > div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+@media (max-width: 520px) {
+  .reschedule-form > div {
+    grid-template-columns: 1fr;
+  }
 }
 
 @keyframes cita-pulse {

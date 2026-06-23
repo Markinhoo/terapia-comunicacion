@@ -204,23 +204,31 @@ th {
 .rbc-toolbar button {
   border-color: var(--border);
   background: var(--surface);
-  color: var(--text);
+  color: var(--text) !important;
 }
 
-.rbc-toolbar button:hover,
-.rbc-toolbar button:focus,
-.rbc-toolbar button.rbc-active {
+.calendar-container .rbc-toolbar button:hover,
+.calendar-container .rbc-toolbar button:focus,
+.calendar-container .rbc-toolbar button:focus-visible,
+.calendar-container .rbc-toolbar button.rbc-active {
   border-color: var(--primary);
   background: var(--primary);
-  color: white;
+  color: white !important;
+}
+
+.calendar-container .rbc-toolbar button:disabled {
+  background: var(--surface);
+  color: var(--text) !important;
 }
 
 .rbc-off-range-bg {
   background: var(--calendar-off-range);
 }
 
-.rbc-today {
-  background: var(--calendar-today);
+.calendar-container .rbc-today,
+.calendar-container .rbc-day-bg.rbc-today,
+.calendar-container .rbc-time-column.rbc-today {
+  background: transparent;
 }
 
 .rbc-show-more {

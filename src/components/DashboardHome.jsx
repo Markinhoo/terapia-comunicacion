@@ -46,8 +46,10 @@ function DashboardHome() {
     const { data: citasHoyData } = await supabase
       .from('citas')
       .select('*')
-      .eq('fecha', hoy)
       .neq('estatus', 'Cancelada')
+      .neq('estatus', 'Pagada')
+      .lte('fecha', hoy)
+      .order('fecha', { ascending: true })
       .order('hora', { ascending: true });
 
     const ahora = new Date();
@@ -69,11 +71,18 @@ function DashboardHome() {
           ...cita,
           estatus: estadoCitaActual(cita, ahora)
         }))
-        .filter((cita) => citaVisibleEnAgenda(cita, ahora))
+        .filter((cita) => {
+          if (cita.estatus === 'Pagada' || cita.estatus === 'Cancelada') return false;
+          if (cita.estatus === 'Pendiente de pago') return true;
+          if (cita.fecha !== hoy) return false;
+          return citaVisibleEnAgenda(cita, ahora);
+        })
         .sort((a, b) => {
           if (a.estatus === 'En curso' && b.estatus !== 'En curso') return -1;
           if (a.estatus !== 'En curso' && b.estatus === 'En curso') return 1;
-          return String(a.hora).localeCompare(String(b.hora));
+          if (a.estatus === 'Pendiente de pago' && b.estatus !== 'Pendiente de pago') return -1;
+          if (a.estatus !== 'Pendiente de pago' && b.estatus === 'Pendiente de pago') return 1;
+          return `${a.fecha} ${a.hora}`.localeCompare(`${b.fecha} ${b.hora}`);
         })
     );
   }
@@ -88,28 +97,69 @@ function DashboardHome() {
     return hora.slice(0, 5);
   };
 
+  const formatearDia = (fecha) => {
+    const hoy = formatearFechaLocal();
+    const ayerDate = new Date(`${hoy}T00:00:00`);
+    ayerDate.setDate(ayerDate.getDate() - 1);
+    const ayer = formatearFechaLocal(ayerDate);
+
+    if (fecha === hoy) return 'Hoy';
+    if (fecha === ayer) return 'Ayer';
+
+    return new Intl.DateTimeFormat('es-MX', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    }).format(new Date(`${fecha}T00:00:00`));
+  };
+
+  const citasPorDia = citasHoy.reduce((grupos, cita) => {
+    const fecha = cita.fecha || 'Sin fecha';
+
+    if (!grupos[fecha]) {
+      grupos[fecha] = [];
+    }
+
+    grupos[fecha].push(cita);
+    return grupos;
+  }, {});
+
   return (
     <div className="dashboard-home">
       <section className="dashboard-section dashboard-appointments">
-        <h2>Citas en curso y proximas</h2>
+        <h2>Citas en curso, próximas y pendientes de pago</h2>
 
         {citasHoy.length === 0 && (
-          <p className="empty">No hay citas en curso o proximas para hoy.</p>
+          <p className="empty">No hay citas en curso, próximas o pendientes de pago.</p>
         )}
 
-        <div className="citas-hoy-lista">
-          {citasHoy.map((cita) => (
-            <div key={cita.id} className={`cita-hoy-card ${cita.estatus?.toLowerCase()}`}>
-              <div>
-                <strong>{formatearHora(cita.hora)}</strong>
-                <p>{cita.nombre_paciente}</p>
-              </div>
+        <div className="citas-dia-lista">
+          {Object.entries(citasPorDia).map(([fecha, citas]) => (
+            <article key={fecha} className="citas-dia-grupo">
+              <header>
+                <strong>{formatearDia(fecha)}</strong>
+                <span>
+                  {citas.length} cita{citas.length === 1 ? '' : 's'}
+                </span>
+              </header>
 
-              <div>
-                <span>{cita.servicio}</span>
-                <small>{cita.estatus}</small>
+              <div className="citas-hoy-lista">
+                {citas.map((cita) => (
+                  <div key={cita.id} className={`cita-hoy-card ${cita.estatus?.toLowerCase()}`}>
+                    <div>
+                      <strong>{formatearHora(cita.hora)}</strong>
+                      <p>{cita.nombre_paciente}</p>
+                    </div>
+
+                    <div>
+                      <span>{cita.servicio}</span>
+                      <small>{cita.estatus}</small>
+                    </div>
+                  </div>
+                ))}
               </div>
-            </div>
+            </article>
           ))}
         </div>
       </section>

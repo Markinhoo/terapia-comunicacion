@@ -64,6 +64,40 @@
   gap: 12px;
 }
 
+.citas-dia-lista {
+  display: grid;
+  gap: 14px;
+}
+
+.citas-dia-grupo {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, var(--primary) 18%, var(--border));
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--primary) 5%, var(--surface));
+}
+
+.citas-dia-grupo > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+}
+
+.citas-dia-grupo > header strong {
+  color: var(--primary-strong);
+  text-transform: capitalize;
+}
+
+.citas-dia-grupo > header span {
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 800;
+}
+
 .cita-hoy-card {
   background: #f7f7f7;
   padding: 14px;
