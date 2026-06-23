@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+﻿import { useEffect, useRef, useState } from 'react';
 import { FaEye, FaEyeSlash } from 'react-icons/fa6';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
@@ -9,6 +9,9 @@ const personajes = [
   { forma: 'slab', color: 'ink', nombre: 'Figura negra', intensidad: 0.82 },
   { forma: 'bean', color: 'yellow', nombre: 'Figura amarilla', intensidad: 0.68 }
 ];
+
+const MAX_INTENTOS_LOGIN = 5;
+const BLOQUEO_LOGIN_MS = 5 * 60 * 1000;
 
 function Personaje({ forma, color, nombre, estado, intensidad }) {
   return (
@@ -47,6 +50,11 @@ function LoginAdmin() {
   const cursorActual = useRef({ x: 0, y: 0 });
   const navigate = useNavigate();
   const location = useLocation();
+
+  const obtenerBloqueoLogin = () => {
+    const bloqueoHasta = Number(window.localStorage.getItem('admin_login_bloqueado_hasta') || 0);
+    return bloqueoHasta > Date.now() ? bloqueoHasta : 0;
+  };
 
   useEffect(() => {
     let frameId;
@@ -103,6 +111,14 @@ function LoginAdmin() {
 
   const login = async (event) => {
     event.preventDefault();
+    const bloqueoHasta = obtenerBloqueoLogin();
+
+    if (bloqueoHasta) {
+      const minutos = Math.ceil((bloqueoHasta - Date.now()) / 60000);
+      setMensaje(`Demasiados intentos fallidos. Intenta de nuevo en ${minutos} minuto${minutos === 1 ? '' : 's'}.`);
+      return;
+    }
+
     setEnviando(true);
     setMensaje('');
     setNegando(false);
@@ -113,13 +129,26 @@ function LoginAdmin() {
     });
 
     if (error) {
-      setMensaje('Correo o contrasena incorrectos.');
+      const intentos = Number(window.localStorage.getItem('admin_login_intentos') || 0) + 1;
+      window.localStorage.setItem('admin_login_intentos', String(intentos));
+
+      if (intentos >= MAX_INTENTOS_LOGIN) {
+        const bloqueo = Date.now() + BLOQUEO_LOGIN_MS;
+        window.localStorage.setItem('admin_login_bloqueado_hasta', String(bloqueo));
+        window.localStorage.setItem('admin_login_intentos', '0');
+        setMensaje('Demasiados intentos fallidos. El acceso quedó bloqueado por 5 minutos.');
+      } else {
+        setMensaje(`Correo o contraseña incorrectos. Intento ${intentos} de ${MAX_INTENTOS_LOGIN}.`);
+      }
+
       setEnviando(false);
       setNegando(true);
       window.setTimeout(() => setNegando(false), 900);
       return;
     }
 
+    window.localStorage.removeItem('admin_login_intentos');
+    window.localStorage.removeItem('admin_login_bloqueado_hasta');
     const destino = location.state?.from?.pathname || '/admin';
     navigate(destino, { replace: true });
   };
@@ -169,7 +198,7 @@ function LoginAdmin() {
               <span className="password-field">
                 <input
                   type={mostrarPassword ? 'text' : 'password'}
-                  placeholder="Escribe tu contrasena"
+                  placeholder="Escribe tu contraseña"
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
                   onFocus={() => setPasswordActivo(true)}
@@ -185,7 +214,7 @@ function LoginAdmin() {
                   className="password-toggle"
                   onClick={() => setMostrarPassword((actual) => !actual)}
                   aria-label={
-                    mostrarPassword ? 'Ocultar contrasena' : 'Ver contrasena'
+                    mostrarPassword ? 'Ocultar contraseña' : 'Ver contraseña'
                   }
                   aria-pressed={mostrarPassword}
                 >
@@ -195,7 +224,7 @@ function LoginAdmin() {
             </label>
 
             <button type="submit" disabled={enviando}>
-              {enviando ? 'Ingresando...' : 'Iniciar sesion'}
+              {enviando ? 'Ingresando...' : 'Iniciar sesión'}
             </button>
           </form>
 
@@ -209,3 +238,7 @@ function LoginAdmin() {
 }
 
 export default LoginAdmin;
+
+
+
+

@@ -68,7 +68,7 @@ function AgendarCita() {
       return `Revisa el ${nombreCampo}. Parece tener caracteres escritos al azar.`;
     }
     if (!palabras.some((palabra) => /[aeiouáéíóúü]/i.test(palabra))) {
-      return `Revisa el ${nombreCampo}. Debe parecer un nombre valido.`;
+      return `Revisa el ${nombreCampo}. Debe parecer un nombre válido.`;
     }
 
     return '';
@@ -134,7 +134,7 @@ function AgendarCita() {
       }
 
       if (value > fechaMaximaCita) {
-        setMensaje('Solo se pueden agendar citas dentro de los proximos 14 dias.');
+        setMensaje('Solo se pueden agendar citas dentro de los próximos 14 días.');
         setTipoMensaje('error');
         setForm({ ...form, fecha: '', hora: '' });
         return;
@@ -228,7 +228,7 @@ function AgendarCita() {
     }
 
     if (form.fecha > fechaMaximaCita) {
-      setMensaje('Solo se pueden agendar citas dentro de los proximos 14 dias.');
+      setMensaje('Solo se pueden agendar citas dentro de los próximos 14 días.');
       setTipoMensaje('error');
       return false;
     }
@@ -422,13 +422,13 @@ function AgendarCita() {
         />
 
         <details className="contacto-opcional">
-          <summary>Agregar contactos de localizacion</summary>
+          <summary>Agregar contactos de localización</summary>
 
           <fieldset className="form-group">
             <legend>Contacto 2 (secundario)</legend>
             <input name="contacto_2_nombre" placeholder="Nombre" value={form.contacto_2_nombre} onChange={handleChange} />
             <input name="contacto_2_parentesco" placeholder="Parentesco" value={form.contacto_2_parentesco} onChange={handleChange} />
-            <input name="contacto_2_telefono" placeholder="Telefono" value={form.contacto_2_telefono} onChange={handleChange} />
+            <input name="contacto_2_telefono" placeholder="Teléfono" value={form.contacto_2_telefono} onChange={handleChange} />
             <input name="contacto_2_direccion" placeholder="Direccion" value={form.contacto_2_direccion} onChange={handleChange} />
           </fieldset>
 
@@ -436,14 +436,14 @@ function AgendarCita() {
             <legend>Contacto 3 (emergencia)</legend>
             <input name="contacto_3_nombre" placeholder="Nombre" value={form.contacto_3_nombre} onChange={handleChange} />
             <input name="contacto_3_parentesco" placeholder="Parentesco" value={form.contacto_3_parentesco} onChange={handleChange} />
-            <input name="contacto_3_telefono" placeholder="Telefono" value={form.contacto_3_telefono} onChange={handleChange} />
+            <input name="contacto_3_telefono" placeholder="Teléfono" value={form.contacto_3_telefono} onChange={handleChange} />
             <input name="contacto_3_direccion" placeholder="Direccion" value={form.contacto_3_direccion} onChange={handleChange} />
           </fieldset>
         </details>
 
         <textarea
           name="observaciones_localizacion"
-          placeholder="Observaciones adicionales de localizacion o contacto"
+          placeholder="Observaciones adicionales de localización o contacto"
           value={form.observaciones_localizacion}
           onChange={handleChange}
         />
@@ -475,7 +475,7 @@ function AgendarCita() {
             onChange={handleChange}
             required
           />
-          <small>Selecciona una fecha disponible dentro de los proximos 14 dias.</small>
+          <small>Selecciona una fecha disponible dentro de los próximos 14 días.</small>
         </label>
 
         <select

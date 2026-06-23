@@ -55,6 +55,28 @@ th {
   color: #721c24;
 }
 
+.badge.en-curso {
+  background: color-mix(in srgb, var(--primary) 18%, white);
+  color: var(--primary-strong);
+}
+
+.badge.asistio,
+.badge.pagada {
+  background: #d7f3ea;
+  color: #14584a;
+}
+
+.badge.no-asistio {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.badge.reagendada,
+.badge.pendiente-de-pago {
+  background: #ffe8c7;
+  color: #7a4300;
+}
+
 .acciones {
   display: flex;
   flex-wrap: wrap;

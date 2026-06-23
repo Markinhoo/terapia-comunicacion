@@ -4,6 +4,7 @@ import {
   FaCalendarDays,
   FaChartLine,
   FaChevronLeft,
+  FaCoins,
   FaHouse,
   FaImages,
   FaRightFromBracket,
@@ -38,6 +39,12 @@ const menuItems = [
     routeKey: 'servicios',
     label: 'Servicios',
     Icon: FaChartLine
+  },
+  {
+    to: '/admin/finanzas',
+    routeKey: 'finanzas',
+    label: 'Finanzas',
+    Icon: FaCoins
   },
   {
     to: '/admin/usuarios',
@@ -82,7 +89,7 @@ function Sidebar({ role }) {
       <button
         className="mobile-menu-button"
         onClick={() => setMobileOpen(!mobileOpen)}
-        aria-label={mobileOpen ? 'Cerrar menu' : 'Abrir menu'}
+        aria-label={mobileOpen ? 'Cerrar menú' : 'Abrir menú'}
       >
         {mobileOpen ? <FaXmark /> : <span aria-hidden="true">☰</span>}
       </button>
@@ -105,14 +112,14 @@ function Sidebar({ role }) {
           {(!collapsed || mobileOpen) && (
             <div className="sidebar-title">
               <strong>Panel admin</strong>
-              <small>Gestion de citas</small>
+              <small>Gestión de citas</small>
             </div>
           )}
 
           <button
             className="menu-toggle desktop-toggle"
             onClick={() => setCollapsed(!collapsed)}
-            aria-label={collapsed ? 'Expandir menu' : 'Contraer menu'}
+            aria-label={collapsed ? 'Expandir menú' : 'Contraer menú'}
           >
             <FaChevronLeft className={collapsed ? 'rotated' : ''} />
           </button>
@@ -133,7 +140,7 @@ function Sidebar({ role }) {
           <button className="logout-link" onClick={cerrarSesion}>
             <span className="sidebar-icon"><FaRightFromBracket /></span>
             {(!collapsed || mobileOpen) && (
-              <span className="sidebar-text">Cerrar sesion</span>
+              <span className="sidebar-text">Cerrar sesión</span>
             )}
           </button>
         </nav>

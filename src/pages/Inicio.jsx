@@ -18,16 +18,16 @@ const banners = [
   {
     src: '/banner2.png',
     alt: 'Terapia infantil',
-    titulo: 'Acompanamiento cercano para cada etapa'
+    titulo: 'Acompañamiento cercano para cada etapa'
   },
   {
     src: '/banner3.png',
-    alt: 'Comunicacion humana',
-    titulo: 'Evaluacion e intervencion especializada'
+    alt: 'Comunicación humana',
+    titulo: 'Evaluación e intervención especializada'
   },
   {
     src: '/banner4.png',
-    alt: 'Terapia de comunicacion',
+    alt: 'Terapia de comunicación',
     titulo: 'Estrategias pensadas para cada persona'
   }
 ];
@@ -36,31 +36,31 @@ const servicios = [
   {
     titulo: 'Terapia de lenguaje',
     descripcion:
-      'Fortalece la comprension, la expresion y el uso funcional del lenguaje en la vida diaria.',
+      'Fortalece la comprensión, la expresión y el uso funcional del lenguaje en la vida diaria.',
     Icono: FaComments
   },
   {
     titulo: 'Lenguaje infantil',
     descripcion:
-      'Acompana el desarrollo del vocabulario, las frases, la comunicacion social y la comprension.',
+      'Acompaña el desarrollo del vocabulario, las frases, la comunicación social y la comprensión.',
     Icono: FaChildReaching
   },
   {
     titulo: 'Lectoescritura',
     descripcion:
-      'Apoya habilidades como conciencia fonologica, lectura, escritura y comprension de textos.',
+      'Apoya habilidades como conciencia fonológica, lectura, escritura y comprensión de textos.',
     Icono: FaBookOpen
   },
   {
     titulo: 'Terapia de voz',
     descripcion:
-      'Promueve un uso saludable y eficiente de la voz mediante respiracion, higiene y tecnica vocal.',
+      'Promueve un uso saludable y eficiente de la voz mediante respiración, higiene y técnica vocal.',
     Icono: FaMicrophoneLines
   },
   {
-    titulo: 'Evaluacion inicial',
+    titulo: 'Evaluación inicial',
     descripcion:
-      'Identifica fortalezas y necesidades para establecer objetivos y un plan terapeutico personalizado.',
+      'Identifica fortalezas y necesidades para establecer objetivos y un plan terapéutico personalizado.',
     Icono: FaClipboardCheck
   }
 ];
@@ -145,7 +145,7 @@ function Inicio() {
       <section
         className="hero-carousel"
         aria-roledescription="carrusel"
-        aria-label="Servicios de terapia de comunicacion"
+        aria-label="Servicios de terapia de comunicación"
         onMouseEnter={() => setPausado(true)}
         onMouseLeave={() => setPausado(false)}
         onFocus={() => setPausado(true)}
@@ -167,11 +167,11 @@ function Inicio() {
                 <span className="hero-kicker">Clinica Casas</span>
                 <h1>{banner.titulo}</h1>
                 <p>
-                  Evaluacion, diagnostico e intervencion especializada en
-                  lenguaje, habla, voz, audicion y comunicacion.
+                  Evaluación, diagnóstico e intervención especializada en
+                  lenguaje, habla, voz, audición y comunicación.
                 </p>
                 <Link to="/agendar" className="btn hero-cta">
-                  Agendar valoracion
+                  Agendar valoración
                 </Link>
               </div>
             </article>
@@ -214,7 +214,7 @@ function Inicio() {
         <span className="section-kicker">Atencion especializada</span>
         <h2 id="servicios-titulo">Nuestros servicios</h2>
         <p className="servicios-intro">
-          Conoce cada area colocando el cursor o seleccionando una tarjeta.
+          Conoce cada área colocando el cursor o seleccionando una tarjeta.
         </p>
 
         <div className="servicios-carousel-mobile" aria-label="Carrusel de servicios">

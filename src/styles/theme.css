@@ -160,6 +160,13 @@ select option {
   color: var(--primary-strong);
 }
 
+@media (max-width: 760px) {
+  .servicios-home-grid .servicio-home-card h3,
+  .servicios-home-grid .servicio-home-card p {
+    color: white;
+  }
+}
+
 th,
 td {
   border-bottom-color: var(--table-border);

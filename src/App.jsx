@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import {
   Routes,
   Route,
@@ -9,16 +9,17 @@ import {
 } from 'react-router-dom';
 import { FaCalendarPlus, FaHouse, FaImages } from 'react-icons/fa6';
 import { FaWhatsapp } from 'react-icons/fa';
-import Inicio from './pages/Inicio';
-import AgendarCita from './pages/AgendarCita';
-import Galeria from './pages/Galeria';
-import LoginAdmin from './pages/LoginAdmin';
-import PanelAdmin from './pages/PanelAdmin';
 import ProtectedRoute from './components/ProtectedRoute';
 import ThemeToggle from './components/ThemeToggle';
 import WhatsAppFloat from './components/WhatsAppFloat';
 import ScrollToTopButton from './components/ScrollToTopButton';
 import { supabase } from './lib/supabaseClient';
+
+const Inicio = lazy(() => import('./pages/Inicio'));
+const AgendarCita = lazy(() => import('./pages/AgendarCita'));
+const Galeria = lazy(() => import('./pages/Galeria'));
+const LoginAdmin = lazy(() => import('./pages/LoginAdmin'));
+const PanelAdmin = lazy(() => import('./pages/PanelAdmin'));
 
 function obtenerTemaInicial() {
   const temaGuardado = window.localStorage.getItem('theme');
@@ -127,7 +128,7 @@ function App() {
           <img src="/logo.png" alt="Clinica Casas" className="brand-logo" />
           <span className="brand-copy">
             <strong>Clinica Casas</strong>
-            <small>Comunicacion humana</small>
+            <small>Comunicación humana</small>
           </span>
         </NavLink>
 
@@ -151,7 +152,7 @@ function App() {
 
             <NavLink to="/galeria">
               <FaImages aria-hidden="true" />
-              <span>Galeria</span>
+              <span>Galería</span>
             </NavLink>
 
           </div>
@@ -179,7 +180,7 @@ function App() {
 
           <NavLink to="/galeria">
             <FaImages aria-hidden="true" />
-            <span>Galeria</span>
+            <span>Galería</span>
           </NavLink>
 
           <a
@@ -200,20 +201,22 @@ function App() {
         onTouchEnd={terminarDeslizamiento}
         onTouchCancel={() => setTouchStart(null)}
       >
-        <Routes>
-          <Route path="/" element={<Inicio />} />
-          <Route path="/agendar" element={<AgendarCita />} />
-          <Route path="/galeria" element={<Galeria />} />
-          <Route path="/login" element={<Navigate to="/" replace />} />
-          <Route
-            path="/admin/*"
-            element={
-              <ProtectedRoute fallback={<LoginAdmin />}>
-                <PanelAdmin />
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
+        <Suspense fallback={<p className="auth-loading">Cargando...</p>}>
+          <Routes>
+            <Route path="/" element={<Inicio />} />
+            <Route path="/agendar" element={<AgendarCita />} />
+            <Route path="/galeria" element={<Galeria />} />
+            <Route path="/login" element={<Navigate to="/" replace />} />
+            <Route
+              path="/admin/*"
+              element={
+                <ProtectedRoute fallback={<LoginAdmin />}>
+                  <PanelAdmin />
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+        </Suspense>
       </div>
 
       {!location.pathname.startsWith('/admin') && <WhatsAppFloat />}

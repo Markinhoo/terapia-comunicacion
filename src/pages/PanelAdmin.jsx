@@ -1,18 +1,20 @@
-import { useEffect, useState } from 'react';
+﻿import { lazy, Suspense, useEffect, useState } from 'react';
 import { Routes, Route } from 'react-router-dom';
 
 import Sidebar from '../components/Sidebar';
 import AccessDenied from '../components/AccessDenied';
 import DashboardHome from '../components/DashboardHome';
 import RoleRoute from '../components/RoleRoute';
-import CalendarioCitas from './CalendarioCitas';
-import Pacientes from './Pacientes';
-import Servicios from './Servicios';
-import ExpedienteClinico from './ExpedienteClinico';
-import UsuariosAdmin from './UsuariosAdmin';
-import GaleriaAdmin from './GaleriaAdmin';
 import { supabase } from '../lib/supabaseClient';
 import { ROLES } from '../utils/roles';
+
+const CalendarioCitas = lazy(() => import('./CalendarioCitas'));
+const Pacientes = lazy(() => import('./Pacientes'));
+const Servicios = lazy(() => import('./Servicios'));
+const ExpedienteClinico = lazy(() => import('./ExpedienteClinico'));
+const UsuariosAdmin = lazy(() => import('./UsuariosAdmin'));
+const GaleriaAdmin = lazy(() => import('./GaleriaAdmin'));
+const Finanzas = lazy(() => import('./Finanzas'));
 
 function PanelAdmin() {
   const [role, setRole] = useState(null);
@@ -56,6 +58,33 @@ function PanelAdmin() {
     };
   }, []);
 
+  useEffect(() => {
+    let timeoutId;
+    const eventosActividad = ['mousemove', 'keydown', 'click', 'touchstart'];
+
+    const cerrarPorInactividad = async () => {
+      await supabase.auth.signOut();
+      window.location.assign('/admin');
+    };
+
+    const reiniciarTemporizador = () => {
+      window.clearTimeout(timeoutId);
+      timeoutId = window.setTimeout(cerrarPorInactividad, 30 * 60 * 1000);
+    };
+
+    eventosActividad.forEach((evento) => {
+      window.addEventListener(evento, reiniciarTemporizador, { passive: true });
+    });
+    reiniciarTemporizador();
+
+    return () => {
+      window.clearTimeout(timeoutId);
+      eventosActividad.forEach((evento) => {
+        window.removeEventListener(evento, reiniciarTemporizador);
+      });
+    };
+  }, []);
+
   if (loadingRole) {
     return <p className="auth-loading">Cargando permisos...</p>;
   }
@@ -67,6 +96,7 @@ function PanelAdmin() {
 
       <main className="dashboard-content">
 
+        <Suspense fallback={<p className="auth-loading">Cargando sección...</p>}>
         <Routes>
 
           <Route
@@ -93,6 +123,15 @@ function PanelAdmin() {
             element={
               <RoleRoute role={role} routeKey="servicios">
                 <Servicios />
+              </RoleRoute>
+            }
+          />
+
+          <Route
+            path="finanzas"
+            element={
+              <RoleRoute role={role} routeKey="finanzas">
+                <Finanzas />
               </RoleRoute>
             }
           />
@@ -127,6 +166,7 @@ function PanelAdmin() {
           <Route path="*" element={<AccessDenied />} />
 
         </Routes>
+        </Suspense>
 
       </main>
 
@@ -135,3 +175,5 @@ function PanelAdmin() {
 }
 
 export default PanelAdmin;
+
+

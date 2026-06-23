@@ -54,6 +54,28 @@ const formatosCalendario = {
   })
 };
 
+const ESTADOS_CITA = [
+  'Pendiente',
+  'Confirmada',
+  'En curso',
+  'Asistió',
+  'No asistió',
+  'Reagendada',
+  'Pagada',
+  'Pendiente de pago',
+  'Cancelada'
+];
+
+const ESTADOS_DE_CIERRE = ['Asistió', 'No asistió', 'Pagada'];
+
+const claseEstatus = (estatus = '') => (
+  estatus
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+);
+
 function CalendarioCitas() {
   const navigate = useNavigate();
 
@@ -154,7 +176,11 @@ function CalendarioCitas() {
         ...cita,
         estatus: estadoCitaActual(cita, ahora)
       }))
-      .filter((cita) => hayBusqueda || citaVisibleEnAgenda(cita, ahora))
+      .filter((cita) => (
+        hayBusqueda ||
+        citaVisibleEnAgenda(cita, ahora) ||
+        ESTADOS_DE_CIERRE.includes(cita.estatus)
+      ))
       .map(crearEvento);
 
     setEventos(eventosCalendario);
@@ -173,6 +199,18 @@ function CalendarioCitas() {
 
     if (event.estatus === 'Cancelada') {
       backgroundColor = '#c0392b';
+    }
+
+    if (event.estatus === 'Asistió' || event.estatus === 'Pagada') {
+      backgroundColor = '#2f8f83';
+    }
+
+    if (event.estatus === 'No asistió') {
+      backgroundColor = '#a8324a';
+    }
+
+    if (event.estatus === 'Reagendada' || event.estatus === 'Pendiente de pago') {
+      backgroundColor = '#d9822b';
     }
 
     if (event.estatus === 'En curso') {
@@ -213,6 +251,30 @@ function CalendarioCitas() {
 
     await obtenerCitas();
     setModalAbierto(false);
+  };
+
+  const actualizarEstatusCita = async (estatus) => {
+    if (!citaSeleccionada) return;
+
+    const { error } = await supabase
+      .from('citas')
+      .update({
+        estatus,
+        confirmado: estatus === 'Confirmada' || estatus === 'En curso'
+          ? true
+          : citaSeleccionada.confirmado
+      })
+      .eq('id', citaSeleccionada.id);
+
+    if (error) {
+      console.error(error);
+      mostrarToast('No se pudo actualizar el estado de la cita.', 'error');
+      return;
+    }
+
+    setCitaSeleccionada((actual) => ({ ...actual, estatus }));
+    await obtenerCitas();
+    mostrarToast(`Cita marcada como ${estatus}.`, 'success');
   };
 
   const cancelarCita = async () => {
@@ -405,7 +467,7 @@ function CalendarioCitas() {
 
               <p>
                 <strong>Estatus:</strong>{' '}
-                <span className={`badge ${citaSeleccionada.estatus?.toLowerCase()}`}>
+                <span className={`badge ${claseEstatus(citaSeleccionada.estatus)}`}>
                   {citaSeleccionada.estatus}
                 </span>
               </p>
@@ -444,6 +506,23 @@ function CalendarioCitas() {
               >
                 WhatsApp
               </button>
+            </div>
+
+            <div className="status-actions">
+              <strong>Cambiar estado</strong>
+              <div>
+                {ESTADOS_CITA.map((estatus) => (
+                  <button
+                    type="button"
+                    key={estatus}
+                    className={claseEstatus(estatus)}
+                    onClick={() => actualizarEstatusCita(estatus)}
+                    disabled={citaSeleccionada.estatus === estatus}
+                  >
+                    {estatus}
+                  </button>
+                ))}
+              </div>
             </div>
           </>
         )}

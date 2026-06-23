@@ -11,7 +11,7 @@ export function estadoCitaActual(cita, ahora = new Date()) {
 
   if (cita.estatus === 'Cancelada') return 'Cancelada';
 
-  if (cita.confirmado && inicio <= ahora && ahora < fin) {
+  if (cita.estatus === 'Confirmada' && cita.confirmado && inicio <= ahora && ahora < fin) {
     return 'En curso';
   }
 
