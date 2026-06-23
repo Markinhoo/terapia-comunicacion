@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
-import { formatearFechaLocal } from '../utils/fechas';
+import { formatearFechaLocal, sumarDiasFechaLocal } from '../utils/fechas';
 
 function AgendarCita() {
   const hoy = formatearFechaLocal();
+  const fechaMaximaCita = sumarDiasFechaLocal(new Date(), 14);
   const fechaNacimientoMinima = `${Number(hoy.slice(0, 4)) - 99}${hoy.slice(4)}`;
 
   const [form, setForm] = useState({
@@ -45,6 +46,32 @@ function AgendarCita() {
   const esDomingo = (fecha) => {
     const dia = new Date(`${fecha}T00:00:00`).getDay();
     return dia === 0;
+  };
+
+  const nombrePareceReal = (valor, opciones = {}) => {
+    const { nombreCampo = 'nombre', requerirCompleto = false } = opciones;
+    const nombre = valor.trim().replace(/\s+/g, ' ');
+    const palabras = nombre.split(' ').filter(Boolean);
+    const letras = nombre.replace(/\s/g, '');
+    const consonantesSeguidas = /[bcdfghjklmnpqrstvwxyzñ]{5,}/i;
+
+    if (!nombre) return `Escribe el ${nombreCampo}.`;
+    if (!/^[\p{L}\s]+$/u.test(nombre)) return `El ${nombreCampo} solo debe contener letras.`;
+    if (letras.length < 5) return `El ${nombreCampo} es demasiado corto. Escribe un nombre real.`;
+    if (requerirCompleto && palabras.length < 2) {
+      return 'Escribe el nombre completo del responsable, por ejemplo nombre y apellido.';
+    }
+    if (palabras.some((palabra) => palabra.length > 16)) {
+      return `Revisa el ${nombreCampo}. Hay una palabra demasiado larga para un nombre.`;
+    }
+    if (/(.)\1{2,}/i.test(nombre) || consonantesSeguidas.test(nombre)) {
+      return `Revisa el ${nombreCampo}. Parece tener caracteres escritos al azar.`;
+    }
+    if (!palabras.some((palabra) => /[aeiouáéíóúü]/i.test(palabra))) {
+      return `Revisa el ${nombreCampo}. Debe parecer un nombre valido.`;
+    }
+
+    return '';
   };
 
   const calcularEdad = (fechaNacimiento) => {
@@ -101,6 +128,13 @@ function AgendarCita() {
     if (name === 'fecha') {
       if (value < hoy) {
         setMensaje('No se pueden seleccionar fechas anteriores al día actual.');
+        setTipoMensaje('error');
+        setForm({ ...form, fecha: '', hora: '' });
+        return;
+      }
+
+      if (value > fechaMaximaCita) {
+        setMensaje('Solo se pueden agendar citas dentro de los proximos 14 dias.');
         setTipoMensaje('error');
         setForm({ ...form, fecha: '', hora: '' });
         return;
@@ -163,6 +197,45 @@ function AgendarCita() {
     }
   }, [form.fecha]);
 
+  const validarFormularioMejorado = () => {
+    const errorNombrePaciente = nombrePareceReal(form.nombre_paciente, {
+      nombreCampo: 'nombre del paciente'
+    });
+
+    if (errorNombrePaciente) {
+      setMensaje(errorNombrePaciente);
+      setTipoMensaje('error');
+      return false;
+    }
+
+    if (form.nombre_responsable) {
+      const errorResponsable = nombrePareceReal(form.nombre_responsable, {
+        nombreCampo: 'nombre del responsable',
+        requerirCompleto: true
+      });
+
+      if (errorResponsable) {
+        setMensaje(errorResponsable);
+        setTipoMensaje('error');
+        return false;
+      }
+    }
+
+    if (!form.fecha_nacimiento) {
+      setMensaje('Selecciona la fecha de nacimiento del paciente.');
+      setTipoMensaje('error');
+      return false;
+    }
+
+    if (form.fecha > fechaMaximaCita) {
+      setMensaje('Solo se pueden agendar citas dentro de los proximos 14 dias.');
+      setTipoMensaje('error');
+      return false;
+    }
+
+    return true;
+  };
+
   const validarFormulario = () => {
     const soloLetras = /^[a-zA-ZÁÉÍÓÚáéíóúÑñ\s]+$/;
 
@@ -208,7 +281,7 @@ function AgendarCita() {
   const guardarCita = async (e) => {
     e.preventDefault();
 
-    if (!validarFormulario()) return;
+    if (!validarFormularioMejorado() || !validarFormulario()) return;
     setEnviando(true);
     setMensaje('');
 
@@ -397,11 +470,12 @@ function AgendarCita() {
             name="fecha"
             type="date"
             min={hoy}
+            max={fechaMaximaCita}
             value={form.fecha}
             onChange={handleChange}
             required
           />
-          <small>Selecciona el dia en que deseas acudir a la valoracion.</small>
+          <small>Selecciona una fecha disponible dentro de los proximos 14 dias.</small>
         </label>
 
         <select

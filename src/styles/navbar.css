@@ -213,7 +213,7 @@
     left: 0;
     z-index: 4500;
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     min-height: 62px;
     padding: 4px 4px calc(4px + env(safe-area-inset-bottom));
     border: 1px solid color-mix(in srgb, var(--primary) 20%, var(--border));

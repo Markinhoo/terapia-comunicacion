@@ -20,8 +20,13 @@ export function estadoCitaActual(cita, ahora = new Date()) {
 
 export function citaVisibleEnAgenda(cita, ahora = new Date()) {
   const { fin } = obtenerRangoCita(cita);
+  const fechaHoy = [
+    ahora.getFullYear(),
+    String(ahora.getMonth() + 1).padStart(2, '0'),
+    String(ahora.getDate()).padStart(2, '0')
+  ].join('-');
 
-  return cita.estatus !== 'Cancelada' && fin > ahora;
+  return cita.estatus !== 'Cancelada' && (fin > ahora || cita.fecha === fechaHoy);
 }
 
 export async function sincronizarCitasEnCurso(supabase, citas, ahora = new Date()) {

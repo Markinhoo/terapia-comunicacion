@@ -1,7 +1,11 @@
 .galeria-page {
+  width: 100%;
+  max-width: 100%;
   min-height: 100vh;
   padding: clamp(34px, 6vw, 80px) clamp(16px, 5vw, 64px);
+  overflow-x: clip;
   background: var(--page-bg-soft);
+  box-sizing: border-box;
 }
 
 .galeria-hero {
@@ -527,8 +531,10 @@
 .gallery-carousel-shell {
   position: relative;
   width: min(100%, 1260px);
+  max-width: 100%;
   margin: 0 auto;
   padding: 0 44px;
+  box-sizing: border-box;
 }
 
 .gallery-carousel-control {
@@ -575,6 +581,7 @@
   .gallery-magic-grid {
     display: flex;
     width: 100%;
+    min-width: 0;
     padding: 10px 4px 28px;
     overflow-x: auto;
     gap: 18px;

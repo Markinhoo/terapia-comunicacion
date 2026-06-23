@@ -1,11 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 
-function ProtectedRoute({ children }) {
+function ProtectedRoute({ children, fallback = null }) {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
-  const location = useLocation();
 
   useEffect(() => {
     let active = true;
@@ -39,7 +37,7 @@ function ProtectedRoute({ children }) {
   }
 
   if (!session) {
-    return <Navigate to="/login" replace state={{ from: location }} />;
+    return fallback;
   }
 
   return children;

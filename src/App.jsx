@@ -1,6 +1,13 @@
 import { useEffect, useState } from 'react';
-import { Routes, Route, NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { FaCalendarPlus, FaHouse, FaImages, FaLock } from 'react-icons/fa6';
+import {
+  Routes,
+  Route,
+  NavLink,
+  Navigate,
+  useLocation,
+  useNavigate
+} from 'react-router-dom';
+import { FaCalendarPlus, FaHouse, FaImages } from 'react-icons/fa6';
 import { FaWhatsapp } from 'react-icons/fa';
 import Inicio from './pages/Inicio';
 import AgendarCita from './pages/AgendarCita';
@@ -72,14 +79,14 @@ function App() {
     window.localStorage.setItem('theme', theme);
   }, [theme]);
 
-  const rutasPublicas = ['/', '/agendar', '/galeria', '/login'];
+  const rutasPublicas = ['/', '/agendar', '/galeria'];
 
   const iniciarDeslizamiento = (event) => {
     if (
       window.innerWidth > 820 ||
       isAdminRoute ||
       event.target.closest(
-        '.instagram-media-carousel, .servicios-carousel-mobile, video, input, textarea, select, button, a'
+        '.hero-carousel, .instagram-media-carousel, .servicios-carousel-mobile, video, input, textarea, select, button, a'
       )
     ) {
       setTouchStart(null);
@@ -125,9 +132,9 @@ function App() {
         </NavLink>
 
         <div className="navbar-actions">
-          {isAdminRoute && (
+          {isAdminRoute && userName && (
             <div className="admin-mobile-welcome">
-              Bienvenido {userName || 'usuario'}
+              Bienvenido {userName}
             </div>
           )}
 
@@ -147,17 +154,6 @@ function App() {
               <span>Galeria</span>
             </NavLink>
 
-            <NavLink
-              to="/login"
-              className={({ isActive }) => (
-                isActive || location.pathname.startsWith('/admin')
-                  ? 'active'
-                  : undefined
-              )}
-            >
-              <FaLock aria-hidden="true" />
-              <span>Admin</span>
-            </NavLink>
           </div>
 
           <ThemeToggle
@@ -186,16 +182,6 @@ function App() {
             <span>Galeria</span>
           </NavLink>
 
-          <NavLink
-            to="/login"
-            className={({ isActive }) => (
-              isActive || isAdminRoute ? 'active' : undefined
-            )}
-          >
-            <FaLock aria-hidden="true" />
-            <span>Admin</span>
-          </NavLink>
-
           <a
             href={whatsappUrl}
             target="_blank"
@@ -218,11 +204,11 @@ function App() {
           <Route path="/" element={<Inicio />} />
           <Route path="/agendar" element={<AgendarCita />} />
           <Route path="/galeria" element={<Galeria />} />
-          <Route path="/login" element={<LoginAdmin />} />
+          <Route path="/login" element={<Navigate to="/" replace />} />
           <Route
             path="/admin/*"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute fallback={<LoginAdmin />}>
                 <PanelAdmin />
               </ProtectedRoute>
             }
@@ -230,10 +216,7 @@ function App() {
         </Routes>
       </div>
 
-      {!location.pathname.startsWith('/admin') &&
-        location.pathname !== '/login' &&
-        <WhatsAppFloat />
-      }
+      {!location.pathname.startsWith('/admin') && <WhatsAppFloat />}
 
       <ScrollToTopButton routeKey={location.pathname} />
     </>

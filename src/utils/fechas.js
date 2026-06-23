@@ -5,3 +5,10 @@ export function formatearFechaLocal(fecha = new Date()) {
 
   return `${year}-${month}-${day}`;
 }
+
+export function sumarDiasFechaLocal(fechaBase = new Date(), dias = 0) {
+  const fecha = new Date(fechaBase);
+  fecha.setDate(fecha.getDate() + dias);
+
+  return formatearFechaLocal(fecha);
+}

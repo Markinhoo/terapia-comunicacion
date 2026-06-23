@@ -61,7 +61,7 @@ function Sidebar({ role }) {
 
   const cerrarSesion = async () => {
     await supabase.auth.signOut();
-    navigate('/login');
+    navigate('/admin');
   };
 
   const cerrarMenuMovil = () => {

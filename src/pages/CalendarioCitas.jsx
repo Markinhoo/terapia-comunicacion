@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Modal from 'react-modal';
 import { supabase } from '../lib/supabaseClient';
@@ -57,7 +57,9 @@ const formatosCalendario = {
 function CalendarioCitas() {
   const navigate = useNavigate();
 
+  const [citas, setCitas] = useState([]);
   const [eventos, setEventos] = useState([]);
+  const [busqueda, setBusqueda] = useState('');
   const [citaSeleccionada, setCitaSeleccionada] = useState(null);
   const [modalAbierto, setModalAbierto] = useState(false);
   const [vistaMovil, setVistaMovil] = useState(() => window.innerWidth <= 768);
@@ -89,26 +91,74 @@ function CalendarioCitas() {
     const ahora = new Date();
     await sincronizarCitasEnCurso(supabase, data || [], ahora);
 
-    const eventosCalendario = (data || [])
+    setCitas((data || []).map((cita) => ({
+      ...cita,
+      estatus: estadoCitaActual(cita, ahora)
+    })));
+  }
+
+  const normalizarTexto = (valor = '') => (
+    String(valor)
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim()
+  );
+
+  const crearEvento = (cita) => {
+    const { inicio, fin } = obtenerRangoCita(cita);
+
+    return {
+      title: `${cita.nombre_paciente} - ${cita.servicio}`,
+      start: inicio,
+      end: fin,
+      estatus: cita.estatus,
+      cita
+    };
+  };
+
+  const citasFiltradas = useMemo(() => {
+    const texto = normalizarTexto(busqueda);
+
+    if (!texto) return citas;
+
+    const coincide = (cita) => normalizarTexto([
+      cita.nombre_paciente,
+      cita.nombre_responsable,
+      cita.telefono,
+      cita.correo,
+      cita.servicio,
+      cita.fecha
+    ].filter(Boolean).join(' ')).includes(texto);
+
+    const coincidencias = citas.filter(coincide);
+    const pacientes = new Set(coincidencias.map((cita) => cita.paciente_id).filter(Boolean));
+    const telefonos = new Set(coincidencias.map((cita) => cita.telefono).filter(Boolean));
+    const correos = new Set(coincidencias.map((cita) => normalizarTexto(cita.correo)).filter(Boolean));
+    const responsables = new Set(coincidencias.map((cita) => normalizarTexto(cita.nombre_responsable)).filter(Boolean));
+
+    return citas.filter((cita) => (
+      coincide(cita)
+      || (cita.paciente_id && pacientes.has(cita.paciente_id))
+      || (cita.telefono && telefonos.has(cita.telefono))
+      || (cita.correo && correos.has(normalizarTexto(cita.correo)))
+      || (cita.nombre_responsable && responsables.has(normalizarTexto(cita.nombre_responsable)))
+    ));
+  }, [busqueda, citas]);
+
+  useEffect(() => {
+    const ahora = new Date();
+    const hayBusqueda = busqueda.trim().length > 0;
+    const eventosCalendario = citasFiltradas
       .map((cita) => ({
         ...cita,
         estatus: estadoCitaActual(cita, ahora)
       }))
-      .filter((cita) => citaVisibleEnAgenda(cita, ahora))
-      .map((cita) => {
-      const { inicio, fin } = obtenerRangoCita(cita);
-
-      return {
-        title: `${cita.nombre_paciente} - ${cita.servicio}`,
-        start: inicio,
-        end: fin,
-        estatus: cita.estatus,
-        cita
-      };
-    });
+      .filter((cita) => hayBusqueda || citaVisibleEnAgenda(cita, ahora))
+      .map(crearEvento);
 
     setEventos(eventosCalendario);
-  }
+  }, [busqueda, citasFiltradas]);
 
   const estiloEvento = (event) => {
     let backgroundColor = '#f1c40f';
@@ -221,6 +271,54 @@ function CalendarioCitas() {
   return (
     <main className="calendar-page">
       <div className="calendar-container">
+        <section className="calendar-search-panel" aria-label="Busqueda de citas">
+          <label>
+            Buscar citas
+            <input
+              type="search"
+              placeholder="Paciente, responsable, telefono, correo, servicio o fecha..."
+              value={busqueda}
+              onChange={(event) => setBusqueda(event.target.value)}
+            />
+          </label>
+
+          {busqueda.trim() && (
+            <div className="calendar-search-summary">
+              <strong>{citasFiltradas.length}</strong>
+              <span>
+                cita{citasFiltradas.length === 1 ? '' : 's'} relacionada{citasFiltradas.length === 1 ? '' : 's'}
+              </span>
+              <button type="button" onClick={() => setBusqueda('')}>
+                Limpiar
+              </button>
+            </div>
+          )}
+        </section>
+
+        {busqueda.trim() && (
+          <section className="calendar-search-results" aria-label="Resultados de busqueda">
+            {citasFiltradas.length === 0 && (
+              <p>No se encontraron citas con esa busqueda.</p>
+            )}
+
+            {citasFiltradas.slice(0, 8).map((cita) => (
+              <button
+                type="button"
+                key={cita.id}
+                className="calendar-result-card"
+                onClick={() => {
+                  setCitaSeleccionada(cita);
+                  setModalAbierto(true);
+                }}
+              >
+                <strong>{cita.nombre_paciente}</strong>
+                <span>{cita.fecha} - {cita.hora?.slice(0, 5)} - {cita.estatus}</span>
+                <small>{cita.nombre_responsable || 'Sin responsable'} - {cita.telefono || 'Sin telefono'}</small>
+              </button>
+            ))}
+          </section>
+        )}
+
         <Calendar
           key={vistaMovil ? 'agenda-movil' : 'calendario-escritorio'}
           localizer={localizer}
@@ -294,6 +392,15 @@ function CalendarioCitas() {
 
               <p>
                 <strong>Teléfono:</strong> {citaSeleccionada.telefono}
+              </p>
+
+              <p>
+                <strong>Responsable:</strong>{' '}
+                {citaSeleccionada.nombre_responsable || 'No registrado'}
+              </p>
+
+              <p>
+                <strong>Correo:</strong> {citaSeleccionada.correo || 'No registrado'}
               </p>
 
               <p>
