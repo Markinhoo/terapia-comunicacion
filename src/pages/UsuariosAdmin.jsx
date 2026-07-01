@@ -225,7 +225,8 @@ function UsuariosAdmin() {
     item.usuario_id,
     item.tabla,
     item.accion,
-    item.registro_id
+    item.registro_id,
+    item.descripcion
   ], busquedaBitacora));
 
   const perfilesPagination = usePaginatedList(
@@ -447,22 +448,22 @@ function UsuariosAdmin() {
 
       <AccordionSection
         id="bitacora"
-        title="Bitacora de cambios recientes"
+        title="Bitácora de cambios recientes"
         total={bitacoraFiltrada.length}
         openSection={openSection}
         setOpenSection={setOpenSection}
       >
         <p className="subtitle">
-          Ultimos movimientos registrados en tablas clinicas y administrativas.
+          Últimos movimientos importantes registrados en tablas clínicas y administrativas.
         </p>
 
         <label className="section-search">
-          Buscar en bitacora
+          Buscar en bitácora
           <input
             type="search"
             value={busquedaBitacora}
             onChange={(event) => setBusquedaBitacora(event.target.value)}
-            placeholder="Usuario, tabla, accion, registro o fecha..."
+            placeholder="Usuario, tabla, acción, descripción, registro o fecha..."
           />
         </label>
 
@@ -477,7 +478,8 @@ function UsuariosAdmin() {
                 <th>Fecha</th>
                 <th>Usuario</th>
                 <th>Tabla</th>
-                <th>Accion</th>
+                <th>Acción</th>
+                <th>Descripción</th>
                 <th>Registro</th>
               </tr>
             </thead>
@@ -487,7 +489,10 @@ function UsuariosAdmin() {
                   <td data-label="Fecha">{new Date(item.created_at).toLocaleString()}</td>
                   <td data-label="Usuario">{item.usuario_email || item.usuario_id || 'Sistema'}</td>
                   <td data-label="Tabla">{item.tabla}</td>
-                  <td data-label="Accion">{item.accion}</td>
+                  <td data-label="Acción">{item.accion}</td>
+                  <td data-label="Descripción">
+                    {item.descripcion || item.cambios?.descripcion || '-'}
+                  </td>
                   <td data-label="Registro">{item.registro_id || '-'}</td>
                 </tr>
               ))}
