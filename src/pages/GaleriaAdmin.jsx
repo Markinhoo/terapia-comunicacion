@@ -1,7 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import { useClinica } from '../contexts/clinica';
 
 function GaleriaAdmin() {
+  const clinica = useClinica();
   const [items, setItems] = useState([]);
   const [archivos, setArchivos] = useState([]);
   const [form, setForm] = useState({
@@ -11,10 +13,11 @@ function GaleriaAdmin() {
   const [mensaje, setMensaje] = useState('');
   const [subiendo, setSubiendo] = useState(false);
 
-  async function cargarGaleria() {
+  const cargarGaleria = useCallback(async () => {
     const { data, error } = await supabase
       .from('galeria_terapias')
       .select('*')
+      .eq('clinica_id', clinica.id)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -24,11 +27,11 @@ function GaleriaAdmin() {
     }
 
     setItems(data || []);
-  }
+  }, [clinica.id]);
 
   useEffect(() => {
     cargarGaleria();
-  }, []);
+  }, [cargarGaleria]);
 
   const publicaciones = useMemo(() => {
     const grupos = new Map();
@@ -105,7 +108,7 @@ function GaleriaAdmin() {
     for (let index = 0; index < archivos.length; index += 1) {
       const archivo = archivos[index];
       const extension = archivo.name.split('.').pop()?.toLowerCase() || 'bin';
-      const ruta = `${publicacionId}/${crypto.randomUUID()}.${extension}`;
+      const ruta = `${clinica.id}/${publicacionId}/${crypto.randomUUID()}.${extension}`;
 
       const { error: errorUpload } = await supabase.storage
         .from('galeria-terapias')
@@ -121,6 +124,7 @@ function GaleriaAdmin() {
 
       archivosSubidos.push(ruta);
       registros.push({
+        clinica_id: clinica.id,
         publicacion_id: publicacionId,
         titulo: form.titulo.trim(),
         descripcion: form.descripcion.trim() || null,
@@ -153,6 +157,7 @@ function GaleriaAdmin() {
     const { error } = await supabase
       .from('galeria_terapias')
       .update({ activo: !publicacion.activo, updated_at: new Date().toISOString() })
+      .eq('clinica_id', clinica.id)
       .eq('publicacion_id', publicacion.publicacion_id);
 
     if (error) {
@@ -171,6 +176,7 @@ function GaleriaAdmin() {
     const { error } = await supabase
       .from('galeria_terapias')
       .delete()
+      .eq('clinica_id', clinica.id)
       .eq('publicacion_id', publicacion.publicacion_id);
 
     if (error) {

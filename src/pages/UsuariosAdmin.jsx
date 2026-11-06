@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { etiquetaRol } from '../utils/roles';
 import PaginationControls from '../components/PaginationControls';
 import { usePaginatedList } from '../hooks/usePaginatedList';
+import { useClinica } from '../contexts/clinica';
 
 function AccordionSection({ id, title, total, openSection, setOpenSection, children }) {
   const open = openSection === id;
@@ -42,6 +43,7 @@ function coincideBusqueda(valores, busqueda) {
 }
 
 function UsuariosAdmin() {
+  const clinica = useClinica();
   const [perfiles, setPerfiles] = useState([]);
   const [bitacora, setBitacora] = useState([]);
   const [form, setForm] = useState({ email: '', password: '', role: 'user' });
@@ -60,7 +62,7 @@ function UsuariosAdmin() {
     window.innerWidth <= 620 ? 1 : 5
   ));
 
-  async function cargarDatos() {
+  const cargarDatos = useCallback(async () => {
     const [
       { data: perfilesData, error: errorPerfiles },
       { data: bitacoraData }
@@ -69,10 +71,12 @@ function UsuariosAdmin() {
         supabase
           .from('app_profiles')
           .select('*')
+          .eq('clinica_id', clinica.id)
           .order('created_at', { ascending: false }),
         supabase
           .from('bitacora_cambios')
           .select('*')
+          .eq('clinica_id', clinica.id)
           .order('created_at', { ascending: false })
           .limit(30)
       ]);
@@ -85,11 +89,11 @@ function UsuariosAdmin() {
 
     setPerfiles(perfilesData || []);
     setBitacora(bitacoraData || []);
-  }
+  }, [clinica.id]);
 
   useEffect(() => {
     cargarDatos();
-  }, []);
+  }, [cargarDatos]);
 
   useEffect(() => {
     const actualizarTamanoPagina = () => {

@@ -1,16 +1,26 @@
-# React + Vite
+# Plataforma de clínicas
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Aplicación React/Vite con Supabase para gestionar agendas, pacientes,
+expedientes, pagos y galerías de varias clínicas. Cada clínica usa la misma
+estructura, pero sus datos se separan mediante `clinica_id` y políticas RLS.
 
-Currently, two official plugins are available:
+- Directorio público: `/`
+- Sitio de Evocaré: `/clinica-evocare/`
+- Acceso del personal: `/clinica-evocare/login`
+- Acceso del creador: `/plataforma`
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Desarrollo
 
-## React Compiler
+Define `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` en el entorno local.
+Nunca expongas una service role key en variables `VITE_*` ni en Vercel.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```bash
+npm install
+npm run dev
+npm run lint
+npm run build
+```
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Antes de desplegar esta versión o limpiar datos de prueba, sigue en orden
+[supabase/MULTICLINICA.md](supabase/MULTICLINICA.md). Las migraciones y los
+borrados no se ejecutan automáticamente al compilar el frontend.

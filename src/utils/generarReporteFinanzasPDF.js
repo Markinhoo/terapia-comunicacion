@@ -6,7 +6,7 @@ const formatoPesos = new Intl.NumberFormat('es-MX', {
   currency: 'MXN'
 });
 
-export function generarReporteFinanzasPDF({ pagos, totales, rango }) {
+export function generarReporteFinanzasPDF({ pagos, totales, rango, nombreClinica }) {
   const doc = new jsPDF({ orientation: 'landscape' });
   const fechaReporte = new Intl.DateTimeFormat('es-MX', {
     dateStyle: 'long',
@@ -17,7 +17,7 @@ export function generarReporteFinanzasPDF({ pagos, totales, rango }) {
   doc.rect(0, 0, 297, 28, 'F');
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(18);
-  doc.text('Clínica Casas', 14, 12);
+  doc.text(nombreClinica, 14, 12);
   doc.setFontSize(11);
   doc.text('Reporte de ingresos', 14, 20);
 

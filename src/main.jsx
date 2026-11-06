@@ -1,6 +1,8 @@
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App';
+import { ClinicaProvider } from './contexts/ClinicaContext';
+import PlatformApp from './pages/PlatformApp';
 
 import './styles/global.css';
 import './styles/navbar.css';
@@ -16,9 +18,12 @@ import './styles/servicios.css';
 import './styles/calendar.css';
 import './styles/theme.css';
 import './styles/galeria.css';
+import './styles/platform.css';
+
+const slug = window.location.pathname.match(/^\/(clinica-[a-z0-9-]+)(?:\/|$)/)?.[1];
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-  <BrowserRouter>
-    <App />
+  <BrowserRouter basename={slug ? `/${slug}` : undefined}>
+    {slug ? <ClinicaProvider slug={slug}><App /></ClinicaProvider> : <PlatformApp />}
   </BrowserRouter>
 );

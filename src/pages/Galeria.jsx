@@ -3,6 +3,7 @@ import { FaArrowLeft, FaHeart, FaRegHeart } from 'react-icons/fa6';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import GalleryMagicBento from '../components/GalleryMagicBento';
+import { useClinica } from '../contexts/clinica';
 
 function obtenerVisitanteId() {
   const guardado = window.localStorage.getItem('galeria_visitante_id');
@@ -23,6 +24,7 @@ function obtenerLikesLocales() {
 }
 
 function Galeria() {
+  const clinica = useClinica();
   const location = useLocation();
   const navigate = useNavigate();
   const [items, setItems] = useState([]);
@@ -48,6 +50,7 @@ function Galeria() {
       const { data, error } = await supabase
         .from('galeria_terapias')
         .select('*')
+        .eq('clinica_id', clinica.id)
         .eq('activo', true)
         .order('created_at', { ascending: false });
 
@@ -60,7 +63,7 @@ function Galeria() {
     }
 
     cargarGaleria();
-  }, []);
+  }, [clinica.id]);
 
   useEffect(() => {
     document.body.style.overflow = publicacionActivaId ? 'hidden' : '';
@@ -190,7 +193,8 @@ function Galeria() {
 
     setProcesandoLike(publicacion.id);
 
-    const { data, error } = await supabase.rpc('alternar_like_galeria', {
+    const { data, error } = await supabase.rpc('alternar_like_clinica', {
+      p_clinica_id: clinica.id,
       p_publicacion_id: publicacion.id,
       p_visitante_id: obtenerVisitanteId()
     });
@@ -360,7 +364,7 @@ function Galeria() {
               <FaArrowLeft />
             </button>
             <div>
-              <strong>Clinica Casas</strong>
+              <strong>{clinica.nombre}</strong>
               <span>Publicaciones</span>
             </div>
             <span className="instagram-feed-header-spacer" aria-hidden="true" />
@@ -378,7 +382,7 @@ function Galeria() {
                 >
                   <header className="instagram-post-header">
                     <div>
-                      <strong>Clinica Casas</strong>
+                      <strong>{clinica.nombre}</strong>
                       <span>Sesion de terapia</span>
                     </div>
                   </header>
@@ -475,7 +479,7 @@ function Galeria() {
 
                   <div className="instagram-post-copy">
                     <p>
-                      <strong>Clinica Casas</strong>{' '}
+                      <strong>{clinica.nombre}</strong>{' '}
                       {publicacion.titulo}
                     </p>
                     {publicacion.descripcion && (

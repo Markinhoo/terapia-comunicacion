@@ -6,6 +6,7 @@ import { formatearFechaLocal } from '../utils/fechas';
 import ControlSesiones from '../components/ControlSesiones';
 import Toast from '../components/Toast';
 import { useToast } from '../hooks/useToast';
+import { useClinica, urlMarca } from '../contexts/clinica';
 
 function AccordionSection({ id, title, openSection, setOpenSection, children }) {
   const open = openSection === id;
@@ -32,6 +33,7 @@ function AccordionSection({ id, title, openSection, setOpenSection, children }) 
 }
 
 function ExpedienteClinico() {
+  const clinica = useClinica();
   const { pacienteId } = useParams();
 
   const [paciente, setPaciente] = useState(null);
@@ -271,7 +273,7 @@ function ExpedienteClinico() {
     }
 
     const extension = fotoArchivo.name.split('.').pop()?.toLowerCase() || 'jpg';
-    const ruta = `${pacienteId}/foto-paciente-${crypto.randomUUID()}.${extension}`;
+    const ruta = `${clinica.id}/${pacienteId}/foto-paciente-${crypto.randomUUID()}.${extension}`;
 
     const { error: errorUpload } = await supabase.storage
       .from('expedientes')
@@ -439,7 +441,7 @@ function ExpedienteClinico() {
     }
 
     const extension = archivo.name.split('.').pop()?.toLowerCase() || 'bin';
-    const ruta = `${pacienteId}/${crypto.randomUUID()}.${extension}`;
+    const ruta = `${clinica.id}/${pacienteId}/${crypto.randomUUID()}.${extension}`;
 
     const { error: errorUpload } = await supabase.storage
       .from('expedientes')
@@ -563,7 +565,7 @@ function ExpedienteClinico() {
             </button>
             <button
               type="button"
-              onClick={() => generarPDF(paciente, detalle, expedientes, fotoUrl)}
+              onClick={() => generarPDF(paciente, detalle, expedientes, fotoUrl, clinica.nombre, urlMarca(clinica.logo_ruta))}
             >
               Generar Expediente
             </button>

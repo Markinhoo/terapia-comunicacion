@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { formatearFechaLocal, sumarDiasFechaLocal } from '../utils/fechas';
+import { useClinica } from '../contexts/clinica';
 
 function AgendarCita() {
+  const clinica = useClinica();
   const hoy = formatearFechaLocal();
   const fechaMaximaCita = sumarDiasFechaLocal(new Date(), 14);
   const fechaNacimientoMinima = `${Number(hoy.slice(0, 4)) - 99}${hoy.slice(4)}`;
@@ -31,6 +33,7 @@ function AgendarCita() {
   });
 
   const [horarios, setHorarios] = useState([]);
+  const [serviciosDisponibles, setServiciosDisponibles] = useState([]);
   const [mensaje, setMensaje] = useState('');
   const [tipoMensaje, setTipoMensaje] = useState('');
   const [enviando, setEnviando] = useState(false);
@@ -176,26 +179,25 @@ function AgendarCita() {
 
   const edadCalculada = calcularEdad(form.fecha_nacimiento);
 
-  async function obtenerHorariosDisponibles(fecha) {
-    const { data, error } = await supabase.rpc(
-      'obtener_horarios_disponibles',
-      { fecha_consulta: fecha }
-    );
-
-    if (error) {
-      console.error(error);
-      setHorarios([]);
-      return;
-    }
-
-    setHorarios(data || []);
-  }
+  useEffect(() => {
+    supabase.from('servicios_clinica').select('id, nombre')
+      .eq('clinica_id', clinica.id).eq('activo', true).order('orden')
+      .then(({ data }) => setServiciosDisponibles(data || []));
+  }, [clinica.id]);
 
   useEffect(() => {
-    if (form.fecha) {
-      obtenerHorariosDisponibles(form.fecha);
-    }
-  }, [form.fecha]);
+    if (!form.fecha) return undefined;
+    let active = true;
+    supabase.rpc('obtener_horarios_clinica', {
+      p_clinica_id: clinica.id,
+      fecha_consulta: form.fecha
+    }).then(({ data, error }) => {
+      if (!active) return;
+      if (error) console.error(error);
+      setHorarios(error ? [] : (data || []));
+    });
+    return () => { active = false; };
+  }, [form.fecha, clinica.id]);
 
   const validarFormularioMejorado = () => {
     const errorNombrePaciente = nombrePareceReal(form.nombre_paciente, {
@@ -285,7 +287,8 @@ function AgendarCita() {
     setEnviando(true);
     setMensaje('');
 
-    const { error } = await supabase.rpc('registrar_cita_publica_v2', {
+    const { error } = await supabase.rpc('registrar_cita_clinica', {
+      p_clinica_id: clinica.id,
       p_nombre_paciente: form.nombre_paciente.trim(),
       p_edad: form.edad ? Number(form.edad) : null,
       p_fecha_nacimiento: form.fecha_nacimiento || null,
@@ -455,13 +458,7 @@ function AgendarCita() {
           required
         >
           <option value="">Selecciona el servicio</option>
-          <option value="Evaluación inicial">Evaluación inicial</option>
-          <option value="Terapia de lenguaje infantil">Terapia de lenguaje infantil</option>
-          <option value="Estimulación temprana">Estimulación temprana</option>
-          <option value="Problemas de articulación">Problemas de articulación</option>
-          <option value="Dificultades de lectoescritura">Dificultades de lectoescritura</option>
-          <option value="Terapia para adultos">Terapia para adultos</option>
-          <option value="Orientación a padres">Orientación a padres</option>
+          {serviciosDisponibles.map((item) => <option value={item.nombre} key={item.id}>{item.nombre}</option>)}
         </select>
 
         <label className="form-field form-field-highlight">

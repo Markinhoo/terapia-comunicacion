@@ -14,6 +14,7 @@ import {
   sincronizarCitasEnCurso
 } from '../utils/citas';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
+import { useClinica } from '../contexts/clinica';
 
 Modal.setAppElement('#root');
 
@@ -86,7 +87,8 @@ const claseEstatus = (estatus = '') => (
     .replace(/\s+/g, '-')
 );
 
-function CalendarioCitas() {
+function CalendarioCitas({ readOnly = false }) {
+  const clinica = useClinica();
   const navigate = useNavigate();
 
   const [citas, setCitas] = useState([]);
@@ -145,8 +147,8 @@ function CalendarioCitas() {
       setCargandoHorariosReagenda(true);
 
       const { data, error } = await supabase.rpc(
-        'obtener_horarios_disponibles',
-        { fecha_consulta: reagendaForm.fecha }
+        'obtener_horarios_clinica',
+        { p_clinica_id: clinica.id, fecha_consulta: reagendaForm.fecha }
       );
 
       if (!activo) return;
@@ -167,7 +169,7 @@ function CalendarioCitas() {
     return () => {
       activo = false;
     };
-  }, [reagendaActiva, reagendaForm.fecha]);
+  }, [reagendaActiva, reagendaForm.fecha, clinica.id]);
 
   const normalizarTexto = (valor = '') => (
     String(valor)
@@ -453,7 +455,7 @@ function CalendarioCitas() {
     const telefono = citaSeleccionada.telefono.replace(/\D/g, '');
 
     const mensaje = encodeURIComponent(
-      `Hola ${citaSeleccionada.nombre_paciente}, le contactamos de Clínica Casas para confirmar su cita.\n\nFecha: ${citaSeleccionada.fecha}\nHora: ${citaSeleccionada.hora?.slice(0, 5)}\nServicio: ${citaSeleccionada.servicio}\n\nGracias.`
+      `Hola ${citaSeleccionada.nombre_paciente}, le contactamos de ${clinica.nombre} para confirmar su cita.\n\nFecha: ${citaSeleccionada.fecha}\nHora: ${citaSeleccionada.hora?.slice(0, 5)}\nServicio: ${citaSeleccionada.servicio}\n\nGracias.`
     );
 
     window.open(`https://wa.me/52${telefono}?text=${mensaje}`, '_blank');
@@ -602,7 +604,7 @@ function CalendarioCitas() {
               </p>
             </div>
 
-            <div className="modal-actions">
+            {!readOnly && <div className="modal-actions">
               {!ESTADOS_BLOQUEADOS.includes(citaSeleccionada.estatus) && (
                 <>
                   <button type="button" onClick={confirmarCita}>
@@ -634,9 +636,9 @@ function CalendarioCitas() {
               >
                 WhatsApp
               </button>
-            </div>
+            </div>}
 
-            {!ESTADOS_BLOQUEADOS.includes(citaSeleccionada.estatus) && (
+            {!readOnly && !ESTADOS_BLOQUEADOS.includes(citaSeleccionada.estatus) && (
               <div className="status-actions">
                 <strong>Cambiar estado</strong>
                 <div>

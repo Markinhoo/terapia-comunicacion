@@ -3,7 +3,6 @@ import {
   Routes,
   Route,
   NavLink,
-  Navigate,
   useLocation,
   useNavigate
 } from 'react-router-dom';
@@ -14,6 +13,7 @@ import ThemeToggle from './components/ThemeToggle';
 import WhatsAppFloat from './components/WhatsAppFloat';
 import ScrollToTopButton from './components/ScrollToTopButton';
 import { supabase } from './lib/supabaseClient';
+import { useClinica, urlMarca } from './contexts/clinica';
 
 const Inicio = lazy(() => import('./pages/Inicio'));
 const AgendarCita = lazy(() => import('./pages/AgendarCita'));
@@ -34,13 +34,14 @@ function obtenerTemaInicial() {
 }
 
 function App() {
+  const clinica = useClinica();
   const location = useLocation();
   const navigate = useNavigate();
   const [theme, setTheme] = useState(obtenerTemaInicial);
   const [userName, setUserName] = useState('');
   const [touchStart, setTouchStart] = useState(null);
   const isAdminRoute = location.pathname.startsWith('/admin');
-  const whatsappUrl = `https://wa.me/526182363755?text=${encodeURIComponent(
+  const whatsappUrl = `https://wa.me/${clinica.telefono_whatsapp || ''}?text=${encodeURIComponent(
     'Hola, me gustaria solicitar informacion sobre terapia de comunicacion humana.'
   )}`;
 
@@ -125,10 +126,10 @@ function App() {
     <>
       <nav className={`navbar ${isAdminRoute ? 'admin-navbar' : ''}`}>
         <NavLink to="/" className="brand" aria-label="Ir al inicio">
-          <img src="/logo.png" alt="Clinica Casas" className="brand-logo" />
+          {clinica.logo_ruta && <img src={urlMarca(clinica.logo_ruta)} alt={clinica.nombre} className="brand-logo" />}
           <span className="brand-copy">
-            <strong>Clinica Casas</strong>
-            <small>Comunicación humana</small>
+            <strong>{clinica.nombre}</strong>
+            <small>{clinica.subtitulo || 'Terapia y comunicación'}</small>
           </span>
         </NavLink>
 
@@ -183,7 +184,7 @@ function App() {
             <span>Galería</span>
           </NavLink>
 
-          <a
+          {clinica.telefono_whatsapp && <a
             href={whatsappUrl}
             target="_blank"
             rel="noopener noreferrer"
@@ -191,7 +192,7 @@ function App() {
           >
             <FaWhatsapp aria-hidden="true" />
             <span>WhatsApp</span>
-          </a>
+          </a>}
         </nav>
       )}
 
@@ -206,11 +207,11 @@ function App() {
             <Route path="/" element={<Inicio />} />
             <Route path="/agendar" element={<AgendarCita />} />
             <Route path="/galeria" element={<Galeria />} />
-            <Route path="/login" element={<Navigate to="/" replace />} />
+            <Route path="/login" element={<LoginAdmin />} />
             <Route
               path="/admin/*"
               element={
-                <ProtectedRoute fallback={<LoginAdmin />}>
+                <ProtectedRoute expectedClinicId={clinica.id} fallback={<LoginAdmin />}>
                   <PanelAdmin />
                 </ProtectedRoute>
               }
@@ -219,7 +220,7 @@ function App() {
         </Suspense>
       </div>
 
-      {!location.pathname.startsWith('/admin') && <WhatsAppFloat />}
+      {!location.pathname.startsWith('/admin') && clinica.telefono_whatsapp && <WhatsAppFloat />}
 
       <ScrollToTopButton routeKey={location.pathname} />
     </>

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { formatearFechaLocal } from '../utils/fechas';
 import { generarReporteFinanzasPDF } from '../utils/generarReporteFinanzasPDF';
+import { useClinica } from '../contexts/clinica';
 
 const formatoPesos = new Intl.NumberFormat('es-MX', {
   style: 'currency',
@@ -26,6 +27,7 @@ function inicioMes(fecha = new Date()) {
 }
 
 function Finanzas() {
+  const clinica = useClinica();
   const hoy = formatearFechaLocal();
   const [pagos, setPagos] = useState([]);
   const [cargando, setCargando] = useState(true);
@@ -138,6 +140,7 @@ function Finanzas() {
         <button
           type="button"
           onClick={() => generarReporteFinanzasPDF({
+            nombreClinica: clinica.nombre,
             pagos: pagosFiltrados,
             totales,
             rango

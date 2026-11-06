@@ -1,7 +1,9 @@
 import { FaWhatsapp } from 'react-icons/fa';
+import { useClinica } from '../contexts/clinica';
 
 function WhatsAppFloat() {
-  const telefono = '526182363755';
+  const clinica = useClinica();
+  const telefono = clinica.telefono_whatsapp;
 
   const mensaje = encodeURIComponent(
     'Hola, me gustaría solicitar información sobre terapia de comunicación humana.'

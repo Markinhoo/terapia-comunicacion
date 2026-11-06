@@ -29,9 +29,7 @@ function DashboardHome() {
       0
     ));
 
-    const { data: pacientesData } = await supabase
-      .from('pacientes')
-      .select('id');
+    const { data: totalPacientes } = await supabase.rpc('contar_pacientes_clinica');
 
     const { data: citasMesData } = await supabase
       .from('citas')
@@ -55,7 +53,7 @@ function DashboardHome() {
     const ahora = new Date();
     await sincronizarCitasEnCurso(supabase, citasHoyData || [], ahora);
 
-    setPacientes(pacientesData?.length || 0);
+    setPacientes(totalPacientes || 0);
     setCitasMes(citasMesData?.length || 0);
 
     const serviciosUnicos = new Set(

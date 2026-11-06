@@ -5,16 +5,7 @@ import { supabase } from '../lib/supabaseClient';
 import { formatearFechaLocal } from '../utils/fechas';
 import PaginationControls from '../components/PaginationControls';
 import { usePaginatedList } from '../hooks/usePaginatedList';
-
-const servicios = [
-  'Evaluación inicial',
-  'Terapia de lenguaje infantil',
-  'Estimulación temprana',
-  'Problemas de articulación',
-  'Dificultades de lectoescritura',
-  'Terapia para adultos',
-  'Orientación a padres'
-];
+import { useClinica } from '../contexts/clinica';
 
 const horasGenerales = Array.from({ length: 9 }, (_, index) => {
   const minutos = 9 * 60 + index * 30;
@@ -41,13 +32,15 @@ const crearCitaSeleccionada = (fecha, hora, horarios = []) => ({
 });
 
 function Pacientes() {
+  const clinica = useClinica();
+  const [servicios, setServicios] = useState([]);
   const navigate = useNavigate();
   const [pacientes, setPacientes] = useState([]);
   const [busqueda, setBusqueda] = useState('');
   const [cargando, setCargando] = useState(true);
   const [pacienteSeleccionado, setPacienteSeleccionado] = useState(null);
   const [modalAbierto, setModalAbierto] = useState(false);
-  const [servicio, setServicio] = useState(servicios[0]);
+  const [servicio, setServicio] = useState('');
   const [motivo, setMotivo] = useState('');
   const [fechas, setFechas] = useState([]);
   const [horaGeneral, setHoraGeneral] = useState('09:00:00');
@@ -60,6 +53,16 @@ function Pacientes() {
   const [mensaje, setMensaje] = useState('');
   const [pacienteExpandido, setPacienteExpandido] = useState(null);
   const hoy = formatearFechaLocal();
+
+  useEffect(() => {
+    supabase.from('servicios_clinica').select('nombre')
+      .eq('clinica_id', clinica.id).eq('activo', true).order('orden')
+      .then(({ data }) => {
+        const nombres = (data || []).map((item) => item.nombre);
+        setServicios(nombres);
+        setServicio((actual) => actual || nombres[0] || '');
+      });
+  }, [clinica.id]);
 
   async function obtenerPacientes() {
     setCargando(true);
@@ -142,8 +145,8 @@ function Pacientes() {
 
     if (!fecha) return;
 
-    const { data, error } = await supabase.rpc('obtener_horarios_disponibles', {
-      fecha_consulta: fecha
+    const { data, error } = await supabase.rpc('obtener_horarios_clinica', {
+      p_clinica_id: clinica.id, fecha_consulta: fecha
     });
 
     setFechas((actuales) =>
@@ -170,8 +173,8 @@ function Pacientes() {
     setFechaConsultando(fecha);
     setMensaje('');
 
-    const { data, error } = await supabase.rpc('obtener_horarios_disponibles', {
-      fecha_consulta: fecha
+    const { data, error } = await supabase.rpc('obtener_horarios_clinica', {
+      p_clinica_id: clinica.id, fecha_consulta: fecha
     });
 
     setFechaConsultando('');

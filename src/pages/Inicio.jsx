@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { supabase } from '../lib/supabaseClient';
+import { useClinica, urlMarca } from '../contexts/clinica';
 import {
   FaBookOpen,
   FaChildReaching,
@@ -9,61 +11,7 @@ import {
   FaMicrophoneLines
 } from 'react-icons/fa6';
 
-const banners = [
-  {
-    src: '/banner1.png',
-    alt: 'Terapia de lenguaje',
-    titulo: 'Comunicar abre nuevas posibilidades'
-  },
-  {
-    src: '/banner2.png',
-    alt: 'Terapia infantil',
-    titulo: 'Acompañamiento cercano para cada etapa'
-  },
-  {
-    src: '/banner3.png',
-    alt: 'Comunicación humana',
-    titulo: 'Evaluación e intervención especializada'
-  },
-  {
-    src: '/banner4.png',
-    alt: 'Terapia de comunicación',
-    titulo: 'Estrategias pensadas para cada persona'
-  }
-];
-
-const servicios = [
-  {
-    titulo: 'Terapia de lenguaje',
-    descripcion:
-      'Fortalece la comprensión, la expresión y el uso funcional del lenguaje en la vida diaria.',
-    Icono: FaComments
-  },
-  {
-    titulo: 'Lenguaje infantil',
-    descripcion:
-      'Acompaña el desarrollo del vocabulario, las frases, la comunicación social y la comprensión.',
-    Icono: FaChildReaching
-  },
-  {
-    titulo: 'Lectoescritura',
-    descripcion:
-      'Apoya habilidades como conciencia fonológica, lectura, escritura y comprensión de textos.',
-    Icono: FaBookOpen
-  },
-  {
-    titulo: 'Terapia de voz',
-    descripcion:
-      'Promueve un uso saludable y eficiente de la voz mediante respiración, higiene y técnica vocal.',
-    Icono: FaMicrophoneLines
-  },
-  {
-    titulo: 'Evaluación inicial',
-    descripcion:
-      'Identifica fortalezas y necesidades para establecer objetivos y un plan terapéutico personalizado.',
-    Icono: FaClipboardCheck
-  }
-];
+const iconosServicio = [FaComments, FaChildReaching, FaBookOpen, FaMicrophoneLines, FaClipboardCheck];
 
 const corrientes = [
   'A B C 1 2 3 LENGUAJE 4 5 D E F VOZ 6 7 G H I 8 9 COMUNICACION 0',
@@ -73,9 +21,26 @@ const corrientes = [
 ];
 
 function Inicio() {
+  const clinica = useClinica();
+  const [servicios, setServicios] = useState([]);
+  const banners = (clinica.banner_rutas || []).map((ruta, index) => ({
+    src: urlMarca(ruta), alt: `Imagen de ${clinica.nombre} ${index + 1}`,
+    titulo: clinica.subtitulo || 'Comunicar abre nuevas posibilidades'
+  }));
+  if (banners.length === 0) banners.push({ src: null, alt: '', titulo: clinica.subtitulo || 'Comunicar abre nuevas posibilidades' });
   const [slideActual, setSlideActual] = useState(0);
   const [pausado, setPausado] = useState(false);
   const gestoCarrusel = useRef({ inicioX: 0, inicioY: 0 });
+
+  useEffect(() => {
+    supabase.from('servicios_clinica').select('id, nombre, descripcion')
+      .eq('clinica_id', clinica.id).eq('activo', true).order('orden')
+      .then(({ data }) => setServicios((data || []).map((item, index) => ({
+        titulo: item.nombre,
+        descripcion: item.descripcion || 'Atención personalizada para tus necesidades.',
+        Icono: iconosServicio[index % iconosServicio.length]
+      }))));
+  }, [clinica.id]);
 
   useEffect(() => {
     if (pausado) return undefined;
@@ -85,7 +50,7 @@ function Inicio() {
     }, 5000);
 
     return () => window.clearInterval(intervalo);
-  }, [pausado]);
+  }, [pausado, banners.length]);
 
   const cambiarSlide = (direccion) => {
     setSlideActual(
@@ -161,10 +126,10 @@ function Inicio() {
               key={banner.src}
               aria-hidden={index !== slideActual}
             >
-              <img src={banner.src} alt={banner.alt} />
+              {banner.src && <img src={banner.src} alt={banner.alt} />}
               <div className="carousel-overlay" />
               <div className="hero-text">
-                <span className="hero-kicker">Clinica Casas</span>
+                <span className="hero-kicker">{clinica.nombre}</span>
                 <h1>{banner.titulo}</h1>
                 <p>
                   Evaluación, diagnóstico e intervención especializada en
@@ -237,18 +202,8 @@ function Inicio() {
         </div>
       </section>
 
-      <section className="ubicacion-home" aria-labelledby="ubicacion-titulo">
+      {(clinica.direccion || clinica.mapa_url) && <section className="ubicacion-home" aria-labelledby="ubicacion-titulo">
         <div className="ubicacion-card">
-          <div className="ubicacion-map">
-            <iframe
-              title="Ubicación de Clínica Casas"
-              src="https://www.google.com/maps?q=24.002899,-104.6377189&z=17&output=embed"
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-              allowFullScreen
-            />
-          </div>
-
           <div className="ubicacion-info">
             <span className="section-kicker">Visítanos</span>
             <h2 id="ubicacion-titulo">Ubicación de la clínica</h2>
@@ -262,26 +217,23 @@ function Inicio() {
                 <FaLocationDot />
               </span>
               <div>
-                <strong>Clínica Casas</strong>
-                <address>
-                  459 C. Armonía<br />
-                  Victoria de Durango, Durango
-                </address>
+                <strong>{clinica.nombre}</strong>
+                <address>{clinica.direccion}</address>
               </div>
             </div>
 
-            <a
+            {clinica.mapa_url && <a
               className="btn ubicacion-button"
-              href="https://maps.app.goo.gl/aDPZSECwxDrSt5sf7"
+              href={clinica.mapa_url}
               target="_blank"
               rel="noreferrer"
             >
               <FaLocationDot aria-hidden="true" />
               Abrir ubicación en Google Maps
-            </a>
+            </a>}
           </div>
         </div>
-      </section>
+      </section>}
     </main>
   );
 }

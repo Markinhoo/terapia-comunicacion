@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { formatearFechaLocal } from '../utils/fechas';
 import { generarControlSesionesPDF } from '../utils/generarControlSesionesPDF';
+import { useClinica } from '../contexts/clinica';
 import FirmaCanvas from './FirmaCanvas';
 import Toast from './Toast';
 import PaginationControls from './PaginationControls';
@@ -24,6 +25,7 @@ const formatoPesos = new Intl.NumberFormat('es-MX', {
 });
 
 function ControlSesiones({ paciente }) {
+  const clinica = useClinica();
   const [sesiones, setSesiones] = useState([]);
   const [citasPendientesPago, setCitasPendientesPago] = useState([]);
   const [form, setForm] = useState(formularioInicial);
@@ -187,7 +189,7 @@ function ControlSesiones({ paciente }) {
         <button
           type="button"
           disabled={sesiones.length === 0}
-          onClick={() => generarControlSesionesPDF(paciente, sesiones)}
+          onClick={() => generarControlSesionesPDF(paciente, sesiones, clinica.nombre)}
         >
           Generar informe
         </button>

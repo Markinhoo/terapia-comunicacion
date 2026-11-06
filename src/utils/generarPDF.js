@@ -5,7 +5,9 @@ export const generarPDF = (
   paciente,
   detalle,
   expedientes,
-  fotoUrl
+  fotoUrl,
+  nombreClinica,
+  logoUrl
 ) => {
 
   const doc = new jsPDF();
@@ -40,7 +42,7 @@ export const generarPDF = (
   };
 
   return Promise.all([
-    cargarImagen('/logo.png'),
+    cargarImagen(logoUrl),
     cargarImagen(fotoUrl)
   ]).then(([logoDataUrl, fotoDataUrl]) => {
   doc.setFillColor(...primary);
@@ -54,14 +56,14 @@ export const generarPDF = (
   doc.setFontSize(16);
   doc.setFont(undefined, 'bold');
   doc.text(
-    'Clinica Casas',
+    nombreClinica,
     logoDataUrl ? 40 : 14,
     15
   );
 
   doc.setFontSize(9);
   doc.setFont(undefined, 'normal');
-  doc.text('Terapia de la Comunicacion Humana', logoDataUrl ? 40 : 14, 22);
+  doc.text('Expediente clínico', logoDataUrl ? 40 : 14, 22);
 
   doc.setFontSize(18);
   doc.setFont(undefined, 'bold');

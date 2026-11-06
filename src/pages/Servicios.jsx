@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import PaginationControls from '../components/PaginationControls';
 import { usePaginatedList } from '../hooks/usePaginatedList';
+import { useClinica } from '../contexts/clinica';
 
 import {
   Chart as ChartJS,
@@ -23,10 +24,52 @@ ChartJS.register(
 );
 
 function Servicios() {
+  const clinica = useClinica();
   const [servicios, setServicios] = useState([]);
   const [totalCitas, setTotalCitas] = useState(0);
+  const [catalogo, setCatalogo] = useState([]);
+  const [form, setForm] = useState({ nombre: '', descripcion: '' });
+  const [mensaje, setMensaje] = useState('');
 
-  async function obtenerServicios() {
+  const cargarCatalogo = useCallback(async () => {
+    const { data, error } = await supabase.from('servicios_clinica').select('*')
+      .eq('clinica_id', clinica.id).order('orden');
+    if (!error) setCatalogo(data || []);
+  }, [clinica.id]);
+
+  const agregarServicio = async (event) => {
+    event.preventDefault();
+    const { error } = await supabase.from('servicios_clinica').insert({
+      clinica_id: clinica.id,
+      nombre: form.nombre.trim(),
+      descripcion: form.descripcion.trim() || null,
+      orden: catalogo.length
+    });
+    if (error) { setMensaje(error.message); return; }
+    setForm({ nombre: '', descripcion: '' });
+    setMensaje('Servicio agregado.');
+    cargarCatalogo();
+  };
+
+  const cambiarActivo = async (item) => {
+    const { error } = await supabase.from('servicios_clinica')
+      .update({ activo: !item.activo }).eq('id', item.id).eq('clinica_id', clinica.id);
+    if (error) { setMensaje(error.message); return; }
+    cargarCatalogo();
+  };
+
+  const guardarServicio = async (event, item) => {
+    event.preventDefault();
+    const datos = new FormData(event.currentTarget);
+    const { error } = await supabase.from('servicios_clinica').update({
+      nombre: String(datos.get('nombre') || '').trim(),
+      descripcion: String(datos.get('descripcion') || '').trim() || null
+    }).eq('id', item.id).eq('clinica_id', clinica.id);
+    setMensaje(error ? error.message : 'Servicio actualizado.');
+    if (!error) cargarCatalogo();
+  };
+
+  const obtenerServicios = useCallback(async () => {
     const { data, error } = await supabase
       .from('citas')
       .select('servicio');
@@ -54,11 +97,12 @@ function Servicios() {
 
     setServicios(resultado);
     setTotalCitas(data.length);
-  }
+  }, []);
 
   useEffect(() => {
     obtenerServicios();
-  }, []);
+    cargarCatalogo();
+  }, [obtenerServicios, cargarCatalogo]);
 
   const serviciosPagination = usePaginatedList(servicios, 5, servicios.length);
 
@@ -95,6 +139,26 @@ function Servicios() {
 
   return (
     <div>
+
+      <section className="dashboard-section">
+        <h2>Servicios de {clinica.nombre}</h2>
+        {mensaje && <p role="status">{mensaje}</p>}
+        <form className="form platform-form" onSubmit={agregarServicio}>
+          <label>Nombre<input value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} required /></label>
+          <label>Descripción<textarea value={form.descripcion} onChange={(e) => setForm({ ...form, descripcion: e.target.value })} /></label>
+          <button type="submit">Agregar servicio</button>
+        </form>
+        <div className="platform-grid">
+          {catalogo.map((item) => <article className="dashboard-section" key={item.id}>
+            <form className="platform-form" onSubmit={(event) => guardarServicio(event, item)}>
+              <label>Nombre<input name="nombre" defaultValue={item.nombre} required /></label>
+              <label>Descripción<textarea name="descripcion" defaultValue={item.descripcion || ''} /></label>
+              <button type="submit">Guardar</button>
+            </form>
+            <button type="button" onClick={() => cambiarActivo(item)}>{item.activo ? 'Ocultar' : 'Activar'}</button>
+          </article>)}
+        </div>
+      </section>
 
       <div className="servicios-resumen">
 

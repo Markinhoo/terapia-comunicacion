@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
+import { useClinica } from '../contexts/clinica';
 
 const MOBILE_BREAKPOINT = 1023;
 const PARTICLE_COUNT = 10;
@@ -57,6 +58,7 @@ function crearParticula(element, color) {
 }
 
 function GalleryBentoCard({ publication, getMediaUrl, animationsEnabled, onOpen }) {
+  const clinica = useClinica();
   const cardRef = useRef(null);
   const particlesRef = useRef([]);
   const item = publication.medios[0];
@@ -186,7 +188,7 @@ function GalleryBentoCard({ publication, getMediaUrl, animationsEnabled, onOpen 
       </div>
 
       <div className="gallery-magic-content">
-        <span className="gallery-card-label">Clinica Casas</span>
+        <span className="gallery-card-label">{clinica.nombre}</span>
         <h2>{publication.titulo}</h2>
         {publication.descripcion && <p>{publication.descripcion}</p>}
       </div>

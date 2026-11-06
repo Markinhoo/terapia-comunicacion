@@ -1,12 +1,30 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 
-function ProtectedRoute({ children, fallback = null }) {
+function ProtectedRoute({ children, fallback = null, expectedClinicId }) {
   const [session, setSession] = useState(null);
+  const [authorized, setAuthorized] = useState(false);
   const [loading, setLoading] = useState(true);
+  const checkSequence = useRef(0);
 
   useEffect(() => {
     let active = true;
+
+    const checkSession = async (nextSession) => {
+      const checkId = ++checkSequence.current;
+      if (!nextSession) {
+        if (active) { setSession(null); setAuthorized(false); setLoading(false); }
+        return;
+      }
+
+      const { data: profile } = await supabase.from('app_profiles')
+        .select('clinica_id, active').eq('id', nextSession.user.id).maybeSingle();
+      if (active && checkId === checkSequence.current) {
+        setSession(nextSession);
+        setAuthorized(profile?.active === true && profile.clinica_id === expectedClinicId);
+        setLoading(false);
+      }
+    };
 
     supabase.auth.getSession().then(({ data, error }) => {
       if (!active) return;
@@ -15,28 +33,26 @@ function ProtectedRoute({ children, fallback = null }) {
         console.error(error);
       }
 
-      setSession(data.session);
-      setLoading(false);
+      checkSession(data.session);
     });
 
     const {
       data: { subscription }
     } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-      setSession(nextSession);
-      setLoading(false);
+      window.setTimeout(() => checkSession(nextSession), 0);
     });
 
     return () => {
       active = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [expectedClinicId]);
 
   if (loading) {
     return <p className="auth-loading">Verificando sesion...</p>;
   }
 
-  if (!session) {
+  if (!session || !authorized) {
     return fallback;
   }
 

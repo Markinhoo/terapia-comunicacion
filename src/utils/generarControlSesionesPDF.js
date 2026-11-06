@@ -1,14 +1,16 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
-export function generarControlSesionesPDF(paciente, sesiones) {
+export function generarControlSesionesPDF(paciente, sesiones, nombreClinica) {
   const doc = new jsPDF({ orientation: 'landscape' });
 
+  doc.setFontSize(12);
+  doc.text(nombreClinica, 14, 12);
   doc.setFontSize(16);
-  doc.text(`NOMBRE DEL PACIENTE: ${paciente.nombre_paciente}`, 14, 16);
+  doc.text(`NOMBRE DEL PACIENTE: ${paciente.nombre_paciente}`, 14, 22);
 
   autoTable(doc, {
-    startY: 24,
+    startY: 30,
     head: [[
       'FECHA DE TERAPIA',
       'REAGENDA',

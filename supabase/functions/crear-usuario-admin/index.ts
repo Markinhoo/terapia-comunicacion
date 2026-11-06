@@ -21,45 +21,66 @@ serve(async (req) => {
       global: { headers: { Authorization: authorization } }
     });
 
-    const { data: canManage, error: permissionError } =
-      await callerClient.rpc('can_manage_users');
+    const { data: callerData, error: callerError } = await callerClient.auth.getUser();
+    const callerId = callerData.user?.id;
+    const { data: callerProfile, error: callerProfileError } = callerId
+      ? await callerClient.from('app_profiles')
+        .select('role, active, clinica_id, plataforma_admin')
+        .eq('id', callerId).single()
+      : { data: null, error: callerError };
 
-    if (permissionError || !canManage) {
+    if (callerError || callerProfileError || !callerProfile?.active ||
+        (callerProfile.role !== 'master_admin' && !callerProfile.plataforma_admin)) {
       return new Response(
         JSON.stringify({ error: 'Solo el administrador maestro puede gestionar usuarios.' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const { action = 'create_user', user_id, email, password, role } = await req.json();
+    const { action = 'create_user', user_id, email, password, role, clinica_id } = await req.json();
 
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
+    const targetClinicId = callerProfile.plataforma_admin && clinica_id
+      ? String(clinica_id)
+      : callerProfile.clinica_id;
+
+    if (!targetClinicId) {
+      throw new Error('La clínica del usuario no está configurada.');
+    }
+
+    const { data: targetClinic, error: clinicError } = await adminClient
+      .from('clinicas').select('id').eq('id', targetClinicId).eq('activa', true).single();
+    if (clinicError || !targetClinic) throw new Error('Clínica no disponible.');
+
+    const puedeGestionarPerfil = (profile: { clinica_id: string; plataforma_admin: boolean }) =>
+      !profile.plataforma_admin && (callerProfile.plataforma_admin ||
+        profile.clinica_id === callerProfile.clinica_id);
 
     if (action === 'delete_user') {
       const targetUserId = String(user_id || '').trim();
-      const { data: callerData } = await callerClient.auth.getUser();
-
       if (!targetUserId) {
         throw new Error('No se indico el usuario.');
       }
 
-      if (callerData.user?.id === targetUserId) {
+      if (callerId === targetUserId) {
         throw new Error('No puedes eliminar tu propia cuenta.');
       }
 
       const { data: targetProfile, error: profileLookupError } = await adminClient
         .from('app_profiles')
-        .select('email, role')
+        .select('email, role, clinica_id, plataforma_admin')
         .eq('id', targetUserId)
         .single();
 
       if (profileLookupError) throw profileLookupError;
+      if (!puedeGestionarPerfil(targetProfile)) throw new Error('No puedes modificar usuarios de otra clínica.');
 
       if (targetProfile.role === 'master_admin') {
         const { count, error: countError } = await adminClient
           .from('app_profiles')
           .select('id', { count: 'exact', head: true })
           .eq('role', 'master_admin')
+          .eq('clinica_id', targetProfile.clinica_id)
           .eq('active', true);
 
         if (countError) throw countError;
@@ -74,7 +95,8 @@ serve(async (req) => {
       await adminClient
         .from('invitaciones_usuario')
         .delete()
-        .eq('email', targetProfile.email);
+        .eq('email', targetProfile.email)
+        .eq('clinica_id', targetProfile.clinica_id);
 
       return new Response(
         JSON.stringify({ deleted: true }),
@@ -91,6 +113,12 @@ serve(async (req) => {
 
       if (!targetUserId) {
         throw new Error('No se indico el usuario.');
+      }
+
+      const { data: targetProfile, error: lookupError } = await adminClient
+        .from('app_profiles').select('clinica_id, plataforma_admin').eq('id', targetUserId).single();
+      if (lookupError || !puedeGestionarPerfil(targetProfile)) {
+        throw new Error('No puedes modificar usuarios de otra clínica.');
       }
 
       const { error: updateError } = await adminClient.auth.admin.updateUserById(
@@ -129,7 +157,8 @@ serve(async (req) => {
       await adminClient.auth.admin.createUser({
         email: normalizedEmail,
         password,
-        email_confirm: true
+        email_confirm: true,
+        app_metadata: { clinica_id: targetClinicId }
       });
 
     if (createError) throw createError;
@@ -146,11 +175,15 @@ serve(async (req) => {
         id: userId,
         email: normalizedEmail,
         role: normalizedRole,
+        clinica_id: targetClinicId,
         active: true,
         updated_at: new Date().toISOString()
       });
 
-    if (profileError) throw profileError;
+    if (profileError) {
+      await adminClient.auth.admin.deleteUser(userId);
+      throw profileError;
+    }
 
     return new Response(
       JSON.stringify({ user_id: userId }),

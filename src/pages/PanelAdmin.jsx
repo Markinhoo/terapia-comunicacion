@@ -7,6 +7,7 @@ import DashboardHome from '../components/DashboardHome';
 import RoleRoute from '../components/RoleRoute';
 import { supabase } from '../lib/supabaseClient';
 import { ROLES } from '../utils/roles';
+import { useClinica } from '../contexts/clinica';
 
 const CalendarioCitas = lazy(() => import('./CalendarioCitas'));
 const Pacientes = lazy(() => import('./Pacientes'));
@@ -17,6 +18,7 @@ const GaleriaAdmin = lazy(() => import('./GaleriaAdmin'));
 const Finanzas = lazy(() => import('./Finanzas'));
 
 function PanelAdmin() {
+  const clinica = useClinica();
   const [role, setRole] = useState(null);
   const [loadingRole, setLoadingRole] = useState(true);
 
@@ -64,7 +66,7 @@ function PanelAdmin() {
 
     const cerrarPorInactividad = async () => {
       await supabase.auth.signOut();
-      window.location.assign('/admin');
+      window.location.assign(`/${clinica.slug}/admin`);
     };
 
     const reiniciarTemporizador = () => {
@@ -83,7 +85,7 @@ function PanelAdmin() {
         window.removeEventListener(evento, reiniciarTemporizador);
       });
     };
-  }, []);
+  }, [clinica.slug]);
 
   if (loadingRole) {
     return <p className="auth-loading">Cargando permisos...</p>;
@@ -106,7 +108,7 @@ function PanelAdmin() {
 
           <Route
             path="calendario"
-            element={<CalendarioCitas />}
+            element={<CalendarioCitas readOnly={role === ROLES.USER} />}
           />
 
           <Route
