@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { ClinicaContext } from './clinica';
+import { COLORES_PREDETERMINADOS, colorTextoSobre, colorValido } from '../utils/clinicBranding';
 
 export function ClinicaProvider({ slug, children }) {
   const [clinica, setClinica] = useState(null);
@@ -25,9 +26,38 @@ export function ClinicaProvider({ slug, children }) {
     if (clinica?.nombre) document.title = clinica.nombre;
   }, [clinica]);
 
+  useEffect(() => {
+    if (!clinica) return undefined;
+    const primario = colorValido(clinica.color_primario, COLORES_PREDETERMINADOS.color_primario);
+    const secundario = colorValido(clinica.color_secundario, COLORES_PREDETERMINADOS.color_secundario);
+    const boton = colorValido(clinica.color_boton, COLORES_PREDETERMINADOS.color_boton);
+    const root = document.documentElement;
+    const variables = {
+      '--primary': primario,
+      '--primary-strong': 'color-mix(in srgb, var(--primary) 35%, var(--palette-ink))',
+      '--secondary': secundario,
+      '--button-bg': boton,
+      '--button-text': colorTextoSobre(boton),
+      '--nav-bg': `color-mix(in srgb, ${primario} 30%, #111111)`
+    };
+    root.dataset.site = 'clinic';
+    Object.entries(variables).forEach(([nombre, valor]) => root.style.setProperty(nombre, valor));
+    return () => {
+      Object.keys(variables).forEach((nombre) => root.style.removeProperty(nombre));
+      delete root.dataset.site;
+    };
+  }, [clinica]);
+
+  const refrescar = async () => {
+    const { data, error: queryError } = await supabase.from('clinicas')
+      .select('*').eq('slug', slug).eq('activa', true).single();
+    if (queryError) throw queryError;
+    setClinica(data);
+  };
+
   if (loading) return <p className="auth-loading">Cargando clínica...</p>;
   if (!clinica) return <p className="auth-loading">{error || 'Clínica no encontrada.'}</p>;
 
-  return <ClinicaContext.Provider value={clinica}>{children}</ClinicaContext.Provider>;
+  return <ClinicaContext.Provider value={{ ...clinica, refrescar }}>{children}</ClinicaContext.Provider>;
 }
 

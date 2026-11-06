@@ -8,6 +8,7 @@ import {
   FaHouse,
   FaImages,
   FaRightFromBracket,
+  FaPalette,
   FaUserGear,
   FaUserGroup,
   FaXmark
@@ -39,6 +40,12 @@ const menuItems = [
     routeKey: 'servicios',
     label: 'Servicios',
     Icon: FaChartLine
+  },
+  {
+    to: '/admin/apariencia',
+    routeKey: 'apariencia',
+    label: 'Apariencia',
+    Icon: FaPalette
   },
   {
     to: '/admin/finanzas',

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useClinica, urlMarca } from '../contexts/clinica';
+import { urlMapaInsertable, urlMapaPorDireccion } from '../utils/clinicBranding';
 import {
   FaBookOpen,
   FaChildReaching,
@@ -22,6 +23,9 @@ const corrientes = [
 
 function Inicio() {
   const clinica = useClinica();
+  const mapaVisible = urlMapaInsertable(clinica.mapa_embed_url)
+    || urlMapaInsertable(clinica.mapa_url)
+    || urlMapaPorDireccion(clinica.direccion);
   const [servicios, setServicios] = useState([]);
   const banners = (clinica.banner_rutas || []).map((ruta, index) => ({
     src: urlMarca(ruta), alt: `Imagen de ${clinica.nombre} ${index + 1}`,
@@ -202,8 +206,17 @@ function Inicio() {
         </div>
       </section>
 
-      {(clinica.direccion || clinica.mapa_url) && <section className="ubicacion-home" aria-labelledby="ubicacion-titulo">
-        <div className="ubicacion-card">
+      {(clinica.direccion || clinica.mapa_url || mapaVisible) && <section className="ubicacion-home" aria-labelledby="ubicacion-titulo">
+        <div className={`ubicacion-card${mapaVisible ? '' : ' sin-mapa'}`}>
+          {mapaVisible && <div className="ubicacion-map">
+            <iframe
+              title={`Mapa de ${clinica.nombre}`}
+              src={mapaVisible}
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              allowFullScreen
+            />
+          </div>}
           <div className="ubicacion-info">
             <span className="section-kicker">Visítanos</span>
             <h2 id="ubicacion-titulo">Ubicación de la clínica</h2>

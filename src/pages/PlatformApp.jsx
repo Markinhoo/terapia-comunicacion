@@ -3,6 +3,7 @@ import { Link, Navigate, Route, Routes, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { urlMarca } from '../contexts/clinica';
 import ThemeToggle from '../components/ThemeToggle';
+import { urlMapaInsertable } from '../utils/clinicBranding';
 
 function Directorio() {
   const [clinicas, setClinicas] = useState([]);
@@ -37,7 +38,7 @@ function Creador() {
   const [clinicas, setClinicas] = useState([]);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [form, setForm] = useState({ slug: '', nombre: '', subtitulo: '', telefono_whatsapp: '', direccion: '', mapa_url: '' });
+  const [form, setForm] = useState({ slug: '', nombre: '', subtitulo: '', telefono_whatsapp: '', direccion: '', mapa_url: '', mapa_embed_url: '' });
   const [usuarioForm, setUsuarioForm] = useState({ clinica_id: '', email: '', password: '', role: 'master_admin' });
   const [mensaje, setMensaje] = useState('');
 
@@ -85,12 +86,17 @@ function Creador() {
       setMensaje('El enlace de Maps debe comenzar con https://.');
       return;
     }
+    const mapaEmbed = urlMapaInsertable(form.mapa_embed_url);
+    if (form.mapa_embed_url && !mapaEmbed) {
+      setMensaje('Pega una URL o código para insertar un mapa de Google Maps válido.');
+      return;
+    }
     const { error } = await supabase.from('clinicas').insert({
-      ...form, slug,
+      ...form, slug, mapa_embed_url: mapaEmbed || null,
       telefono_whatsapp: form.telefono_whatsapp.replace(/\D/g, '')
     });
     if (error) { setMensaje(error.message); return; }
-    setForm({ slug: '', nombre: '', subtitulo: '', telefono_whatsapp: '', direccion: '', mapa_url: '' });
+    setForm({ slug: '', nombre: '', subtitulo: '', telefono_whatsapp: '', direccion: '', mapa_url: '', mapa_embed_url: '' });
     setMensaje('Clínica creada. Configura su imagen y da de alta a su administrador maestro.');
     cargarClinicas();
   };
@@ -125,13 +131,19 @@ function Creador() {
     event.preventDefault();
     const datos = new FormData(event.currentTarget);
     const cambio = Object.fromEntries(
-      ['nombre', 'subtitulo', 'telefono_whatsapp', 'direccion', 'mapa_url']
+      ['nombre', 'subtitulo', 'telefono_whatsapp', 'direccion', 'mapa_url', 'mapa_embed_url']
         .map((campo) => [campo, String(datos.get(campo) || '').trim()])
     );
     if (cambio.mapa_url && !/^https:\/\//i.test(cambio.mapa_url)) {
       setMensaje('El enlace de Maps debe comenzar con https://.');
       return;
     }
+    const mapaEmbed = urlMapaInsertable(cambio.mapa_embed_url);
+    if (cambio.mapa_embed_url && !mapaEmbed) {
+      setMensaje('Pega una URL o código para insertar un mapa de Google Maps válido.');
+      return;
+    }
+    cambio.mapa_embed_url = mapaEmbed || null;
     cambio.telefono_whatsapp = cambio.telefono_whatsapp.replace(/\D/g, '');
     const { error } = await supabase.from('clinicas').update(cambio).eq('id', clinica.id);
     setMensaje(error ? error.message : 'Datos de la clínica actualizados.');
@@ -193,6 +205,7 @@ function Creador() {
           <label>WhatsApp<input value={form.telefono_whatsapp} onChange={(e) => setForm({ ...form, telefono_whatsapp: e.target.value })} /></label>
           <label>Dirección<input value={form.direccion} onChange={(e) => setForm({ ...form, direccion: e.target.value })} /></label>
           <label>Enlace de Maps<input value={form.mapa_url} onChange={(e) => setForm({ ...form, mapa_url: e.target.value })} /></label>
+          <label>Mapa para insertar<input value={form.mapa_embed_url} onChange={(e) => setForm({ ...form, mapa_embed_url: e.target.value })} placeholder="URL o código iframe de Google Maps" /></label>
           <button type="submit">Crear clínica</button>
         </form>
       </section>
@@ -223,12 +236,13 @@ function Creador() {
             {clinica.logo_ruta && <img src={urlMarca(clinica.logo_ruta)} alt="" />}
             <h2>{clinica.nombre}</h2>
             <a href={`/${clinica.slug}/`}>Abrir sitio</a>
-            <form className="platform-form" key={`${clinica.nombre}-${clinica.subtitulo}-${clinica.telefono_whatsapp}-${clinica.direccion}-${clinica.mapa_url}`} onSubmit={(event) => guardarClinica(event, clinica)}>
+            <form className="platform-form" key={`${clinica.nombre}-${clinica.subtitulo}-${clinica.telefono_whatsapp}-${clinica.direccion}-${clinica.mapa_url}-${clinica.mapa_embed_url}`} onSubmit={(event) => guardarClinica(event, clinica)}>
               <label>Nombre<input name="nombre" defaultValue={clinica.nombre} required /></label>
               <label>Subtítulo<input name="subtitulo" defaultValue={clinica.subtitulo || ''} /></label>
               <label>WhatsApp<input name="telefono_whatsapp" defaultValue={clinica.telefono_whatsapp || ''} /></label>
               <label>Dirección<input name="direccion" defaultValue={clinica.direccion || ''} /></label>
               <label>Enlace de Maps<input name="mapa_url" type="url" defaultValue={clinica.mapa_url || ''} /></label>
+              <label>Mapa para insertar<input name="mapa_embed_url" defaultValue={clinica.mapa_embed_url || ''} placeholder="URL o código iframe de Google Maps" /></label>
               <button type="submit">Guardar datos</button>
             </form>
             <label>Logo<input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => subirImagen(clinica, e.target.files[0], 'logo')} /></label>
@@ -251,9 +265,11 @@ export default function PlatformApp() {
   ));
 
   useEffect(() => {
+    document.documentElement.dataset.site = 'platform';
     document.documentElement.dataset.theme = theme;
     document.documentElement.style.colorScheme = theme;
     window.localStorage.setItem('theme', theme);
+    return () => { delete document.documentElement.dataset.site; };
   }, [theme]);
 
   return <>

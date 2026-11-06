@@ -34,7 +34,7 @@
   height: calc(100vh - 72px);
   background:
     linear-gradient(110deg, rgba(255, 255, 255, 0.08), transparent 42%),
-    var(--primary);
+    var(--nav-bg);
   color: white;
   padding: 18px;
   display: flex;

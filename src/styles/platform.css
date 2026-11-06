@@ -8,3 +8,85 @@
 .platform-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .platform-banner { display: flex; align-items: center; gap: 10px; }
 .platform-banner img { width: 76px; height: 58px; object-fit: cover; border-radius: 8px; }
+
+:root[data-site='platform'] {
+  --page-bg: #eeeeef;
+  --page-bg-soft: #f5f5f6;
+  --surface: #ffffff;
+  --surface-soft: #eeeeef;
+  --surface-muted: #e5e5e7;
+  --text: #1b1b1d;
+  --text-muted: #646469;
+  --primary: #333438;
+  --primary-strong: #222326;
+  --secondary: #77797e;
+  --button-bg: #25262a;
+  --button-text: #ffffff;
+  --nav-bg: #1b1b1d;
+  --border: #d5d5d8;
+}
+
+:root[data-site='platform'][data-theme='dark'] {
+  --page-bg: #101113;
+  --page-bg-soft: #161719;
+  --surface: #202124;
+  --surface-soft: #292a2e;
+  --surface-muted: #303136;
+  --text: #f0f0f1;
+  --text-muted: #b7b8bc;
+  --primary: #73767c;
+  --primary-strong: #dddddf;
+  --secondary: #999ba0;
+  --button-bg: #4a4c52;
+  --button-text: #ffffff;
+  --nav-bg: #17181a;
+  --border: #4a4b50;
+}
+
+.platform-navbar,
+:root[data-site='platform'][data-theme='dark'] .platform-navbar {
+  background: var(--nav-bg);
+}
+
+.apariencia-page { max-width: 1050px; }
+.apariencia-form { display: grid; gap: 20px; padding: clamp(18px, 3vw, 32px); }
+.apariencia-form h2 { margin: 8px 0 0; color: var(--primary-strong); }
+.apariencia-colores { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.apariencia-color { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: center; padding: 14px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface-soft); }
+.apariencia-color span { grid-column: 1 / -1; font-weight: 700; }
+.apariencia-color input { width: 70px; height: 48px; padding: 3px; cursor: pointer; }
+.apariencia-color code { color: var(--text-muted); }
+.apariencia-preview { display: grid; gap: 12px; padding: 22px; border-radius: 18px; background: color-mix(in srgb, var(--preview-primary) 16%, var(--surface)); border: 1px solid var(--preview-secondary); }
+.apariencia-preview > strong { color: var(--preview-primary); font-size: 24px; }
+.apariencia-preview-row { display: flex; flex-wrap: wrap; gap: 10px; color: var(--text); }
+.apariencia-preview-row span { padding: 8px 12px; border-radius: 999px; background: color-mix(in srgb, var(--preview-secondary) 30%, var(--surface)); }
+.apariencia-preview-button { width: fit-content; padding: 11px 16px; border-radius: 10px; background: var(--preview-button); color: var(--preview-button-text); font-weight: 700; }
+.apariencia-field { display: grid; gap: 7px; font-weight: 700; }
+.apariencia-field input { width: 100%; box-sizing: border-box; }
+.apariencia-field small { color: var(--text-muted); font-weight: 400; line-height: 1.5; }
+.apariencia-map-preview { overflow: hidden; border: 1px solid var(--border); border-radius: 16px; }
+.apariencia-map-preview iframe { display: block; width: 100%; min-height: 300px; border: 0; }
+.apariencia-message { margin: 0; color: var(--primary-strong); }
+
+:root[data-site='clinic'] .hero-cta {
+  background: var(--button-bg);
+  color: var(--button-text);
+}
+
+:root[data-site='clinic'] .hero-cta:hover,
+:root[data-site='clinic'] .hero-cta:focus-visible {
+  background: color-mix(in srgb, var(--button-bg) 85%, var(--surface));
+  color: var(--button-text);
+}
+
+:root[data-site='clinic'] .patient-action-primary,
+:root[data-site='clinic'] .ubicacion-button {
+  background: var(--button-bg);
+  color: var(--button-text);
+}
+
+@media (max-width: 700px) {
+  .apariencia-colores { grid-template-columns: 1fr; }
+  .apariencia-page { padding: 12px; }
+  .platform-heading { flex-wrap: wrap; }
+}

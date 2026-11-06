@@ -32,7 +32,7 @@
 .dashboard-card h2 {
   font-size: 36px;
   font-weight: bold;
-  color: #6b4f9b;
+  color: var(--primary-strong);
 }
 
 .admin-header,
@@ -138,7 +138,7 @@
 }
 
 .cita-hoy-card small {
-  color: #6b4f9b;
+  color: var(--primary-strong);
   font-weight: bold;
 }
 

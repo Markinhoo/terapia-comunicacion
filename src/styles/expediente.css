@@ -8,7 +8,7 @@
 
 .expediente-card h3,
 .objetivo-card h4 {
-  color: #6b4f9b;
+  color: var(--primary-strong);
 }
 
 .expediente-card input,

@@ -235,7 +235,8 @@ th {
 }
 
 .patient-action-primary {
-  background: linear-gradient(135deg, var(--primary), var(--primary-strong));
+  background: var(--button-bg);
+  color: var(--button-text);
 }
 
 .patient-action-secondary {
@@ -385,8 +386,8 @@ th {
 
 .calendar-days button.selected {
   border-color: var(--primary);
-  background: var(--primary);
-  color: white;
+  background: var(--button-bg);
+  color: var(--button-text);
   box-shadow: 0 5px 12px color-mix(in srgb, var(--primary) 28%, transparent);
 }
 

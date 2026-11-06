@@ -350,12 +350,12 @@
 
 .modal-cita-header h2 {
   margin: 0;
-  color: #6b4f9b;
+  color: var(--primary-strong);
 }
 
 .modal-close {
   background: transparent;
-  color: #6b4f9b;
+  color: var(--primary-strong);
   border: none;
   font-size: 28px;
   padding: 0;

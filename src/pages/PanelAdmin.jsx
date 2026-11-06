@@ -16,6 +16,7 @@ const ExpedienteClinico = lazy(() => import('./ExpedienteClinico'));
 const UsuariosAdmin = lazy(() => import('./UsuariosAdmin'));
 const GaleriaAdmin = lazy(() => import('./GaleriaAdmin'));
 const Finanzas = lazy(() => import('./Finanzas'));
+const AparienciaClinica = lazy(() => import('./AparienciaClinica'));
 
 function PanelAdmin() {
   const clinica = useClinica();
@@ -125,6 +126,15 @@ function PanelAdmin() {
             element={
               <RoleRoute role={role} routeKey="servicios">
                 <Servicios />
+              </RoleRoute>
+            }
+          />
+
+          <Route
+            path="apariencia"
+            element={
+              <RoleRoute role={role} routeKey="apariencia">
+                <AparienciaClinica />
               </RoleRoute>
             }
           />

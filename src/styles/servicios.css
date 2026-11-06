@@ -27,7 +27,7 @@
 
   font-weight: bold;
 
-  color: #6b4f9b;
+  color: var(--primary-strong);
 
   margin-bottom: 6px;
 }
@@ -63,7 +63,7 @@
 .chart-card h2 {
   margin-top: 0;
 
-  color: #6b4f9b;
+  color: var(--primary-strong);
 
   font-size: 18px;
 }

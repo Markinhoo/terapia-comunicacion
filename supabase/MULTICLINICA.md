@@ -53,3 +53,18 @@ de ejecutarlos en producción.
 La cuenta de creador se asigna exclusivamente a `markos_ff7@hotmail.com`
 y no pertenece a ninguna clínica. Las demás cuentas se eliminan únicamente
 al ejecutar el script de limpieza de usuarios; las migraciones no las borran.
+
+## Apariencia y mapa por clínica
+
+Antes de publicar la pantalla de Apariencia, ejecuta
+`migrations/20261106_clinic_branding.sql` en el SQL Editor. Es una migración
+aditiva: conserva clínicas, pacientes y usuarios. Luego publica el frontend.
+Cada administrador de clínica puede cambiar los colores, la dirección y los
+enlaces de Google Maps desde `/<slug>/admin/apariencia`; una cuenta de solo
+lectura no puede acceder ni llamar a la función de guardado.
+
+El enlace normal de Google Maps abre la ruta. Para mostrar el mapa exacto
+dentro de Inicio, pega la URL o el código HTML de **Compartir → Incorporar un
+mapa → Copiar HTML** en el campo "Mapa para insertar". Un enlace corto
+`maps.app.goo.gl` no es insertable por sí mismo. Si hay dirección, se intenta
+mostrar una vista de búsqueda mientras se configura el mapa insertable.

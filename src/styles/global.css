@@ -18,8 +18,8 @@ body {
 
 .btn,
 button {
-  background: #6b4f9b;
-  color: white;
+  background: var(--button-bg, #6b4f9b);
+  color: var(--button-text, white);
   border: none;
   padding: 12px 22px;
   border-radius: 10px;
