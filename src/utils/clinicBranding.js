@@ -35,6 +35,29 @@ export function urlMapaInsertable(valor) {
   }
 }
 
+export function esEnlaceGoogleMaps(valor) {
+  try {
+    const url = new URL(valor.trim());
+    return url.protocol === 'https:' && (
+      url.hostname === 'maps.app.goo.gl' ||
+      (['google.com', 'www.google.com', 'maps.google.com'].includes(url.hostname)
+        && url.pathname.startsWith('/maps'))
+    );
+  } catch {
+    return false;
+  }
+}
+
+export function normalizarMapa(enlace, anterior = {}) {
+  const mapaUrl = enlace.trim();
+  if (mapaUrl && !esEnlaceGoogleMaps(mapaUrl)) {
+    return { error: 'Pega un enlace válido de Google Maps que comience con https://.' };
+  }
+  const embed = urlMapaInsertable(mapaUrl)
+    || (mapaUrl === (anterior.mapa_url || '') ? urlMapaInsertable(anterior.mapa_embed_url) : '');
+  return { mapa_url: mapaUrl || null, mapa_embed_url: embed || null };
+}
+
 export function urlMapaPorDireccion(direccion) {
   return direccion?.trim()
     ? `https://maps.google.com/maps?q=${encodeURIComponent(direccion.trim())}&output=embed`

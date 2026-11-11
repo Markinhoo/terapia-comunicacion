@@ -5,6 +5,8 @@
 .platform-form { display: grid; gap: 12px; max-width: 620px; }
 .platform-form label, .platform-card label { display: grid; gap: 6px; }
 .platform-form input, .platform-card input { max-width: 100%; min-width: 0; box-sizing: border-box; }
+.platform-field-help { color: var(--text-muted); line-height: 1.45; }
+.platform-form-message { margin: 0; padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-soft); color: var(--text); }
 .platform-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .platform-banner { display: flex; align-items: center; gap: 10px; }
 .platform-banner img { width: 76px; height: 58px; object-fit: cover; border-radius: 8px; }

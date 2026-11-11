@@ -5,7 +5,7 @@ import {
   COLORES_PREDETERMINADOS,
   colorTextoSobre,
   colorValido,
-  urlMapaInsertable,
+  normalizarMapa,
   urlMapaPorDireccion
 } from '../utils/clinicBranding';
 
@@ -16,19 +16,18 @@ function AparienciaClinica() {
     color_secundario: colorValido(clinica.color_secundario, COLORES_PREDETERMINADOS.color_secundario),
     color_boton: colorValido(clinica.color_boton, COLORES_PREDETERMINADOS.color_boton),
     direccion: clinica.direccion || '',
-    mapa_url: clinica.mapa_url || '',
-    mapa_embed_url: clinica.mapa_embed_url || ''
+    mapa_url: clinica.mapa_url || clinica.mapa_embed_url || ''
   });
   const [mensaje, setMensaje] = useState('');
   const [guardando, setGuardando] = useState(false);
-  const mapa = urlMapaInsertable(form.mapa_embed_url) || urlMapaPorDireccion(form.direccion);
+  const mapa = normalizarMapa(form.mapa_url, clinica).mapa_embed_url || urlMapaPorDireccion(form.direccion);
 
   const guardar = async (event) => {
     event.preventDefault();
     setMensaje('');
-    const embed = urlMapaInsertable(form.mapa_embed_url);
-    if (form.mapa_embed_url.trim() && !embed) {
-      setMensaje('Pega una URL o el código de inserción de Google Maps válido.');
+    const enlace = normalizarMapa(form.mapa_url, clinica);
+    if (enlace.error) {
+      setMensaje(enlace.error);
       return;
     }
 
@@ -39,8 +38,8 @@ function AparienciaClinica() {
       p_color_secundario: form.color_secundario,
       p_color_boton: form.color_boton,
       p_direccion: form.direccion.trim(),
-      p_mapa_url: form.mapa_url.trim(),
-      p_mapa_embed_url: embed
+      p_mapa_url: enlace.mapa_url || '',
+      p_mapa_embed_url: enlace.mapa_embed_url || ''
     });
 
     if (error) {
@@ -85,12 +84,9 @@ function AparienciaClinica() {
       <label className="apariencia-field">Dirección de la clínica
         <input value={form.direccion} onChange={(event) => setForm({ ...form, direccion: event.target.value })} placeholder="Calle, número, ciudad y estado" />
       </label>
-      <label className="apariencia-field">Enlace para abrir Google Maps
+      <label className="apariencia-field">Enlace de Google Maps
         <input type="url" value={form.mapa_url} onChange={(event) => setForm({ ...form, mapa_url: event.target.value })} placeholder="https://maps.app.goo.gl/..." />
-      </label>
-      <label className="apariencia-field">Mapa para insertar
-        <input value={form.mapa_embed_url} onChange={(event) => setForm({ ...form, mapa_embed_url: event.target.value })} placeholder="Pega la URL o el código iframe de Google Maps" />
-        <small>En Google Maps: Compartir → Incorporar un mapa → Copiar HTML. El enlace corto por sí solo no se puede insertar; si hay dirección, se mostrará una vista aproximada mientras tanto.</small>
+        <small>El enlace corto abre la ubicación. El mapa de la página se genera con la dirección escrita arriba; revisa la vista previa.</small>
       </label>
       {mapa && <div className="apariencia-map-preview">
         <iframe title="Vista previa de ubicación" src={mapa} loading="lazy" referrerPolicy="no-referrer-when-downgrade" />

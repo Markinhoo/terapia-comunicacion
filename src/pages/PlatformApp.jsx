@@ -1,9 +1,18 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, Navigate, Route, Routes, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { urlMarca } from '../contexts/clinica';
 import ThemeToggle from '../components/ThemeToggle';
-import { urlMapaInsertable } from '../utils/clinicBranding';
+import { normalizarMapa } from '../utils/clinicBranding';
+
+const formularioClinicaVacio = { slug: '', nombre: '', subtitulo: '', telefono_whatsapp: '', direccion: '', mapa_url: '' };
+const extensionesImagen = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' };
+
+function errorImagen(archivo) {
+  return archivo && (!extensionesImagen[archivo.type] || archivo.size > 8 * 1024 * 1024)
+    ? 'Selecciona una imagen JPG, PNG o WebP de hasta 8 MB.'
+    : '';
+}
 
 function Directorio() {
   const [clinicas, setClinicas] = useState([]);
@@ -38,7 +47,11 @@ function Creador() {
   const [clinicas, setClinicas] = useState([]);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [form, setForm] = useState({ slug: '', nombre: '', subtitulo: '', telefono_whatsapp: '', direccion: '', mapa_url: '', mapa_embed_url: '' });
+  const [form, setForm] = useState(formularioClinicaVacio);
+  const [logoArchivo, setLogoArchivo] = useState(null);
+  const [mensajeAlta, setMensajeAlta] = useState('');
+  const [creando, setCreando] = useState(false);
+  const logoInput = useRef(null);
   const [usuarioForm, setUsuarioForm] = useState({ clinica_id: '', email: '', password: '', role: 'master_admin' });
   const [mensaje, setMensaje] = useState('');
 
@@ -76,74 +89,85 @@ function Creador() {
 
   const crear = async (event) => {
     event.preventDefault();
-    setMensaje('');
+    setMensajeAlta('');
     const slug = form.slug.trim().toLowerCase();
     if (!/^clinica-[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
-      setMensaje('La ruta debe comenzar con clinica- y usar letras minúsculas o guiones.');
+      setMensajeAlta('La ruta debe comenzar con clinica- y usar letras minúsculas o guiones.');
       return;
     }
-    if (form.mapa_url && !/^https:\/\//i.test(form.mapa_url)) {
-      setMensaje('El enlace de Maps debe comenzar con https://.');
+    const mapa = normalizarMapa(form.mapa_url);
+    if (mapa.error) {
+      setMensajeAlta(mapa.error);
       return;
     }
-    const mapaEmbed = urlMapaInsertable(form.mapa_embed_url);
-    if (form.mapa_embed_url && !mapaEmbed) {
-      setMensaje('Pega una URL o código para insertar un mapa de Google Maps válido.');
-      return;
+    const imagenInvalida = errorImagen(logoArchivo);
+    if (imagenInvalida) { setMensajeAlta(imagenInvalida); return; }
+    setCreando(true);
+    try {
+      const { data: clinica, error } = await supabase.from('clinicas').insert({
+        ...form, ...mapa, slug,
+        telefono_whatsapp: form.telefono_whatsapp.replace(/\D/g, '')
+      }).select('id, logo_ruta').single();
+      if (error) {
+        setMensajeAlta(error.code === '23505' ? 'Ya existe una clínica con esa ruta. Elige otra.' : error.message);
+        return;
+      }
+      const errorLogo = logoArchivo ? await guardarImagen(clinica, logoArchivo, 'logo') : '';
+      setForm(formularioClinicaVacio);
+      setLogoArchivo(null);
+      if (logoInput.current) logoInput.current.value = '';
+      setMensajeAlta(errorLogo
+        ? `Clínica creada, pero no se pudo guardar el logo: ${errorLogo}. Puedes subirlo desde la ficha de la clínica.`
+        : 'Clínica creada. Ahora puedes dar de alta a su administrador maestro.');
+      await cargarClinicas();
+    } catch {
+      setMensajeAlta('No se pudo completar el alta. Comprueba tu conexión e inténtalo de nuevo.');
+    } finally {
+      setCreando(false);
     }
-    const { error } = await supabase.from('clinicas').insert({
-      ...form, slug, mapa_embed_url: mapaEmbed || null,
-      telefono_whatsapp: form.telefono_whatsapp.replace(/\D/g, '')
-    });
-    if (error) { setMensaje(error.message); return; }
-    setForm({ slug: '', nombre: '', subtitulo: '', telefono_whatsapp: '', direccion: '', mapa_url: '', mapa_embed_url: '' });
-    setMensaje('Clínica creada. Configura su imagen y da de alta a su administrador maestro.');
-    cargarClinicas();
   };
 
-  const subirImagen = async (clinica, archivo, tipo) => {
-    const extensiones = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' };
-    if (!archivo || !extensiones[archivo.type] || archivo.size > 8 * 1024 * 1024) {
-      setMensaje('Selecciona una imagen JPG, PNG o WebP de hasta 8 MB.');
-      return;
-    }
-    const extension = extensiones[archivo.type];
+  const guardarImagen = async (clinica, archivo, tipo) => {
+    const extension = extensionesImagen[archivo.type];
     const ruta = `${clinica.id}/${tipo}-${crypto.randomUUID()}.${extension}`;
     const { error: uploadError } = await supabase.storage.from('clinica-branding').upload(ruta, archivo);
-    if (uploadError) { setMensaje(uploadError.message); return; }
+    if (uploadError) return uploadError.message;
     const cambio = tipo === 'logo'
       ? { logo_ruta: ruta }
       : { banner_rutas: [...(clinica.banner_rutas || []), ruta] };
     const { error } = await supabase.from('clinicas').update(cambio).eq('id', clinica.id);
     if (error) {
       await supabase.storage.from('clinica-branding').remove([ruta]);
-      setMensaje(error.message);
-      return;
+      return error.message;
     }
     if (tipo === 'logo' && clinica.logo_ruta) {
       await supabase.storage.from('clinica-branding').remove([clinica.logo_ruta]);
     }
-    setMensaje('Imagen guardada.');
-    cargarClinicas();
+    return '';
+  };
+
+  const subirImagen = async (clinica, archivo, tipo) => {
+    if (!archivo) return;
+    const imagenInvalida = errorImagen(archivo);
+    if (imagenInvalida) { setMensaje(imagenInvalida); return; }
+    const error = await guardarImagen(clinica, archivo, tipo);
+    setMensaje(error || 'Imagen guardada.');
+    if (!error) cargarClinicas();
   };
 
   const guardarClinica = async (event, clinica) => {
     event.preventDefault();
     const datos = new FormData(event.currentTarget);
     const cambio = Object.fromEntries(
-      ['nombre', 'subtitulo', 'telefono_whatsapp', 'direccion', 'mapa_url', 'mapa_embed_url']
+      ['nombre', 'subtitulo', 'telefono_whatsapp', 'direccion', 'mapa_url']
         .map((campo) => [campo, String(datos.get(campo) || '').trim()])
     );
-    if (cambio.mapa_url && !/^https:\/\//i.test(cambio.mapa_url)) {
-      setMensaje('El enlace de Maps debe comenzar con https://.');
+    const mapa = normalizarMapa(cambio.mapa_url, clinica);
+    if (mapa.error) {
+      setMensaje(mapa.error);
       return;
     }
-    const mapaEmbed = urlMapaInsertable(cambio.mapa_embed_url);
-    if (cambio.mapa_embed_url && !mapaEmbed) {
-      setMensaje('Pega una URL o código para insertar un mapa de Google Maps válido.');
-      return;
-    }
-    cambio.mapa_embed_url = mapaEmbed || null;
+    Object.assign(cambio, mapa);
     cambio.telefono_whatsapp = cambio.telefono_whatsapp.replace(/\D/g, '');
     const { error } = await supabase.from('clinicas').update(cambio).eq('id', clinica.id);
     setMensaje(error ? error.message : 'Datos de la clínica actualizados.');
@@ -204,9 +228,12 @@ function Creador() {
           <label>Subtítulo<input value={form.subtitulo} onChange={(e) => setForm({ ...form, subtitulo: e.target.value })} /></label>
           <label>WhatsApp<input value={form.telefono_whatsapp} onChange={(e) => setForm({ ...form, telefono_whatsapp: e.target.value })} /></label>
           <label>Dirección<input value={form.direccion} onChange={(e) => setForm({ ...form, direccion: e.target.value })} /></label>
-          <label>Enlace de Maps<input value={form.mapa_url} onChange={(e) => setForm({ ...form, mapa_url: e.target.value })} /></label>
-          <label>Mapa para insertar<input value={form.mapa_embed_url} onChange={(e) => setForm({ ...form, mapa_embed_url: e.target.value })} placeholder="URL o código iframe de Google Maps" /></label>
-          <button type="submit">Crear clínica</button>
+          <label>Enlace de Google Maps<input type="url" value={form.mapa_url} onChange={(e) => setForm({ ...form, mapa_url: e.target.value })} placeholder="https://maps.app.goo.gl/..." /></label>
+          <small className="platform-field-help">Con un enlace corto, el mapa en la página se muestra a partir de la dirección. Comprueba que la dirección sea correcta.</small>
+          <label>Logo de la clínica (opcional)<input ref={logoInput} type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => setLogoArchivo(e.target.files[0] || null)} /></label>
+          <small className="platform-field-help">Imagen JPG, PNG o WebP de hasta 8 MB. También podrás cambiarla después.</small>
+          <button type="submit" disabled={creando}>{creando ? 'Creando clínica...' : 'Crear clínica'}</button>
+          {mensajeAlta && <p className="platform-form-message" role="status">{mensajeAlta}</p>}
         </form>
       </section>
       <section className="dashboard-section">
@@ -241,8 +268,7 @@ function Creador() {
               <label>Subtítulo<input name="subtitulo" defaultValue={clinica.subtitulo || ''} /></label>
               <label>WhatsApp<input name="telefono_whatsapp" defaultValue={clinica.telefono_whatsapp || ''} /></label>
               <label>Dirección<input name="direccion" defaultValue={clinica.direccion || ''} /></label>
-              <label>Enlace de Maps<input name="mapa_url" type="url" defaultValue={clinica.mapa_url || ''} /></label>
-              <label>Mapa para insertar<input name="mapa_embed_url" defaultValue={clinica.mapa_embed_url || ''} placeholder="URL o código iframe de Google Maps" /></label>
+              <label>Enlace de Google Maps<input name="mapa_url" type="url" defaultValue={clinica.mapa_url || clinica.mapa_embed_url || ''} placeholder="https://maps.app.goo.gl/..." /></label>
               <button type="submit">Guardar datos</button>
             </form>
             <label>Logo<input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => subirImagen(clinica, e.target.files[0], 'logo')} /></label>
