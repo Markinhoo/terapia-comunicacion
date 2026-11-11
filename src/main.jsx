@@ -13,12 +13,15 @@ import './styles/dashboard.css';
 import './styles/sidebar.css';
 import './styles/expediente.css';
 import './styles/whatsapp.css';
+import './styles/whatsapp-inbox.css';
+import './styles/clinic-loader.css';
 import './styles/responsive.css';
 import './styles/servicios.css';
 import './styles/calendar.css';
 import './styles/theme.css';
 import './styles/galeria.css';
 import './styles/platform.css';
+import './styles/clinic-login.css';
 
 const slug = window.location.pathname.match(/^\/(clinica-[a-z0-9-]+)(?:\/|$)/)?.[1];
 

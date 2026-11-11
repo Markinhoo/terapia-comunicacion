@@ -7,6 +7,10 @@
 .platform-form input, .platform-card input { max-width: 100%; min-width: 0; box-sizing: border-box; }
 .platform-field-help { color: var(--text-muted); line-height: 1.45; }
 .platform-form-message { margin: 0; padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-soft); color: var(--text); }
+.platform-whatsapp-setup { margin-top: 12px; padding: 16px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface-soft); }
+.platform-whatsapp-setup h3, .platform-whatsapp-setup p { margin: 0; }
+.platform-form .platform-checkbox { display: flex; align-items: center; gap: 8px; }
+.platform-checkbox input { width: auto; }
 .platform-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .platform-banner { display: flex; align-items: center; gap: 10px; }
 .platform-banner img { width: 76px; height: 58px; object-fit: cover; border-radius: 8px; }

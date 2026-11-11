@@ -45,6 +45,7 @@ function Creador() {
   const [autorizado, setAutorizado] = useState(false);
   const [loading, setLoading] = useState(true);
   const [clinicas, setClinicas] = useState([]);
+  const [cuentasWhatsApp, setCuentasWhatsApp] = useState({});
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [form, setForm] = useState(formularioClinicaVacio);
@@ -58,6 +59,9 @@ function Creador() {
   const cargarClinicas = async () => {
     const { data, error } = await supabase.from('clinicas').select('*').order('created_at');
     if (!error) setClinicas(data || []);
+    const { data: cuentas } = await supabase.from('whatsapp_cuentas')
+      .select('clinica_id, phone_number_id, activa');
+    if (cuentas) setCuentasWhatsApp(Object.fromEntries(cuentas.map((cuenta) => [cuenta.clinica_id, cuenta])));
   };
 
   const comprobar = async () => {
@@ -184,6 +188,24 @@ function Creador() {
     cargarClinicas();
   };
 
+  const guardarWhatsApp = async (event, clinicaId) => {
+    event.preventDefault();
+    const datos = new FormData(event.currentTarget);
+    const phoneId = String(datos.get('phone_number_id') || '').trim();
+    const activa = datos.get('activa') === 'on';
+    if ((phoneId && !/^[0-9]{5,30}$/.test(phoneId)) || (activa && !phoneId)) {
+      setMensaje('El Phone Number ID de Meta debe contener solo dígitos antes de activar la bandeja.');
+      return;
+    }
+    const { error } = await supabase.from('whatsapp_cuentas').upsert({
+      clinica_id: clinicaId,
+      phone_number_id: phoneId || null,
+      activa
+    }, { onConflict: 'clinica_id' });
+    setMensaje(error ? error.message : 'Configuración de WhatsApp guardada.');
+    if (!error) cargarClinicas();
+  };
+
   const crearUsuario = async (event) => {
     event.preventDefault();
     setMensaje('');
@@ -270,6 +292,13 @@ function Creador() {
               <label>Dirección<input name="direccion" defaultValue={clinica.direccion || ''} /></label>
               <label>Enlace de Google Maps<input name="mapa_url" type="url" defaultValue={clinica.mapa_url || clinica.mapa_embed_url || ''} placeholder="https://maps.app.goo.gl/..." /></label>
               <button type="submit">Guardar datos</button>
+            </form>
+            <form className="platform-form platform-whatsapp-setup" key={`wa-${clinica.id}-${cuentasWhatsApp[clinica.id]?.phone_number_id || ''}-${cuentasWhatsApp[clinica.id]?.activa || false}`} onSubmit={(event) => guardarWhatsApp(event, clinica.id)}>
+              <h3>Bandeja de WhatsApp</h3>
+              <p>Primero conecta el número de esta clínica a WhatsApp Cloud API. No pegues aquí el token secreto.</p>
+              <label>Phone Number ID de Meta<input name="phone_number_id" inputMode="numeric" defaultValue={cuentasWhatsApp[clinica.id]?.phone_number_id || ''} placeholder="ID asignado por Meta" /></label>
+              <label className="platform-checkbox"><input type="checkbox" name="activa" defaultChecked={cuentasWhatsApp[clinica.id]?.activa || false} /> Habilitar bandeja después de configurar Meta y el token en Supabase</label>
+              <button type="submit">Guardar conexión</button>
             </form>
             <label>Logo<input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => subirImagen(clinica, e.target.files[0], 'logo')} /></label>
             <label>Imagen del carrusel<input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => subirImagen(clinica, e.target.files[0], 'banner')} /></label>

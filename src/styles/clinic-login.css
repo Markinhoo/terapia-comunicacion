@@ -1,0 +1,20 @@
+.login-page { background: radial-gradient(circle at 18% 18%, color-mix(in srgb, var(--primary) 15%, transparent), transparent 42%), var(--page-bg); }
+.login-experience { width: min(100%, 1000px); grid-template-columns: minmax(300px, .95fr) minmax(360px, 1.05fr); align-items: stretch; gap: 18px; }
+.login-brand-panel { display: flex; min-height: 440px; flex-direction: column; align-items: center; justify-content: center; padding: clamp(28px, 4vw, 50px); box-sizing: border-box; border-radius: 28px; background: radial-gradient(circle at 82% 15%, color-mix(in srgb, var(--secondary) 30%, transparent), transparent 50%), linear-gradient(145deg, color-mix(in srgb, var(--primary) 30%, #15131d), #15131d); color: #fff; text-align: center; box-shadow: 0 24px 54px color-mix(in srgb, var(--primary) 15%, transparent); }
+.login-brand-kicker { font-size: .78rem; font-weight: 800; letter-spacing: .2em; text-transform: uppercase; opacity: .8; }
+.login-brand-panel .login-brand-logo { width: clamp(126px, 17vw, 174px); height: clamp(126px, 17vw, 174px); margin: 26px 0 24px; padding: 12px; box-sizing: border-box; border-radius: 28px; background: #fff; box-shadow: 0 16px 40px rgba(0, 0, 0, .2); }
+.login-brand-logo img { padding: 10px; box-sizing: border-box; background: #fff; }
+.login-brand-panel h2 { margin: 0; font-size: clamp(1.75rem, 3vw, 2.5rem); line-height: 1.12; }
+.login-brand-panel p { margin: 12px 0 0; max-width: 30ch; line-height: 1.5; opacity: .88; }
+.login-brand-line { width: 46px; height: 3px; margin: 26px 0 16px; border-radius: 999px; background: var(--secondary); }
+.login-brand-panel small { opacity: .75; }
+.login-panel { display: flex; min-height: 440px; flex-direction: column; justify-content: center; box-sizing: border-box; }
+@media (max-width: 820px) {
+  .login-page { padding: 24px 16px 36px; }
+  .login-experience { width: min(100%, 560px); grid-template-columns: 1fr; gap: 14px; }
+  .login-brand-panel { min-height: 0; padding: 24px; }
+  .login-brand-panel .login-brand-logo { width: 96px; height: 96px; margin: 13px 0 12px; padding: 7px; border-radius: 20px; }
+  .login-brand-panel h2 { font-size: 1.5rem; }
+  .login-brand-panel p, .login-brand-line, .login-brand-panel small { display: none; }
+  .login-panel { min-height: 0; }
+}

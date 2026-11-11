@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import { useClinica } from '../contexts/clinica';
+import ClinicLoader from './ClinicLoader';
 
 function ProtectedRoute({ children, fallback = null, expectedClinicId }) {
+  const clinica = useClinica();
   const [session, setSession] = useState(null);
   const [authorized, setAuthorized] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -49,7 +52,7 @@ function ProtectedRoute({ children, fallback = null, expectedClinicId }) {
   }, [expectedClinicId]);
 
   if (loading) {
-    return <p className="auth-loading">Verificando sesion...</p>;
+    return <ClinicLoader clinica={clinica} label="Verificando acceso..." />;
   }
 
   if (!session || !authorized) {

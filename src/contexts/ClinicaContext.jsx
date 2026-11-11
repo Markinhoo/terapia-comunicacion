@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
-import { ClinicaContext } from './clinica';
+import { ClinicaContext, urlMarca } from './clinica';
 import { COLORES_PREDETERMINADOS, colorTextoSobre, colorValido } from '../utils/clinicBranding';
+import ClinicLoader from '../components/ClinicLoader';
 
 export function ClinicaProvider({ slug, children }) {
   const [clinica, setClinica] = useState(null);
@@ -12,10 +13,19 @@ export function ClinicaProvider({ slug, children }) {
     let active = true;
 
     supabase.from('clinicas').select('*').eq('slug', slug).eq('activa', true)
-      .maybeSingle().then(({ data, error: queryError }) => {
+      .maybeSingle().then(async ({ data, error: queryError }) => {
         if (!active) return;
         setClinica(data);
         setError(queryError ? 'No se pudo cargar la clínica.' : '');
+        if (data?.logo_ruta) {
+          await new Promise((resolve) => {
+            const image = new Image();
+            const timeout = window.setTimeout(resolve, 1200);
+            image.onload = image.onerror = () => { window.clearTimeout(timeout); resolve(); };
+            image.src = urlMarca(data.logo_ruta);
+          });
+        }
+        if (!active) return;
         setLoading(false);
       });
 
@@ -55,7 +65,7 @@ export function ClinicaProvider({ slug, children }) {
     setClinica(data);
   };
 
-  if (loading) return <p className="auth-loading">Cargando clínica...</p>;
+  if (loading) return <ClinicLoader clinica={clinica} slug={slug} />;
   if (!clinica) return <p className="auth-loading">{error || 'Clínica no encontrada.'}</p>;
 
   return <ClinicaContext.Provider value={{ ...clinica, refrescar }}>{children}</ClinicaContext.Provider>;

@@ -5,6 +5,7 @@ import Sidebar from '../components/Sidebar';
 import AccessDenied from '../components/AccessDenied';
 import DashboardHome from '../components/DashboardHome';
 import RoleRoute from '../components/RoleRoute';
+import ClinicLoader from '../components/ClinicLoader';
 import { supabase } from '../lib/supabaseClient';
 import { ROLES } from '../utils/roles';
 import { useClinica } from '../contexts/clinica';
@@ -17,6 +18,7 @@ const UsuariosAdmin = lazy(() => import('./UsuariosAdmin'));
 const GaleriaAdmin = lazy(() => import('./GaleriaAdmin'));
 const Finanzas = lazy(() => import('./Finanzas'));
 const AparienciaClinica = lazy(() => import('./AparienciaClinica'));
+const WhatsAppInbox = lazy(() => import('./WhatsAppInbox'));
 
 function PanelAdmin() {
   const clinica = useClinica();
@@ -89,7 +91,7 @@ function PanelAdmin() {
   }, [clinica.slug]);
 
   if (loadingRole) {
-    return <p className="auth-loading">Cargando permisos...</p>;
+    return <ClinicLoader clinica={clinica} label="Cargando permisos..." />;
   }
 
   return (
@@ -99,7 +101,7 @@ function PanelAdmin() {
 
       <main className="dashboard-content">
 
-        <Suspense fallback={<p className="auth-loading">Cargando sección...</p>}>
+        <Suspense fallback={<ClinicLoader clinica={clinica} label="Cargando sección..." />}>
         <Routes>
 
           <Route
@@ -144,6 +146,15 @@ function PanelAdmin() {
             element={
               <RoleRoute role={role} routeKey="finanzas">
                 <Finanzas />
+              </RoleRoute>
+            }
+          />
+
+          <Route
+            path="whatsapp"
+            element={
+              <RoleRoute role={role} routeKey="whatsapp">
+                <WhatsAppInbox />
               </RoleRoute>
             }
           />

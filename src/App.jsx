@@ -12,6 +12,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import ThemeToggle from './components/ThemeToggle';
 import WhatsAppFloat from './components/WhatsAppFloat';
 import ScrollToTopButton from './components/ScrollToTopButton';
+import ClinicLoader from './components/ClinicLoader';
 import { supabase } from './lib/supabaseClient';
 import { useClinica, urlMarca } from './contexts/clinica';
 
@@ -202,7 +203,7 @@ function App() {
         onTouchEnd={terminarDeslizamiento}
         onTouchCancel={() => setTouchStart(null)}
       >
-        <Suspense fallback={<p className="auth-loading">Cargando...</p>}>
+        <Suspense fallback={<ClinicLoader clinica={clinica} label="Preparando la página..." />}>
           <Routes>
             <Route path="/" element={<Inicio />} />
             <Route path="/agendar" element={<AgendarCita />} />

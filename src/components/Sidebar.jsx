@@ -11,6 +11,7 @@ import {
   FaPalette,
   FaUserGear,
   FaUserGroup,
+  FaWhatsapp,
   FaXmark
 } from 'react-icons/fa6';
 import { supabase } from '../lib/supabaseClient';
@@ -52,6 +53,12 @@ const menuItems = [
     routeKey: 'finanzas',
     label: 'Finanzas',
     Icon: FaCoins
+  },
+  {
+    to: '/admin/whatsapp',
+    routeKey: 'whatsapp',
+    label: 'WhatsApp',
+    Icon: FaWhatsapp
   },
   {
     to: '/admin/usuarios',
