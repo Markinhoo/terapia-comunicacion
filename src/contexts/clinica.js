@@ -2,6 +2,8 @@ import { createContext, useContext } from 'react';
 import { supabase } from '../lib/supabaseClient';
 
 export const ClinicaContext = createContext(null);
+export const CLINIC_LOGO_CACHE_PREFIX = 'clinic-logo:';
+export const CLINIC_COLOR_CACHE_PREFIX = 'clinic-colors:';
 
 export function useClinica() {
   const clinica = useContext(ClinicaContext);

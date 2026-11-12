@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 520" role="img" aria-labelledby="title">
+  <title id="title">Módulos de software conectados</title>
+  <rect width="720" height="520" rx="28" fill="#e8e8e9"/>
+  <rect x="43" y="45" width="634" height="430" rx="24" fill="#fff" stroke="#d6d6d8" stroke-width="2"/>
+  <rect x="43" y="45" width="634" height="68" rx="24" fill="#25262a"/>
+  <rect x="43" y="87" width="634" height="26" fill="#25262a"/>
+  <text x="73" y="88" fill="#fff" font-family="Arial,sans-serif" font-size="21" font-weight="700">Un sistema a tu medida</text>
+  <path d="M205 245H335M387 245H515M361 270V344" stroke="#a4a6a9" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="361" cy="245" r="57" fill="#34363b"/>
+  <text x="326" y="254" fill="#fff" font-family="Arial,sans-serif" font-size="19" font-weight="700">VODEV</text>
+  <rect x="77" y="190" width="128" height="109" rx="17" fill="#e6e7e9"/>
+  <rect x="515" y="190" width="128" height="109" rx="17" fill="#dedfe1"/>
+  <rect x="294" y="344" width="134" height="91" rx="17" fill="#e6e7e9"/>
+  <g fill="#33353a" font-family="Arial,sans-serif" font-size="15" font-weight="700" text-anchor="middle"><text x="141" y="255">Tus datos</text><text x="579" y="255">Tu equipo</text><text x="361" y="399">Tus procesos</text></g>
+  <g fill="#a1a3a7"><circle cx="141" cy="218" r="12"/><circle cx="579" cy="218" r="12"/><circle cx="361" cy="370" r="10"/></g>
+</svg>

@@ -22,11 +22,33 @@ import './styles/theme.css';
 import './styles/galeria.css';
 import './styles/platform.css';
 import './styles/clinic-login.css';
+import './styles/theme-switch.css';
 
 const slug = window.location.pathname.match(/^\/(clinica-[a-z0-9-]+)(?:\/|$)/)?.[1];
+const rutaClinica = slug ? window.location.pathname.slice(slug.length + 1) || '/' : '';
+
+function precargarPagina(ruta) {
+  if (ruta.startsWith('/admin')) {
+    return Promise.all([import('./pages/PanelAdmin'), import('./pages/LoginAdmin')])
+      .then(([admin, login]) => ({ pagina: admin.default, login: login.default }));
+  }
+  let modulo;
+  switch (ruta) {
+    case '/agendar': modulo = import('./pages/AgendarCita'); break;
+    case '/galeria': modulo = import('./pages/Galeria'); break;
+    case '/login': modulo = import('./pages/LoginAdmin'); break;
+    case '/': modulo = import('./pages/Inicio'); break;
+    default: return Promise.resolve({});
+  }
+  return modulo.then(({ default: pagina }) => ({ pagina }));
+}
+
+const paginaPreparada = slug ? precargarPagina(rutaClinica) : null;
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <BrowserRouter basename={slug ? `/${slug}` : undefined}>
-    {slug ? <ClinicaProvider slug={slug}><App /></ClinicaProvider> : <PlatformApp />}
+    {slug ? <ClinicaProvider slug={slug} paginaPreparada={paginaPreparada}>
+      {(paginaInicial) => <App paginaInicial={paginaInicial} rutaInicial={rutaClinica} />}
+    </ClinicaProvider> : <PlatformApp />}
   </BrowserRouter>
 );

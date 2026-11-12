@@ -3,7 +3,7 @@ import { FaEye, FaEyeSlash } from 'react-icons/fa6';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useClinica } from '../contexts/clinica';
-import ClinicLoader, { ClinicBrandMark } from '../components/ClinicLoader';
+import { ClinicBrandMark } from '../components/ClinicLoader';
 
 const MAX_INTENTOS_LOGIN = 5;
 const BLOQUEO_LOGIN_MS = 5 * 60 * 1000;
@@ -57,6 +57,13 @@ function LoginAdmin() {
 
     window.localStorage.removeItem('admin_login_intentos');
     window.localStorage.removeItem('admin_login_bloqueado_hasta');
+    try {
+      await import('./PanelAdmin');
+    } catch {
+      setMensaje('No se pudo cargar el panel. Intenta de nuevo.');
+      setEnviando(false);
+      return;
+    }
     const destino = location.state?.from?.pathname || '/admin';
     navigate(destino, { replace: true });
   };
@@ -74,7 +81,6 @@ function LoginAdmin() {
         </div>
 
         <div className="login-panel">
-          {enviando && <ClinicLoader clinica={clinica} label="Iniciando sesión..." overlay />}
           <span className="login-eyebrow">Área privada</span>
           <h1 id="login-title">Acceso administrativo</h1>
           <p className="subtitle">Panel privado para consultar, confirmar y administrar citas.</p>

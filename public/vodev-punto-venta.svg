@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 520" role="img" aria-labelledby="title">
+  <title id="title">Punto de venta conceptual</title>
+  <rect width="720" height="520" rx="28" fill="#e8e8e9"/>
+  <rect x="42" y="44" width="636" height="432" rx="24" fill="#fff" stroke="#d6d6d8" stroke-width="2"/>
+  <rect x="42" y="44" width="636" height="68" rx="24" fill="#25262a"/>
+  <rect x="42" y="85" width="636" height="27" fill="#25262a"/>
+  <text x="72" y="87" fill="#fff" font-family="Arial,sans-serif" font-size="21" font-weight="700">Punto de venta</text>
+  <text x="74" y="154" fill="#33353a" font-family="Arial,sans-serif" font-size="16" font-weight="700">Productos</text>
+  <g fill="#dedfe1"><rect x="74" y="179" width="117" height="105" rx="14"/><rect x="205" y="179" width="117" height="105" rx="14"/><rect x="74" y="298" width="117" height="105" rx="14"/><rect x="205" y="298" width="117" height="105" rx="14"/></g>
+  <g fill="#999ba0"><rect x="103" y="198" width="59" height="55" rx="12"/><circle cx="264" cy="226" r="28"/><path d="M99 318h66l-12 62h-43z"/><rect x="234" y="321" width="59" height="60" rx="9"/></g>
+  <rect x="348" y="135" width="296" height="288" rx="16" fill="#f0f0f1"/>
+  <text x="372" y="174" fill="#33353a" font-family="Arial,sans-serif" font-size="17" font-weight="700">Venta actual</text>
+  <path d="M372 193H620M372 249H620M372 305H620" stroke="#d1d2d4" stroke-width="2"/>
+  <g fill="#53555a" font-family="Arial,sans-serif" font-size="14"><text x="372" y="228">Producto A</text><text x="552" y="228">$120</text><text x="372" y="284">Producto B</text><text x="552" y="284">$180</text></g>
+  <text x="372" y="346" fill="#33353a" font-family="Arial,sans-serif" font-size="17" font-weight="700">Total</text>
+  <text x="548" y="346" fill="#33353a" font-family="Arial,sans-serif" font-size="19" font-weight="700">$300</text>
+  <rect x="372" y="366" width="248" height="38" rx="11" fill="#34363b"/>
+  <text x="465" y="391" fill="#fff" font-family="Arial,sans-serif" font-size="14" font-weight="700">Cobrar</text>
+</svg>

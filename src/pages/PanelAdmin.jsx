@@ -1,4 +1,4 @@
-﻿import { lazy, Suspense, useEffect, useState } from 'react';
+﻿import { lazy, Suspense, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
 
 import Sidebar from '../components/Sidebar';
@@ -20,48 +20,8 @@ const Finanzas = lazy(() => import('./Finanzas'));
 const AparienciaClinica = lazy(() => import('./AparienciaClinica'));
 const WhatsAppInbox = lazy(() => import('./WhatsAppInbox'));
 
-function PanelAdmin() {
+function PanelAdmin({ role }) {
   const clinica = useClinica();
-  const [role, setRole] = useState(null);
-  const [loadingRole, setLoadingRole] = useState(true);
-
-  useEffect(() => {
-    let active = true;
-
-    async function cargarRol() {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const userId = sessionData.session?.user?.id;
-
-      if (!userId) {
-        if (active) {
-          setRole(ROLES.USER);
-          setLoadingRole(false);
-        }
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from('app_profiles')
-        .select('role, active')
-        .eq('id', userId)
-        .maybeSingle();
-
-      if (!active) return;
-
-      if (error) {
-        console.error(error);
-      }
-
-      setRole(data?.active === false ? ROLES.USER : (data?.role || ROLES.USER));
-      setLoadingRole(false);
-    }
-
-    cargarRol();
-
-    return () => {
-      active = false;
-    };
-  }, []);
 
   useEffect(() => {
     let timeoutId;
@@ -89,10 +49,6 @@ function PanelAdmin() {
       });
     };
   }, [clinica.slug]);
-
-  if (loadingRole) {
-    return <ClinicLoader clinica={clinica} label="Cargando permisos..." />;
-  }
 
   return (
     <div className="dashboard-layout">

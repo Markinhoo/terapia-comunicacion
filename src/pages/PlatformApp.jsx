@@ -14,28 +14,158 @@ function errorImagen(archivo) {
     : '';
 }
 
-function Directorio() {
+const soluciones = [
+  {
+    titulo: 'CRM para relaciones que crecen',
+    descripcion: 'Centraliza clientes, tareas y seguimiento en un espacio adaptado a la forma de trabajar de tu equipo.',
+    puntos: ['Información organizada', 'Seguimiento de actividades', 'Procesos más claros'],
+    imagen: '/vodev-crm.svg',
+    alt: 'Ilustración de un CRM con clientes, actividades y seguimiento'
+  },
+  {
+    titulo: 'Puntos de venta pensados para tu operación',
+    descripcion: 'Diseñamos herramientas para registrar ventas, consultar productos y tener una visión más clara del negocio.',
+    puntos: ['Ventas en un solo flujo', 'Control de productos', 'Reportes útiles'],
+    imagen: '/vodev-punto-venta.svg',
+    alt: 'Ilustración conceptual de un punto de venta con productos y resumen de ventas'
+  },
+  {
+    titulo: 'Sistemas hechos a la medida',
+    descripcion: 'Cuando un proceso no cabe en una solución genérica, creamos software que responde a lo que tu empresa necesita.',
+    puntos: ['Diseño según tus procesos', 'Herramientas conectadas', 'Espacio para crecer'],
+    imagen: '/vodev-sistemas.svg',
+    alt: 'Ilustración de módulos de software conectados para una empresa'
+  }
+];
+
+function VodevHome() {
   const [clinicas, setClinicas] = useState([]);
+  const [actual, setActual] = useState(0);
+  const [pausado, setPausado] = useState(false);
+  const [movimientoReducido, setMovimientoReducido] = useState(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const inicioTouch = useRef(null);
 
   useEffect(() => {
-    supabase.from('clinicas').select('id, slug, nombre, subtitulo, logo_ruta')
+    supabase.from('clinicas').select('id, nombre, logo_ruta')
       .eq('activa', true).order('nombre')
       .then(({ data }) => setClinicas(data || []));
   }, []);
 
+  useEffect(() => {
+    const media = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const actualizar = () => setMovimientoReducido(media.matches);
+    media.addEventListener('change', actualizar);
+    return () => media.removeEventListener('change', actualizar);
+  }, []);
+
+  useEffect(() => {
+    if (pausado || movimientoReducido) return undefined;
+    const intervalo = window.setInterval(() => setActual((indice) => (indice + 1) % soluciones.length), 6500);
+    return () => window.clearInterval(intervalo);
+  }, [pausado, movimientoReducido]);
+
+  const mover = (paso) => setActual((indice) => (indice + paso + soluciones.length) % soluciones.length);
+  const solucion = soluciones[actual];
+
   return (
-    <main className="container platform-page">
-      <h1>Clínicas</h1>
-      <p>Selecciona tu clínica para conocer sus servicios o agendar una valoración.</p>
-      <div className="platform-grid">
-        {clinicas.map((clinica) => (
-          <a className="dashboard-section platform-card" href={`/${clinica.slug}/`} key={clinica.id}>
-            {clinica.logo_ruta && <img src={urlMarca(clinica.logo_ruta)} alt="" />}
-            <h2>{clinica.nombre}</h2>
-            <p>{clinica.subtitulo}</p>
-          </a>
-        ))}
-      </div>
+    <main className="vodev-home platform-page">
+      <section className="vodev-hero" aria-labelledby="vodev-title">
+        <div className="vodev-hero-copy">
+          <span className="vodev-eyebrow">VODEV · Desarrollo de software</span>
+          <h1 id="vodev-title">Software para hacer crecer tus ideas. <span>A la medida de tu negocio.</span></h1>
+          <p>Creamos soluciones digitales para empresas: CRM, puntos de venta y sistemas independientes diseñados alrededor de sus procesos.</p>
+          <a className="vodev-link" href="#soluciones">Explora nuestras soluciones <span aria-hidden="true">↗</span></a>
+        </div>
+        <div className="vodev-hero-art">
+          <img src="/vodev-logo.png" alt="Logotipo de VODEV" fetchPriority="high" />
+        </div>
+      </section>
+
+      <section className="vodev-solutions" id="soluciones" aria-labelledby="vodev-solutions-title">
+        <div className="vodev-section-heading">
+          <span className="vodev-eyebrow">Lo que podemos construir</span>
+          <h2 id="vodev-solutions-title">Tecnología con un propósito claro</h2>
+          <p>Desde la gestión cotidiana hasta un sistema propio para tu empresa.</p>
+        </div>
+        <div className="vodev-carousel" aria-roledescription="carrusel" aria-label="Soluciones de software de VODEV"
+          onMouseEnter={() => setPausado(true)} onMouseLeave={() => setPausado(false)}
+          onFocus={() => setPausado(true)} onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setPausado(false); }}
+          onTouchStart={(event) => { inicioTouch.current = event.touches[0].clientX; setPausado(true); }}
+          onTouchEnd={(event) => {
+            if (inicioTouch.current !== null) {
+              const distancia = event.changedTouches[0].clientX - inicioTouch.current;
+              if (Math.abs(distancia) > 45) mover(distancia < 0 ? 1 : -1);
+            }
+            inicioTouch.current = null;
+            setPausado(false);
+          }} onTouchCancel={() => { inicioTouch.current = null; setPausado(false); }}>
+          <div className="vodev-slide" key={actual} aria-live={pausado ? 'polite' : 'off'}>
+            <div className="vodev-slide-visual"><img src={solucion.imagen} alt={solucion.alt} /></div>
+            <div className="vodev-slide-copy">
+              <span className="vodev-slide-number">0{actual + 1} / 0{soluciones.length}</span>
+              <h3>{solucion.titulo}</h3>
+              <p>{solucion.descripcion}</p>
+              <ul>{solucion.puntos.map((punto) => <li key={punto}>{punto}</li>)}</ul>
+            </div>
+          </div>
+          <div className="vodev-carousel-controls">
+            <button type="button" className="vodev-arrow" onClick={() => mover(-1)} aria-label="Solución anterior">←</button>
+            <div className="vodev-dots" aria-label="Seleccionar solución">
+              {soluciones.map((item, indice) => <button type="button" key={item.titulo}
+                className={indice === actual ? 'vodev-dot active' : 'vodev-dot'}
+                aria-label={`Ver solución ${indice + 1}: ${item.titulo}`}
+                aria-current={indice === actual ? 'true' : undefined}
+                onClick={() => setActual(indice)} />)}
+            </div>
+            <button type="button" className="vodev-arrow" onClick={() => mover(1)} aria-label="Siguiente solución">→</button>
+          </div>
+        </div>
+      </section>
+
+      <section className="vodev-sectors" id="sectores" aria-labelledby="vodev-sectors-title">
+        <div className="vodev-section-heading">
+          <span className="vodev-eyebrow">Sectores y proyectos</span>
+          <h2 id="vodev-sectors-title">Una solución para cada forma de trabajar</h2>
+          <p>Comenzamos en salud y dejamos espacio para construir soluciones en nuevas industrias.</p>
+        </div>
+        <div className="vodev-sector-grid">
+          <article className="vodev-sector-card vodev-sector-active">
+            <span className="vodev-sector-icon" aria-hidden="true">+</span>
+            <span className="vodev-sector-state">Proyecto activo</span>
+            <h3>Salud</h3>
+            <p>Gestión de clínicas con agenda, expedientes, seguimiento y finanzas en un mismo sistema.</p>
+            <a href="#salud">Conoce este proyecto <span aria-hidden="true">↗</span></a>
+          </article>
+          <article className="vodev-sector-card">
+            <span className="vodev-sector-icon" aria-hidden="true">▦</span>
+            <span className="vodev-sector-state">Próximamente</span>
+            <h3>Comercio</h3>
+            <p>Un espacio para futuros proyectos de ventas, inventario y operación comercial.</p>
+          </article>
+          <article className="vodev-sector-card">
+            <span className="vodev-sector-icon" aria-hidden="true">◇</span>
+            <span className="vodev-sector-state">A medida</span>
+            <h3>Más industrias</h3>
+            <p>Cada empresa tiene retos propios. Aquí podrán sumarse nuevas soluciones y casos de uso.</p>
+          </article>
+        </div>
+      </section>
+
+      <section className="vodev-partners" id="salud" aria-labelledby="vodev-partners-title">
+        <div className="vodev-section-heading">
+          <span className="vodev-eyebrow">Proyecto de salud</span>
+          <h2 id="vodev-partners-title">Clínicas que trabajan con VODEV</h2>
+          <p>Un ejemplo de cómo adaptamos la tecnología a un sector concreto.</p>
+        </div>
+        {clinicas.length > 0 ? <div className="vodev-partner-grid">
+          {clinicas.map((clinica) => <div className="vodev-partner" key={clinica.id}>
+            {clinica.logo_ruta ? <img src={urlMarca(clinica.logo_ruta)} alt={`Logo de ${clinica.nombre}`} loading="lazy" />
+              : <span className="vodev-partner-placeholder" aria-hidden="true">{clinica.nombre.charAt(0)}</span>}
+            <strong>{clinica.nombre}</strong>
+          </div>)}
+        </div> : <p className="vodev-empty">Próximamente conocerás a las clínicas que trabajan con VODEV.</p>}
+      </section>
+      <footer className="vodev-footer"><strong>VODEV</strong><span>Desarrollo de software para empresas que quieren avanzar.</span></footer>
     </main>
   );
 }
@@ -224,7 +354,7 @@ function Creador() {
 
   if (!autorizado) return (
     <main className="container platform-page">
-      <Link to="/">Volver a clínicas</Link>
+      <Link to="/">Volver a VODEV</Link>
       <h1>Acceso del creador</h1>
       <form className="form platform-form" onSubmit={entrar}>
         <label>Correo<input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required /></label>
@@ -238,7 +368,7 @@ function Creador() {
   return (
     <main className="container platform-page">
       <div className="platform-heading">
-        <div><h1>Plataforma de clínicas</h1><p>Alta y configuración de clínicas.</p></div>
+        <div><h1>Panel VODEV</h1><p>Alta y configuración de clínicas.</p></div>
         <button type="button" onClick={async () => { await supabase.auth.signOut(); navigate('/'); }}>Cerrar sesión</button>
       </div>
       {mensaje && <p role="status">{mensaje}</p>}
@@ -329,16 +459,16 @@ export default function PlatformApp() {
 
   return <>
     <nav className="navbar platform-navbar">
-      <Link to="/" className="brand"><strong>Plataforma de clínicas</strong></Link>
+      <Link to="/" className="brand vodev-brand"><strong>VODEV</strong></Link>
       <ThemeToggle theme={theme} onToggle={() => setTheme((actual) => actual === 'dark' ? 'light' : 'dark')} />
     </nav>
     <Routes>
-      <Route path="/" element={<Directorio />} />
+      <Route path="/" element={<VodevHome />} />
       <Route path="/plataforma" element={<Creador />} />
-      <Route path="/admin/*" element={<Navigate to="/clinica-evocare/admin" replace />} />
-      <Route path="/login" element={<Navigate to="/clinica-evocare/login" replace />} />
-      <Route path="/agendar" element={<Navigate to="/clinica-evocare/agendar" replace />} />
-      <Route path="/galeria" element={<Navigate to="/clinica-evocare/galeria" replace />} />
+      <Route path="/admin/*" element={<Navigate to="/" replace />} />
+      <Route path="/login" element={<Navigate to="/" replace />} />
+      <Route path="/agendar" element={<Navigate to="/" replace />} />
+      <Route path="/galeria" element={<Navigate to="/" replace />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   </>;

@@ -7,6 +7,7 @@ function ProtectedRoute({ children, fallback = null, expectedClinicId }) {
   const clinica = useClinica();
   const [session, setSession] = useState(null);
   const [authorized, setAuthorized] = useState(false);
+  const [role, setRole] = useState(null);
   const [loading, setLoading] = useState(true);
   const checkSequence = useRef(0);
 
@@ -16,15 +17,16 @@ function ProtectedRoute({ children, fallback = null, expectedClinicId }) {
     const checkSession = async (nextSession) => {
       const checkId = ++checkSequence.current;
       if (!nextSession) {
-        if (active) { setSession(null); setAuthorized(false); setLoading(false); }
+        if (active) { setSession(null); setAuthorized(false); setRole(null); setLoading(false); }
         return;
       }
 
       const { data: profile } = await supabase.from('app_profiles')
-        .select('clinica_id, active').eq('id', nextSession.user.id).maybeSingle();
+        .select('clinica_id, active, role').eq('id', nextSession.user.id).maybeSingle();
       if (active && checkId === checkSequence.current) {
         setSession(nextSession);
         setAuthorized(profile?.active === true && profile.clinica_id === expectedClinicId);
+        setRole(profile?.role || null);
         setLoading(false);
       }
     };
@@ -59,7 +61,7 @@ function ProtectedRoute({ children, fallback = null, expectedClinicId }) {
     return fallback;
   }
 
-  return children;
+  return typeof children === 'function' ? children(role) : children;
 }
 
 export default ProtectedRoute;

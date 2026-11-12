@@ -2,12 +2,27 @@
 .clinic-brand-mark img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: contain; background: var(--surface); }
 .clinic-brand-mark img[hidden] { display: none; }
 .clinic-brand-initials { font-size: clamp(28px, 5vw, 48px); font-weight: 800; letter-spacing: -.04em; }
-.clinic-loader { display: flex; min-height: min(70vh, 540px); align-items: center; justify-content: center; flex-direction: column; gap: 12px; padding: 28px; color: var(--text); text-align: center; background: var(--page-bg); }
-.clinic-loader strong { font-size: 1.3rem; }
-.clinic-loader > span { color: var(--text-muted); }
-.clinic-loader-brand { position: relative; display: grid; width: 116px; height: 116px; padding: 12px; place-items: center; border-radius: 26px; background: var(--surface); box-shadow: 0 12px 35px color-mix(in srgb, var(--primary) 18%, transparent); }
-.clinic-loader-brand .clinic-brand-mark { border-radius: 18px; }
-.clinic-loader-orbit { position: absolute; inset: -6px; border: 2px solid transparent; border-top-color: var(--primary); border-right-color: var(--secondary); border-radius: 34px; animation: clinic-loader-spin 1.6s linear infinite; }
+.clinic-loader { --clinic-loader-primary: var(--primary, #7e00e5); --clinic-loader-secondary: var(--secondary, #00b7eb); --clinic-loader-bg: color-mix(in srgb, var(--clinic-loader-primary) 18%, #f7f7f8); display: flex; min-height: min(70vh, 540px); align-items: center; justify-content: center; flex-direction: column; gap: 5px; padding: 28px; box-sizing: border-box; color: var(--text); text-align: center; background: radial-gradient(circle at 50% 43%, color-mix(in srgb, var(--clinic-loader-primary) 28%, var(--clinic-loader-bg)) 0, var(--clinic-loader-bg) 68%); }
+#root > .clinic-loader:not(.clinic-loader-overlay) { min-height: 100dvh; }
+.clinic-loader-scene { position: relative; display: grid; width: min(74vw, 280px); height: min(74vw, 280px); place-items: center; }
+.clinic-loader-scene::before { position: absolute; inset: 12px; border-radius: 50%; background: conic-gradient(from 0deg, transparent 0 31%, var(--clinic-loader-secondary) 51%, transparent 62% 79%, var(--clinic-loader-primary) 98%); mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2px)); animation: clinic-loader-turn 2.8s linear infinite; content: ''; }
+.clinic-loader-particles { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.clinic-loader-brand { position: relative; z-index: 1; display: grid; width: clamp(96px, 28vw, 124px); height: clamp(96px, 28vw, 124px); padding: 10px; box-sizing: border-box; place-items: center; border: 1px solid color-mix(in srgb, var(--clinic-loader-primary) 32%, var(--border)); border-radius: 26px; background: var(--surface); box-shadow: 0 15px 40px color-mix(in srgb, var(--clinic-loader-primary) 20%, transparent); }
+.clinic-loader-brand img { display: block; width: 100%; height: 100%; border-radius: 17px; object-fit: contain; background: #fff; }
+.clinic-loader-brand-empty { visibility: hidden; }
+.clinic-loader-caption { margin-top: -8px; font-size: 1rem; font-weight: 600; letter-spacing: .025em; }
+.clinic-loader-caption::after { display: inline-block; width: 1.4em; overflow: hidden; vertical-align: bottom; text-align: left; animation: clinic-loader-dots 1.1s steps(4, end) infinite; content: '...'; }
+.clinic-loader-progress { position: relative; display: block; width: 108px; height: 3px; margin: 14px 0 6px; overflow: hidden; border-radius: 999px; background: color-mix(in srgb, var(--clinic-loader-primary) 20%, var(--surface)); }
+.clinic-loader-progress::after { position: absolute; inset: 0; width: 45%; border-radius: inherit; background: linear-gradient(90deg, var(--clinic-loader-primary), var(--clinic-loader-secondary)); animation: clinic-loader-progress 1.2s ease-in-out infinite alternate; content: ''; }
 .clinic-loader-overlay { position: absolute; inset: 0; z-index: 10; min-height: 0; border-radius: inherit; background: color-mix(in srgb, var(--surface) 94%, transparent); backdrop-filter: blur(8px); }
-@keyframes clinic-loader-spin { to { transform: rotate(360deg); } }
-@media (prefers-reduced-motion: reduce) { .clinic-loader-orbit { animation: none; border-color: var(--primary); } }
+.clinic-loader-overlay .clinic-loader-scene { width: min(48vw, 210px); height: min(48vw, 210px); }
+:root[data-theme='dark'] .clinic-loader { --clinic-loader-bg: color-mix(in srgb, var(--clinic-loader-primary) 30%, #141319); }
+:root[data-theme='dark'] .clinic-loader.clinic-loader-overlay { background: color-mix(in srgb, var(--surface) 94%, transparent); }
+:root[data-theme='dark'] .clinic-loader-brand { box-shadow: 0 15px 45px color-mix(in srgb, var(--clinic-loader-secondary) 23%, transparent); }
+@keyframes clinic-loader-turn { to { transform: rotate(360deg); } }
+@keyframes clinic-loader-dots { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0); } }
+@keyframes clinic-loader-progress { from { transform: translateX(-105%); } to { transform: translateX(225%); } }
+@media (prefers-reduced-motion: reduce) {
+  .clinic-loader-particles { display: none; }
+  .clinic-loader-scene::before, .clinic-loader-caption::after, .clinic-loader-progress::after { animation: none; }
+}

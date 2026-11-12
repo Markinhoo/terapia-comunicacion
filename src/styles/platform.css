@@ -96,3 +96,80 @@
   .apariencia-page { padding: 12px; }
   .platform-heading { flex-wrap: wrap; }
 }
+
+.vodev-brand strong { font-size: 22px; letter-spacing: .18em; }
+.vodev-home { overflow: hidden; color: var(--text); }
+.vodev-hero, .vodev-solutions, .vodev-sectors, .vodev-partners { max-width: 1220px; margin: 0 auto; padding: clamp(54px, 7vw, 100px) clamp(20px, 5vw, 64px); }
+.vodev-hero { display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(0, .92fr); align-items: center; gap: 44px; min-height: 580px; box-sizing: border-box; }
+.vodev-eyebrow { display: block; color: var(--text-muted); font-size: 12px; font-weight: 800; letter-spacing: .22em; text-transform: uppercase; }
+.vodev-hero h1 { max-width: 720px; margin: 24px 0; font-size: clamp(43px, 5.6vw, 78px); line-height: 1.04; letter-spacing: -.055em; }
+.vodev-hero h1 span { color: var(--text-muted); }
+.vodev-hero p { max-width: 550px; color: var(--text-muted); font-size: clamp(17px, 1.8vw, 20px); line-height: 1.6; }
+.vodev-link { display: inline-flex; gap: 30px; align-items: center; margin-top: 22px; padding: 15px 21px; border-radius: 999px; background: var(--text); color: var(--page-bg); font-weight: 700; text-decoration: none; transition: transform .2s ease, opacity .2s ease; }
+.vodev-link:hover { transform: translateY(-3px); opacity: .84; }
+.vodev-hero-art { display: grid; min-height: 440px; place-items: center; overflow: hidden; border: 1px solid #22243f; border-radius: 42px; background: #030519; }
+.vodev-hero-art img { display: block; width: 100%; height: 100%; min-height: 440px; object-fit: cover; }
+.vodev-solutions { padding-top: 55px; }
+.vodev-section-heading { max-width: 760px; margin-bottom: 32px; }
+.vodev-section-heading h2 { margin: 12px 0; font-size: clamp(31px, 4vw, 51px); line-height: 1.1; letter-spacing: -.04em; }
+.vodev-section-heading p { color: var(--text-muted); font-size: 17px; line-height: 1.5; }
+.vodev-carousel { overflow: hidden; border: 1px solid var(--border); border-radius: 30px; background: var(--surface); box-shadow: 0 24px 70px color-mix(in srgb, var(--text) 5%, transparent); }
+.vodev-slide { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); align-items: center; min-height: 460px; }
+.vodev-slide-visual { display: grid; height: 100%; min-height: 420px; place-items: center; padding: 28px; box-sizing: border-box; background: var(--surface-soft); }
+.vodev-slide-visual img { display: block; width: min(100%, 620px); height: auto; }
+.vodev-slide-copy { padding: clamp(28px, 4vw, 60px); }
+.vodev-slide-number { color: var(--text-muted); font-size: 12px; font-weight: 800; letter-spacing: .18em; }
+.vodev-slide-copy h3 { margin: 20px 0 16px; font-size: clamp(27px, 3vw, 40px); line-height: 1.13; letter-spacing: -.035em; }
+.vodev-slide-copy p { color: var(--text-muted); line-height: 1.55; }
+.vodev-slide-copy ul { display: grid; gap: 11px; margin: 26px 0 0; padding: 0; list-style: none; }
+.vodev-slide-copy li::before { content: '✓'; display: inline-grid; width: 24px; height: 24px; margin-right: 10px; place-items: center; border-radius: 50%; background: var(--surface-muted); color: var(--text); font-size: 14px; }
+.vodev-carousel-controls { display: flex; align-items: center; justify-content: center; gap: 22px; padding: 17px; border-top: 1px solid var(--border); }
+.vodev-arrow { width: 42px; height: 42px; padding: 0; border: 1px solid var(--border); border-radius: 50%; background: var(--surface); color: var(--text); font-size: 23px; line-height: 1; }
+.vodev-arrow:hover { background: var(--surface-muted); }
+.vodev-dots { display: flex; align-items: center; gap: 9px; }
+.vodev-dot { width: 9px; height: 9px; padding: 0; border-radius: 999px; background: var(--border); transition: width .2s ease, background .2s ease; }
+.vodev-dot.active { width: 27px; background: var(--text); }
+.vodev-sectors { padding-top: 25px; }
+.vodev-sector-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.vodev-sector-card { display: flex; min-height: 280px; flex-direction: column; align-items: flex-start; padding: 27px; border: 1px solid var(--border); border-radius: 22px; background: var(--surface); }
+.vodev-sector-active { background: var(--text); color: var(--page-bg); }
+.vodev-sector-icon { display: grid; width: 43px; height: 43px; place-items: center; border: 1px solid currentColor; border-radius: 12px; font-size: 26px; line-height: 1; }
+.vodev-sector-state { margin-top: 29px; font-size: 11px; font-weight: 800; letter-spacing: .15em; text-transform: uppercase; opacity: .75; }
+.vodev-sector-card h3 { margin: 9px 0 0; font-size: 27px; }
+.vodev-sector-card p { margin: 12px 0; line-height: 1.5; opacity: .8; }
+.vodev-sector-card a { margin-top: auto; color: inherit; font-weight: 700; text-decoration: underline; text-underline-offset: 4px; }
+.vodev-partners { padding-top: 30px; padding-bottom: 100px; }
+.vodev-partner-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; }
+.vodev-partner { display: grid; min-height: 200px; padding: 24px; box-sizing: border-box; place-items: center; gap: 16px; border: 1px solid var(--border); border-radius: 22px; background: var(--surface); text-align: center; }
+.vodev-partner img { max-width: 170px; max-height: 110px; object-fit: contain; }
+.vodev-partner strong { font-size: 17px; }
+.vodev-partner-placeholder { display: grid; width: 80px; height: 80px; place-items: center; border-radius: 18px; background: var(--surface-muted); font-size: 36px; font-weight: 800; }
+.vodev-empty { color: var(--text-muted); }
+.vodev-footer { display: flex; justify-content: space-between; gap: 20px; padding: 30px clamp(20px, 5vw, 64px); border-top: 1px solid var(--border); color: var(--text-muted); }
+.vodev-footer strong { color: var(--text); letter-spacing: .18em; }
+
+@media (max-width: 800px) {
+  .vodev-hero { grid-template-columns: 1fr; min-height: auto; gap: 30px; }
+  .vodev-hero-art { min-height: 300px; }
+  .vodev-hero-art img { min-height: 300px; }
+  .vodev-slide { grid-template-columns: 1fr; }
+  .vodev-slide-visual { min-height: 0; padding: 20px; }
+  .vodev-slide-visual img { max-height: 260px; }
+  .vodev-slide-copy { padding: 28px; }
+  .vodev-sector-grid { grid-template-columns: 1fr; }
+  .vodev-sector-card { min-height: 240px; }
+}
+
+@media (max-width: 480px) {
+  .vodev-hero, .vodev-solutions, .vodev-sectors, .vodev-partners { padding-left: 18px; padding-right: 18px; }
+  .vodev-hero h1 { font-size: clamp(38px, 11vw, 53px); }
+  .vodev-hero-art { min-height: 250px; border-radius: 24px; }
+  .vodev-hero-art img { min-height: 250px; }
+  .vodev-carousel { border-radius: 22px; }
+  .vodev-slide-copy { padding: 24px; }
+  .vodev-footer { flex-direction: column; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vodev-link, .vodev-dot { transition: none; }
+}

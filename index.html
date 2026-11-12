@@ -2,9 +2,25 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href="/vodev-favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Plataforma de clínicas</title>
+    <meta name="description" content="VODEV desarrolla CRM, puntos de venta y sistemas a medida para empresas de distintos sectores." />
+    <title>VODEV | Desarrollo de software para empresas</title>
+    <script>
+      (function () {
+        try {
+          const saved = localStorage.getItem('theme');
+          const theme = saved === 'light' || saved === 'dark'
+            ? saved
+            : (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+          document.documentElement.dataset.theme = theme;
+          document.documentElement.dataset.site = /^\/clinica-[a-z0-9-]+(?:\/|$)/.test(location.pathname) ? 'clinic' : 'platform';
+          document.documentElement.style.colorScheme = theme;
+        } catch {
+          document.documentElement.dataset.theme = 'light';
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

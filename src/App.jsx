@@ -34,7 +34,7 @@ function obtenerTemaInicial() {
     : 'light';
 }
 
-function App() {
+function App({ paginaInicial, rutaInicial = '' }) {
   const clinica = useClinica();
   const location = useLocation();
   const navigate = useNavigate();
@@ -42,6 +42,13 @@ function App() {
   const [userName, setUserName] = useState('');
   const [touchStart, setTouchStart] = useState(null);
   const isAdminRoute = location.pathname.startsWith('/admin');
+  const InicioPage = rutaInicial === '/' && paginaInicial?.pagina ? paginaInicial.pagina : Inicio;
+  const AgendarPage = rutaInicial === '/agendar' && paginaInicial?.pagina ? paginaInicial.pagina : AgendarCita;
+  const GaleriaPage = rutaInicial === '/galeria' && paginaInicial?.pagina ? paginaInicial.pagina : Galeria;
+  const LoginPage = rutaInicial === '/login' && paginaInicial?.pagina
+    ? paginaInicial.pagina
+    : rutaInicial.startsWith('/admin') && paginaInicial?.login ? paginaInicial.login : LoginAdmin;
+  const AdminPage = rutaInicial.startsWith('/admin') && paginaInicial?.pagina ? paginaInicial.pagina : PanelAdmin;
   const whatsappUrl = `https://wa.me/${clinica.telefono_whatsapp || ''}?text=${encodeURIComponent(
     'Hola, me gustaria solicitar informacion sobre terapia de comunicacion humana.'
   )}`;
@@ -205,15 +212,15 @@ function App() {
       >
         <Suspense fallback={<ClinicLoader clinica={clinica} label="Preparando la página..." />}>
           <Routes>
-            <Route path="/" element={<Inicio />} />
-            <Route path="/agendar" element={<AgendarCita />} />
-            <Route path="/galeria" element={<Galeria />} />
-            <Route path="/login" element={<LoginAdmin />} />
+            <Route path="/" element={<InicioPage />} />
+            <Route path="/agendar" element={<AgendarPage />} />
+            <Route path="/galeria" element={<GaleriaPage />} />
+            <Route path="/login" element={<LoginPage />} />
             <Route
               path="/admin/*"
               element={
-                <ProtectedRoute expectedClinicId={clinica.id} fallback={<LoginAdmin />}>
-                  <PanelAdmin />
+                <ProtectedRoute expectedClinicId={clinica.id} fallback={<LoginPage />}>
+                  {(role) => <AdminPage role={role} />}
                 </ProtectedRoute>
               }
             />
